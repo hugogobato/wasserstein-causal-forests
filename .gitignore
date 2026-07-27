@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.DS_Store
+.agents/
+.codex/
+outputs/
+colab_outputs/
+*.log
+Wasserstein_Distributional_Causal_Forests_Literature_Reading_List.md
+Wasserstein_Distributional_Causal_Forests_Theory_Plan.md
+wasserstein-distributional-causal-forests.md

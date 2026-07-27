@@ -1,0 +1,35 @@
+id,statement,primary_source_to_adapt,tag,owner,confidence
+C0.1,Every output maps to a frozen estimand,None,provable,WP0,High
+C0.2,Claims and assumptions have stable IDs,None,provable,WP0,High
+C1.1,The full proposed conjunction is absent from prior art,Live literature audit,conjecture,WP1,Medium-Low
+C2.1,Oracle finite target-vector identification from latent Q; feasible recovery requires A8,Standard conditional g-formula with Lin et al. as a distribution-valued template,provable,WP2,High
+C2.2,Low-dimensional/subgroup identification via full-X adjustment,Standard g-formula,provable,WP2,High
+C2.3,Nonlinear effects are not determined by mean quantile contrast,Original counterexample,provable,WP2,High
+C2.4,Finite-vector conditional double robustness for the oracle score,AIPW coordinatewise algebra,provable,WP2,High
+C2.5,Quantile-cone projection exists and is nonexpansive,Hilbert projection theorem,provable,WP2,High
+C3.1,A considered finite-sample candidate partition has positive realized gain exactly when a split-scaled child mean differs,Original finite-grid algebra,provable,WP3,High
+C3.2,Training-only scaling has a stable limit,GRF/DRF splitting,adapt,WP3,Medium
+C3.3,Shared multi-target forest has a useful Pareto frontier,None,conjecture,WP3/WP9,Low-Medium
+C4.1,Fixed-dimensional oracle forest consistency,Qiu Theorems 8–9; GRF,adapt,WP4,Medium-High
+C4.2,Explicit oracle bias/variance rate,Qiu Theorem 8; GRF,adapt,WP4,Medium
+C4.3,Nuisance oracle equivalence under product rates,ORF/R-learner,adapt,WP4,Medium
+C4.4,Joint fixed-dimensional forest CLT,"Qiu Theorem 14; Näf Theorem 6",conjecture,WP4,Medium-Low
+C5.1,Feasible-minus-oracle inner-sample decomposition,Lin Assumption 3,adapt,WP5,Medium
+C5.2,"Explicit (n,m,K) oracle-equivalence conditions",Lin Theorems 3–4,adapt,WP5,Medium
+C5.3,Two-stage bootstrap validity,Lin plus complex survey bootstrap,conjecture,WP5/WP7,Low-Medium
+C5.4,Sparse empirical-measure fallback consistency,Zhou and Müller,adapt,WP5,Medium
+C6.1,Grid error vanishes under explicit regularity,Approximation theory,adapt,WP6,Medium-High
+C6.2,Projection weakly improves arm L2 error,Projection theorem,adapt,WP6,High
+C6.3,Growing-grid functional forest limit,Näf Theorem 6,conjecture,WP6,Low
+C6.4,Projection is first-order negligible,Van Dijcke and Wüthrich,conjecture,WP6,Low-Medium
+C7.1,Honest subgroup joint asymptotic linearity,Lin Theorems 3–4,adapt,WP7,Medium-High
+C7.2,Joint multiplier/two-stage bootstrap,Lin/Näf,adapt,WP7,Medium
+C7.3,Low-dimensional conditional/projection inference,Conditional IF/GRF,adapt,WP7,Medium
+C7.4,Calibrated local forest intervals,GRF/Qiu/Näf,conjecture,WP7,Low
+C8.1,Weighting changes the target as stated,Direct expectation algebra,provable,WP8,High
+C8.2,Overlap trimming identifies a trimmed population effect,Standard causal inference,adapt,WP8,High
+C8.3,Coordinatewise confounding sensitivity bounds,To be selected,conjecture,WP8,Low-Medium
+OPEN-1,Spatial interference theorem,None,"conjecture, not claimed",WP8,Out of scope
+OPEN-2,Incumbent effects under migration,None,"conjecture, not claimed",WP8,Out of scope
+OPEN-3,Multivariate Wasserstein outcomes/topology,None,"conjecture, not claimed",Future,Out of scope
+OPEN-4,Arbitrary post-hoc functional inference,Impossible as stated,not claimed,All,Out of scope
