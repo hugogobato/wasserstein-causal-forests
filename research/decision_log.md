@@ -240,3 +240,54 @@ reproducible advantage from shared localization. Otherwise the decision is
 `PIVOT-INNER-SAMPLING` or `ABANDON`.
 
 Status: supersedes the broader reading of WP1-D011; G0 is conditional.
+
+## WP9-D015, second pilot design repair
+
+Date: 2026-07-28
+
+The first pilot (`eval-v2`, claim `WP9-T3-colab`) is complete and fails Gate G2
+on every decidable criterion. Before that failure can be read as evidence about
+the method, three defects in the pilot itself must be repaired.
+
+First, D0 through D5 ran only under `oracle_latent`, which supplies the exact
+latent quantile functions together with oracle nuisances. The AIPW score is then
+noiseless, and measured errors collapsed to between 1e-7 and 1e-16, with
+`rmse_functional_0` on D1 equal to 1.1e-16 for six methods. Those cells ranked
+floating-point behavior, not statistical performance, so they are uninformative
+rather than negative. Six of the seven pilot DGPs carried no statistical
+content, and D8 was the only cell with genuine sampling noise. The second pilot
+runs every DGP under `feasible_growing_inner`.
+
+Second, no `D8 x oracle_latent` cell was run, so the feasible-oracle gap in
+criterion 4 was undefined and `g2_checks.py` returned `null`. The second pilot
+adds that reference cell.
+
+Third, `worst_standardized_error` divided by the empirical standard deviation of
+the truth across units. On D4 most coordinates are constant, that scale collapsed
+to about zero, was floored at 1e-8, and inflated the metric to between 1e6 and
+1e7. It is the declared primary metric for D5 and D8, so it is now standardized
+by frozen constants declared in `sim.config.frozen_coordinate_scales`, identical
+across every DGP, regime, method, seed, and sample size. The evaluation manifest
+is tagged `eval-v3` and `merge_results.py` refuses to merge contracts.
+
+Separately, the tournament never included the closest published competitors
+required by WP9.2 and by the conditional G0 decision in WP1-D014. Ports of
+Causal-DRF, a FOCaL-style doubly robust functional meta-learner, and Du et al.
+Wasserstein Random Forests are added in `research/sim/incumbents.py`. They are
+reimplementations from published descriptions, not the authors' code, and must
+be reported with that provenance. `specialized_forest`, the separate-per-block
+ablation that matched or beat `odcf_composite` in essentially every first-pilot
+cell, remains the primary adversary.
+
+Two cost repairs make the noisy grid runnable: cross-fitted nuisances are now
+computed once per cell rather than refitted by each method, and the MMD split
+criterion scores candidate thresholds on a fixed per-node subsample of at most
+96 points, since it otherwise rebuilds a full kernel per threshold and makes
+tree growth quadratic in node size.
+
+This entry does not revise the G2 verdict. It records that the first pilot
+cannot support a verdict over D0 through D5 in either direction, and that the
+second pilot is the one diagnostic iteration permitted under the `UNCLEAR`
+label in WP9-T10.
+
+Status: frozen simulation-design repair before the second pilot.

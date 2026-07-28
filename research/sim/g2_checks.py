@@ -33,6 +33,35 @@ PRIMARY_METRIC = {
     "D8": "worst_standardized_error",
 }
 
+# Every challenge DGP is judged in the noisy regime.  Under oracle_latent the
+# scores are effectively noiseless and the errors sit at 1e-7..1e-16, so a
+# ratio computed there measures floating-point behavior, not performance.
+CHALLENGE_REGIME = "feasible_growing_inner"
+
+# Criterion 5 asks whether the focal method's behavior is reproduced by an
+# off-the-shelf competitor with the same score and scaling.  A raw inequality
+# of floating-point means is not evidence of a real difference, so the check
+# below requires a difference that is material relative to the incumbent, and
+# it now includes the three prior-art incumbents, not only the multi-output
+# forest.
+INCUMBENTS = (
+    "multi_output_dr_forest",
+    "causal_drf_port",
+    "focal_dr_meta_learner",
+    "wasserstein_random_forest",
+)
+MATERIAL_DIFFERENCE = 0.05
+
+# Criterion 3 requires a coherent Pareto gain rather than a win bought by
+# sacrificing every other target.  The focal method may not be worse than the
+# strongest baseline by more than this margin on any secondary metric of a
+# challenge DGP it claims to win.
+PARETO_TOLERANCE = 0.10
+SECONDARY_METRICS = (
+    "ise_curve", "rmse_functional_0", "rmse_functional_1",
+    "rmse_functional_2", "worst_standardized_error",
+)
+
 
 def load_rows(path: str | Path) -> list[dict]:
     rows = json.loads(Path(path).read_text())
@@ -70,25 +99,53 @@ def check_g2(rows: list[dict]) -> dict:
         key: len(value) >= 30 for key, value in seeds.items()
     }
     challenge_improvements = {}
+    challenge_best_baseline = {}
     for dgp in CHALLENGE_DGPS:
-        regime = "feasible_growing_inner" if dgp == "D8" else "oracle_latent"
         metric = PRIMARY_METRIC[dgp]
-        focal = _value(means, dgp, regime, FOCAL, metric)
-        baseline_values = [
-            value for (dd, rr, method, mm), value in means.items()
-            if dd == dgp and rr == regime and mm == metric
+        focal = _value(means, dgp, CHALLENGE_REGIME, FOCAL, metric)
+        baselines = {
+            method: value
+            for (dd, rr, method, mm), value in means.items()
+            if dd == dgp and rr == CHALLENGE_REGIME and mm == metric
             and method not in {FOCAL, BOOTSTRAP}
-        ]
-        if focal is None or not baseline_values:
+        }
+        if focal is None or not baselines:
             challenge_improvements[dgp] = None
+            challenge_best_baseline[dgp] = None
         else:
-            best = min(baseline_values)
+            best_method = min(baselines, key=baselines.get)
+            best = baselines[best_method]
             challenge_improvements[dgp] = (best - focal) / max(best, 1e-12)
+            challenge_best_baseline[dgp] = best_method
+
+    # Criterion 3: on every DGP the focal method claims to win, it must not be
+    # materially worse than the strongest baseline on any secondary metric.
+    pareto_violations = []
+    for dgp, improvement in challenge_improvements.items():
+        if improvement is None or improvement < 0.15:
+            continue
+        for metric in SECONDARY_METRICS:
+            if metric == PRIMARY_METRIC[dgp]:
+                continue
+            focal = _value(means, dgp, CHALLENGE_REGIME, FOCAL, metric)
+            others = [
+                value for (dd, rr, method, mm), value in means.items()
+                if dd == dgp and rr == CHALLENGE_REGIME and mm == metric
+                and method not in {FOCAL, BOOTSTRAP}
+            ]
+            if focal is None or not others:
+                continue
+            best = min(others)
+            if focal > (1.0 + PARETO_TOLERANCE) * max(best, 1e-12):
+                pareto_violations.append(
+                    {"dgp": dgp, "metric": metric,
+                     "focal": focal, "best_baseline": best}
+                )
 
     easy_d1 = {}
-    focal_curve = _value(means, "D1", "oracle_latent", FOCAL, "ise_curve")
+    focal_curve = _value(means, "D1", CHALLENGE_REGIME, FOCAL, "ise_curve")
     pointwise_curve = _value(
-        means, "D1", "oracle_latent", POINTWISE, "ise_curve"
+        means, "D1", CHALLENGE_REGIME, POINTWISE, "ise_curve"
     )
     easy_d1["curve"] = (
         focal_curve is not None and pointwise_curve is not None
@@ -96,28 +153,38 @@ def check_g2(rows: list[dict]) -> dict:
     )
     functional_checks = []
     for j in range(3):
-        focal = _value(means, "D1", "oracle_latent", FOCAL, f"rmse_functional_{j}")
+        focal = _value(means, "D1", CHALLENGE_REGIME, FOCAL, f"rmse_functional_{j}")
         scalar = _value(
-            means, "D1", "oracle_latent", SCALAR, f"rmse_functional_{j}"
+            means, "D1", CHALLENGE_REGIME, SCALAR, f"rmse_functional_{j}"
         )
         functional_checks.append(
             focal is not None and scalar is not None and focal <= 1.10 * scalar
         )
     easy_d1["functional"] = all(functional_checks)
 
-    different_from_multi_output = False
-    for key, focal_value in means.items():
-        dgp, regime, method, metric = key
-        if method != FOCAL or metric == "runtime_seconds":
-            continue
-        incumbent = means.get((dgp, regime, MULTI_OUTPUT, metric))
-        if incumbent is not None and abs(focal_value - incumbent) > 1e-12:
-            different_from_multi_output = True
-            break
+    # Criterion 5, against every incumbent rather than only the multi-output
+    # forest, and requiring a materially different number rather than any
+    # nonzero floating-point gap.
+    incumbent_gaps = {}
+    for incumbent_name in INCUMBENTS:
+        gaps = []
+        for key, focal_value in means.items():
+            dgp, regime, method, metric = key
+            if method != FOCAL or metric == "runtime_seconds":
+                continue
+            incumbent = means.get((dgp, regime, incumbent_name, metric))
+            if incumbent is None:
+                continue
+            gaps.append(abs(focal_value - incumbent) / max(abs(incumbent), 1e-12))
+        incumbent_gaps[incumbent_name] = max(gaps) if gaps else None
+    measured_gaps = [gap for gap in incumbent_gaps.values() if gap is not None]
+    different_from_incumbents = bool(measured_gaps) and all(
+        gap >= MATERIAL_DIFFERENCE for gap in measured_gaps
+    )
 
     oracle = _value(means, "D8", "oracle_latent", FOCAL, "worst_standardized_error")
-    feasible = _value(means, "D8", "feasible_growing_inner", FOCAL, "worst_standardized_error")
-    corrected = _value(means, "D8", "feasible_growing_inner", BOOTSTRAP, "worst_standardized_error")
+    feasible = _value(means, "D8", CHALLENGE_REGIME, FOCAL, "worst_standardized_error")
+    corrected = _value(means, "D8", CHALLENGE_REGIME, BOOTSTRAP, "worst_standardized_error")
     if oracle is None or feasible is None or corrected is None:
         inner_sampling = None
     else:
@@ -129,24 +196,23 @@ def check_g2(rows: list[dict]) -> dict:
             "reduced_by_20_percent": corrected_gap <= 0.80 * plain_gap,
         }
 
-    required_cells = [
-        (dgp, "feasible_growing_inner" if dgp == "D8" else "oracle_latent")
-        for dgp in CHALLENGE_DGPS
-    ] + [("D1", "oracle_latent")]
+    required_cells = [(dgp, CHALLENGE_REGIME) for dgp in CHALLENGE_DGPS]
+    required_cells += [("D1", CHALLENGE_REGIME), ("D8", "oracle_latent")]
     enough_replicates = all(complete_cells.get(cell, False) for cell in required_cells)
     improvements = [value for value in challenge_improvements.values() if value is not None]
+    wins = [value for value in improvements if value >= 0.15]
     result = {
         "enough_replicates": enough_replicates,
+        "challenge_regime": CHALLENGE_REGIME,
         "challenge_improvements": challenge_improvements,
-        "criterion_1_two_fifteen_percent_wins": len(
-            [value for value in improvements if value >= 0.15]
-        ) >= 2,
+        "challenge_best_baseline": challenge_best_baseline,
+        "criterion_1_two_fifteen_percent_wins": len(wins) >= 2,
         "criterion_2_easy_D1": bool(easy_d1["curve"] and easy_d1["functional"]),
-        "criterion_3_coherent_pareto": len(
-            [value for value in improvements if value >= 0.15]
-        ) >= 2,
+        "criterion_3_coherent_pareto": bool(len(wins) >= 2 and not pareto_violations),
+        "criterion_3_pareto_violations": pareto_violations,
         "criterion_4_inner_sampling": inner_sampling,
-        "criterion_5_not_exact_multi_output": different_from_multi_output,
+        "criterion_5_not_replicated_by_incumbents": different_from_incumbents,
+        "criterion_5_incumbent_max_relative_gaps": incumbent_gaps,
         "complete_cells": {str(key): value for key, value in complete_cells.items()},
     }
     result["gate_pass"] = bool(
@@ -154,7 +220,7 @@ def check_g2(rows: list[dict]) -> dict:
         and result["criterion_1_two_fifteen_percent_wins"]
         and result["criterion_2_easy_D1"]
         and result["criterion_3_coherent_pareto"]
-        and result["criterion_5_not_exact_multi_output"]
+        and result["criterion_5_not_replicated_by_incumbents"]
     )
     return result
 

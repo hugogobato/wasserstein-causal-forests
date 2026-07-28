@@ -44,6 +44,26 @@ def _write_checkpoint(path: str, rows: list[dict]) -> None:
     output.write_text(json.dumps(rows, indent=2, default=str))
 
 
+MAX_SHARDS = 64
+
+# Second-pilot regime grid.
+#
+# The first pilot ran D0-D5 only under ``oracle_latent``, which hands the exact
+# latent quantile functions to every method.  With oracle nuisances the AIPW
+# score is then noiseless, and the measured errors collapsed to 1e-7..1e-16,
+# i.e. the tournament ranked floating-point artifacts rather than statistical
+# performance.  D8 was the only cell with genuine sampling noise.  The default
+# below therefore runs every DGP under ``feasible_growing_inner``, where each
+# region is observed through a finite inner sample and nuisances are
+# cross-fitted.  D8 additionally keeps its ``oracle_latent`` reference cell,
+# without which the feasible-oracle gap in Gate G2 criterion 4 is undefined,
+# and its ``empirical_proxy`` stress branch.
+DEFAULT_REGIMES_BY_DGP: dict[str, tuple[str, ...]] = {
+    "D8": ("oracle_latent", "feasible_growing_inner", "empirical_proxy"),
+}
+DEFAULT_REGIME = ("feasible_growing_inner",)
+
+
 def build_simulation_tasks(
     dgp_names: tuple[str, ...] = ("D0", "D1", "D2", "D3", "D4", "D5", "D8"),
     n_regions_list: tuple[int, ...] = (500, 1000),
@@ -67,8 +87,8 @@ def build_simulation_tasks(
     if (shard_index is None) != (num_shards is None):
         raise ValueError("shard_index and num_shards must be supplied together")
     if num_shards is not None:
-        if not isinstance(num_shards, int) or not 1 <= num_shards <= 27:
-            raise ValueError("num_shards must be an integer between 1 and 27")
+        if not isinstance(num_shards, int) or not 1 <= num_shards <= MAX_SHARDS:
+            raise ValueError(f"num_shards must be an integer between 1 and {MAX_SHARDS}")
         if not isinstance(shard_index, int) or not 0 <= shard_index < num_shards:
             raise ValueError("shard_index must lie in [0, num_shards)")
 
@@ -77,10 +97,7 @@ def build_simulation_tasks(
         for n_regions in n_regions_list:
             dgp_regimes = regimes
             if dgp_regimes is None:
-                dgp_regimes = (
-                    ("feasible_growing_inner", "empirical_proxy")
-                    if dgp_name == "D8" else ("oracle_latent",)
-                )
+                dgp_regimes = DEFAULT_REGIMES_BY_DGP.get(dgp_name, DEFAULT_REGIME)
             for regime in dgp_regimes:
                 for seed in range(n_seeds):
                     tasks.append((
@@ -94,8 +111,21 @@ def build_simulation_tasks(
 
 
 def _make_evaluation_manifest_id(dgp: DGPResult) -> str:
+    """Identify the evaluation contract of a row.
+
+    Bumped to v3 for the second pilot: worst_standardized_error now uses the
+    frozen standardizer from sim.config instead of a realization-dependent
+    empirical standard deviation.  v2 and v3 rows are not comparable on that
+    metric and the differing tag prevents them being merged by accident.
+    """
     proxy = "latent" if dgp.observation_regime != "empirical_proxy" else "proxyMC8"
-    return f"eval-v2-{dgp.name}-seed{dgp.seed}-K{dgp.K}-J{dgp.J}-n{len(dgp.X_eval)}-{proxy}"
+    return (
+        f"eval-v3-{dgp.name}-seed{dgp.seed}-K{dgp.K}-J{dgp.J}"
+        f"-n{len(dgp.X_eval)}-{proxy}-fixedscale"
+    )
+
+
+_SCORE_CACHE_ATTR = "_wp9_score_input_cache"
 
 
 def _observed_score_inputs(
@@ -103,7 +133,21 @@ def _observed_score_inputs(
     n_folds: int,
     seed: int,
 ) -> tuple[np.ndarray, np.ndarray, Optional[float]]:
-    """Return observed U, cross-fitted/oracle scores, and known propensity."""
+    """Return observed U, cross-fitted/oracle scores, and known propensity.
+
+    Cached per simulation cell: the four ODCF variants and the specialized
+    forest all consume the same deterministic scores, so cross-fitting once is
+    arithmetically identical and much cheaper in the feasible regime.
+    """
+    cache = getattr(dgp, _SCORE_CACHE_ATTR, None)
+    if cache is None:
+        cache = {}
+        setattr(dgp, _SCORE_CACHE_ATTR, cache)
+    key = (int(n_folds), int(seed))
+    if key in cache:
+        U_obs, scores, known = cache[key]
+        return U_obs.copy(), scores.copy(), known
+
     n = len(dgp.X)
     known_propensity = _known_design_propensity(dgp)
     if dgp.observation_regime == "oracle_latent":
@@ -117,7 +161,8 @@ def _observed_score_inputs(
         scores = oracle_dr_scores(
             U_obs, z, dgp.true_propensity, dgp.true_m0, dgp.true_m1
         )
-        return U_obs, scores, known_propensity
+        cache[key] = (U_obs, scores, known_propensity)
+        return U_obs.copy(), scores.copy(), known_propensity
 
     U_obs = np.array([
         empirical_u_vector(samp, QUANTILE_GRID, FUNCTIONAL_GRID, FW)
@@ -131,7 +176,8 @@ def _observed_score_inputs(
         random_state=seed,
         known_propensity=known_propensity,
     )
-    return U_obs, cf.scores, known_propensity
+    cache[key] = (U_obs, cf.scores, known_propensity)
+    return U_obs.copy(), cf.scores.copy(), known_propensity
 
 
 def run_odcf_variant(
@@ -327,7 +373,15 @@ if __name__ == "__main__":
     parser.add_argument("--dgps", nargs="+", default=["D0", "D1", "D4"])
     parser.add_argument("--n", nargs="+", type=int, default=[200])
     parser.add_argument("--seeds", type=int, default=3)
-    parser.add_argument("--regime", default="auto")
+    parser.add_argument(
+        "--regime", nargs="+", default=["auto"],
+        help="'auto' uses the per-DGP default grid; otherwise one or more "
+             "observation regimes applied to every requested DGP",
+    )
+    parser.add_argument(
+        "--methods", nargs="+", default=list(METHOD_NAMES),
+        help="subset of methods to run; defaults to the full tournament",
+    )
     parser.add_argument("--n_trees", type=int, default=50)
     parser.add_argument("--n_eval", type=int, default=200)
     parser.add_argument("--workers", type=int, default=1)
@@ -342,12 +396,18 @@ if __name__ == "__main__":
         f"Running {args.dgps} n={args.n} regime={args.regime} seeds={args.seeds} "
         f"shard={args.shard_index}/{args.num_shards}"
     )
-    requested_regimes = None if args.regime == "auto" else (args.regime,)
+    requested_regimes = (
+        None if tuple(args.regime) == ("auto",) else tuple(args.regime)
+    )
+    unknown = set(args.methods).difference(METHOD_NAMES)
+    if unknown:
+        raise SystemExit(f"unknown methods requested: {sorted(unknown)}")
     results = run_simulation(
         dgp_names=tuple(args.dgps),
         n_regions_list=tuple(args.n),
         regimes=requested_regimes,
         n_seeds=args.seeds,
+        methods=tuple(args.methods),
         n_trees=args.n_trees,
         n_eval=args.n_eval,
         workers=args.workers,

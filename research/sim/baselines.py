@@ -6,7 +6,9 @@ from typing import Optional
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 
-from sim.config import QUANTILE_GRID, FUNCTIONAL_GRID, L_FUNCTIONAL
+from sim.config import (
+    QUANTILE_GRID, FUNCTIONAL_GRID, L_FUNCTIONAL, PRIOR_ART_METHODS,
+)
 from sim.dgps import FW, trapezoidal_weights
 from sim.dgps import DGPResult, u_matrix, u_vector, functional_vector_3
 from wp3_odcf import ODCFEstimator
@@ -87,9 +89,28 @@ def _cross_fit_nuisances(
     return e, m0, m1
 
 
+_DR_INPUT_CACHE_ATTR = "_wp9_dr_input_cache"
+
+
 def _dr_inputs(
     dgp: DGPResult, n_folds: int, seed: int,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Return observed U and nuisances, cached per simulation cell.
+
+    Cross-fitting is deterministic given ``(n_folds, seed)``, but a dozen
+    methods in one cell each used to refit the same 5-fold, 52-output nuisance
+    forests.  Caching on the DGP instance is arithmetically identical and is
+    the single largest cost saving in the feasible regime.
+    """
+    cache = getattr(dgp, _DR_INPUT_CACHE_ATTR, None)
+    if cache is None:
+        cache = {}
+        setattr(dgp, _DR_INPUT_CACHE_ATTR, cache)
+    key = (int(n_folds), int(seed))
+    if key in cache:
+        U_obs, e, m0, m1 = cache[key]
+        return U_obs.copy(), e.copy(), m0.copy(), m1.copy()
+
     U_obs = _observed_U(dgp)
     known = _known_design_propensity(dgp)
     if dgp.observation_regime == "oracle_latent":
@@ -98,7 +119,9 @@ def _dr_inputs(
         e, m0, m1 = _cross_fit_nuisances(
             dgp.X, dgp.Z, U_obs, n_folds, seed, known_propensity=known
         )
-    return U_obs, e, m0, m1
+    e, m0, m1 = np.asarray(e), np.asarray(m0), np.asarray(m1)
+    cache[key] = (U_obs, e, m0, m1)
+    return U_obs.copy(), e.copy(), m0.copy(), m1.copy()
 
 
 def _oracle_nuisances(dgp: DGPResult) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -240,6 +263,10 @@ def run_baseline(
             return fit_drf_inspired_arm_mmd(dgp, n_trees, seed)
         elif method == "global_dr_estimator":
             return fit_global_dr_estimator(dgp, n_trees, seed)
+        elif method in PRIOR_ART_METHODS:
+            # Imported lazily: sim.incumbents imports from this module.
+            from sim.incumbents import run_incumbent
+            return run_incumbent(dgp, method, n_trees, n_folds, seed)
         else:
             raise ValueError(f"unsupported simulation baseline: {method}")
     except Exception as exc:

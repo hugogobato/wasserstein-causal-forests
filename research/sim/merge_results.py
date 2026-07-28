@@ -16,11 +16,21 @@ CellKey = tuple[str, int, str, int]
 ResultKey = tuple[str, int, str, int, str, str]
 
 
+def _manifest_version(row: dict) -> str:
+    parts = str(row["evaluation_manifest_id"]).split("-")
+    if len(parts) < 2 or not parts[1].startswith("v"):
+        raise ValueError(
+            f"cannot read an evaluation contract version from {row['evaluation_manifest_id']!r}"
+        )
+    return parts[1]
+
+
 def load_rows(paths: list[str | Path]) -> list[dict]:
-    """Load shard files and reject duplicate cells or result rows."""
+    """Load shard files and reject duplicate cells, rows, or mixed contracts."""
     merged: list[dict] = []
     seen_cells: set[CellKey] = set()
     seen_results: set[ResultKey] = set()
+    versions: set[str] = set()
     for raw_path in paths:
         path = Path(raw_path)
         rows = json.loads(path.read_text())
@@ -28,6 +38,16 @@ def load_rows(paths: list[str | Path]) -> list[dict]:
             raise ValueError(f"{path} must contain a JSON list")
         validate_result_rows(rows)
         for row in rows:
+            # v2 rows standardized worst_standardized_error by a
+            # realization-dependent empirical scale and v3 rows use the frozen
+            # scale, so the two are not comparable on that metric.  Merging them
+            # would silently average incompatible numbers.
+            versions.add(_manifest_version(row))
+            if len(versions) > 1:
+                raise ValueError(
+                    "inputs mix evaluation contract versions "
+                    f"{sorted(versions)}; merge each pilot separately"
+                )
             cell = (
                 row["dgp_id"], row["n_regions"],
                 row["observation_regime"], row["seed"],
@@ -55,7 +75,9 @@ def main() -> None:
         (row["dgp_id"], row["n_regions"], row["observation_regime"], row["seed"])
         for row in rows
     }
+    methods = {row["method"] for row in rows}
     print(f"Merged {len(args.inputs)} files, {len(cells)} cells, {len(rows)} rows")
+    print(f"Contract: {_manifest_version(rows[0])}, {len(methods)} methods")
     print(f"Wrote {output}")
 
 

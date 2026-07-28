@@ -24,6 +24,13 @@ import numpy as np
 Array = np.ndarray
 DEFAULT_RANDOM_STATE = 20260727
 
+# Maximum number of split-sample points used to score MMD candidate splits at
+# one node.  The MMD gain rebuilds a |node| x |node| Gaussian kernel for every
+# candidate threshold, so tree growth is quadratic in the node size; without a
+# cap the WP9 pilot is not runnable at n=1000.  Set to None to score every
+# candidate on the full node.
+DEFAULT_MMD_MAX_NODE_SAMPLE = 96
+
 
 def _as_2d(values: Array, name: str) -> Array:
     values = np.asarray(values, dtype=float)
@@ -414,6 +421,7 @@ class HonestTree:
         noise_variances: Optional[Array] = None,
         active_coordinates: Optional[Sequence[int]] = None,
         coordinate_scales: Optional[Array] = None,
+        mmd_max_node_sample: Optional[int] = DEFAULT_MMD_MAX_NODE_SAMPLE,
     ) -> "HonestTree":
         X = _as_2d(X, "X")
         values = _as_2d(values, "values")
@@ -474,6 +482,10 @@ class HonestTree:
         mtry = min(_require_integer(mtry, "mtry", minimum=1), X.shape[1])
         if split_rule not in {"sse", "mmd"}:
             raise ValueError("split_rule must be 'sse' or 'mmd'")
+        if mmd_max_node_sample is not None:
+            mmd_max_node_sample = _require_integer(
+                mmd_max_node_sample, "mmd_max_node_sample", minimum=4
+            )
         if not 0 < min_child_fraction <= 0.5:
             raise ValueError("min_child_fraction must lie in (0, 0.5]")
         if noise_variances is not None:
@@ -504,7 +516,33 @@ class HonestTree:
             leaf_populations[next_leaf_id] = node.population_indices.copy()
             next_leaf_id += 1
 
-        def candidate_gain(parent: Array, left: Array, right: Array) -> float:
+        def mmd_evaluation_subset(node_indices: Array) -> Optional[Array]:
+            """Fixed per-node subsample on which every threshold is scored.
+
+            The MMD criterion rebuilds a |node| x |node| Gaussian kernel for
+            each candidate threshold, so an unrestricted node makes tree growth
+            quadratic in the node size and the pilot infeasible at n=1000.  The
+            subset is drawn once per node, so all thresholds in that node are
+            compared on identical data and remain rankable; the estimate is the
+            same MMD statistic computed on a random subsample of the node.
+            """
+            if mmd_max_node_sample is None or len(node_indices) <= mmd_max_node_sample:
+                return None
+            return rng.choice(node_indices, size=mmd_max_node_sample, replace=False)
+
+        def candidate_gain(
+            parent: Array,
+            left: Array,
+            right: Array,
+            evaluation_subset: Optional[Array] = None,
+        ) -> float:
+            if split_rule == "mmd" and evaluation_subset is not None:
+                keep = np.isin(parent, evaluation_subset)
+                parent = parent[keep]
+                left = left[np.isin(left, evaluation_subset)]
+                right = right[np.isin(right, evaluation_subset)]
+                if len(left) == 0 or len(right) == 0:
+                    return -np.inf
             if split_rule == "sse":
                 gain = split_gain(
                     values[:, active], parent, left, right, active_weights
@@ -546,6 +584,10 @@ class HonestTree:
                 return node
 
             features = rng.choice(X.shape[1], size=mtry, replace=False)
+            evaluation_subset = (
+                mmd_evaluation_subset(split_node_indices)
+                if split_rule == "mmd" else None
+            )
             best = None
             for feature in features:
                 unique = np.unique(X[split_node_indices, feature])
@@ -576,7 +618,9 @@ class HonestTree:
                         < min_child_fraction
                     ):
                         continue
-                    gain = candidate_gain(split_node_indices, left, right)
+                    gain = candidate_gain(
+                        split_node_indices, left, right, evaluation_subset
+                    )
                     if best is None or gain > best[0]:
                         best = (
                             gain,
@@ -929,6 +973,7 @@ class ODCFEstimator:
     quadrature_weights: Optional[Array] = None
     active_coordinates: Optional[Sequence[int]] = None
     inner_noise_correction: bool = False
+    mmd_max_node_sample: Optional[int] = DEFAULT_MMD_MAX_NODE_SAMPLE
     trees: list[HonestTree] = field(default_factory=list, init=False)
     scaler: Optional[CoordinateScaler] = field(default=None, init=False)
     X_train: Optional[Array] = field(default=None, init=False)
@@ -1074,6 +1119,7 @@ class ODCFEstimator:
                 noise_variances=tree_noise,
                 active_coordinates=active,
                 coordinate_scales=tree_scaler.scales,
+                mmd_max_node_sample=self.mmd_max_node_sample,
             )
             self.trees.append(tree)
         return self

@@ -2,7 +2,7 @@ from typing import Optional
 
 import numpy as np
 
-from sim.config import QUANTILE_GRID, METHOD_NAMES
+from sim.config import QUANTILE_GRID, METHOD_NAMES, frozen_coordinate_scales
 from sim.dgps import DGPResult
 
 
@@ -40,15 +40,19 @@ def worst_coordinate_standardized_error(
     if not np.any(available):
         raise ValueError("no finite coordinates are available for standardization")
     if scales is None:
-        scales = np.std(true, axis=0, ddof=1 if len(true) > 1 else 0)
+        raise ValueError(
+            "a frozen standardizer must be supplied; the realization-dependent "
+            "empirical standard deviation degenerates on constant coordinates"
+        )
     scales = np.asarray(scales, dtype=float)
     if scales.shape != (available.shape[0],):
         raise ValueError("standardizer has the wrong number of coordinates")
+    if np.any(scales <= 0) or not np.all(np.isfinite(scales)):
+        raise ValueError("standardizer entries must be finite and positive")
     pred = pred[:, available]
     true = true[:, available]
     mse_per_coord = np.mean((pred - true) ** 2, axis=0)
     scales = scales[available]
-    scales = np.maximum(scales, 1e-8)
     standardized = np.sqrt(mse_per_coord) / scales
     return float(np.max(standardized))
 
@@ -112,10 +116,9 @@ def compute_metrics(
         )
     K, J = dgp.K, dgp.J
 
-    truth_stack = np.vstack([dgp.true_m0, dgp.true_m1])
-    truth_scales = np.std(
-        truth_stack, axis=0, ddof=1 if len(truth_stack) > 1 else 0
-    )
+    # Frozen, realization-independent standardizer.  See the rationale on
+    # sim.config.frozen_coordinate_scales.
+    truth_scales = frozen_coordinate_scales(K, J)
 
     base = dict(
         claim_id=claim_id,
