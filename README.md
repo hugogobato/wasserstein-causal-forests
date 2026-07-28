@@ -49,13 +49,16 @@ The runner parallelizes complete simulation cells with processes. Each inner sci
 
 ## Colab workflow
 
-The `colab/` directory contains three notebooks:
+The `colab/` directory contains reusable notebooks and 27 standalone shard notebooks:
 
 1. `00_setup.ipynb` installs dependencies and checks the checkout.
 2. `01_run_shard.ipynb` runs one deterministic shard of the WP9 task list.
 3. `02_merge_and_analyze.ipynb` merges shard JSON files, runs G2, and produces compact summary tables and plots.
+4. `shards/wp9_shard_00.ipynb` through `shards/wp9_shard_26.ipynb` are upload-and-run notebooks with fixed shard indices.
 
-The shard notebook accepts `SHARD_INDEX` in `[0, 26]` and uses `NUM_SHARDS=27`. Open the same notebook in 27 Colab sessions, set a different shard index in each session, and write each result to a different Google Drive path or download it immediately. The shard assignment is based on a deterministic global task list, so every cell belongs to exactly one shard. Do not let two sessions write to the same output JSON file.
+For the easiest workflow, upload one of the 27 files in `colab/shards/` to each Colab session and choose **Runtime → Run all**. Each file uses a fixed `SHARD_INDEX`, writes `wp9_shard_XX.json` in the Colab runtime, and downloads that file automatically when finished. The shard assignment is based on a deterministic global task list, so every cell belongs to exactly one shard.
+
+Alternatively, use `01_run_shard.ipynb` repeatedly and edit its `SHARD_INDEX` cell.
 
 The notebooks use the following repository URL by default:
 
