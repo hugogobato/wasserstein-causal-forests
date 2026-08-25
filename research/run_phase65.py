@@ -36,6 +36,13 @@ from pathlib import Path  # noqa: E402
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+# The Causal-DRF driver requires the authors' causal-clean package from the
+# project-local library; without this variable the R subprocess loads CRAN
+# drf, which rejects the treatment argument. Same contract as Track B.
+_CAUSAL_LIB = ROOT / "results" / "Rlib" / "causal_drf"
+if (_CAUSAL_LIB / "drf").is_dir():
+    os.environ["WCF_CAUSAL_DRF_R_LIB"] = str(_CAUSAL_LIB)
+
 from wasserstein_causal_forests.g3.manifest import Cell  # noqa: E402
 from wasserstein_causal_forests.g3.phase65 import (  # noqa: E402
     PHASE65_CONTRACT_ID,
@@ -127,21 +134,24 @@ def run(arguments: argparse.Namespace) -> int:
     if not MANIFEST_PATH.exists():
         print("manifest not frozen; run `freeze` first", file=sys.stderr)
         return 1
-    if arguments.track and arguments.track == "c":
-        selection = ROOT / "results" / "manifests" / \
-            "phase65_bandwidth_selection.json"
-        if not selection.exists():
-            print(
-                "the bandwidth-selection document does not exist; run the "
-                "selection pilot before any decisive retune cell",
-                file=sys.stderr,
-            )
-            return 1
     document = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
     cells = [dict(item) for item in document["cells"]]
     if arguments.track:
         keep = TRACK_GRIDS[arguments.track]
         cells = [item for item in cells if item["grid"] in keep]
+    # The decisive retune cells refuse to run without the frozen selection,
+    # so a launch containing them must not start without the document either.
+    if any(item["method"] == "causal_drf_retn" for item in cells):
+        selection = ROOT / "results" / "manifests" / \
+            "phase65_bandwidth_selection.json"
+        if not selection.exists():
+            print(
+                "the bandwidth-selection document does not exist; run "
+                "`python research/checks/phase65_bandwidth_pilot.py` before "
+                "any decisive retune cell",
+                file=sys.stderr,
+            )
+            return 1
     if arguments.dgp:
         wanted = set(arguments.dgp.split(","))
         cells = [item for item in cells if item["dgp"] in wanted]

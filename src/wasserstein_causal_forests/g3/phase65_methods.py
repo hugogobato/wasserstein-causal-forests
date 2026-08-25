@@ -79,17 +79,12 @@ def select_bandwidth_multiplier(
     """Pick the retune multiplier on held-out energy score.
 
     For each pilot seed the sample is split arm-stratified into a fitting half
-    and a scoring half. One forest is fitted per candidate on the fitting half,
-    and the candidate's score is the mean energy risk of its arm-law estimate
-    against the held-out rows' realised outcome distributions, a proper score,
-    so the rule cannot be gamed by oracle quantities. Oracle truth is never
-    read.
-
-    The multiplier enters as exact outcome rescaling: with
-    ``response.scaling = FALSE`` and the data-driven bandwidth, every kernel
-    quantity of the fit on ``Q / m`` equals the corresponding quantity of a fit
-    at bandwidth ``m`` times the default, so the untouched published driver
-    implements the whole candidate grid without modification.
+    and a scoring half. One forest is fitted per candidate on the fitting half
+    with an explicit kernel bandwidth of ``candidate`` times the data-driven
+    default, and the candidate's score is the mean energy risk of its arm-law
+    estimate against the held-out rows' realised outcome distributions on the
+    original scale, a proper score, so the rule cannot be gamed by oracle
+    quantities. Oracle truth is never read.
     """
 
     scores: dict[float, list[float]] = {c: [] for c in candidates}
@@ -100,27 +95,31 @@ def select_bandwidth_multiplier(
         validation = fold >= 0.5
         for candidate in candidates:
             result = r_bridge.fit_predict(
-                "causal_drf",
+                "causal_drf_retn",
                 X_train=sample.X[~validation],
                 treatment=sample.treatment[~validation],
-                Q_train=sample.quantiles[~validation] / candidate,
+                Q_train=sample.quantiles[~validation],
                 X_test=sample.X[validation],
                 quad_weights=dgp.grid.weights,
                 reference_quantiles=dgp.grid.reference_quantiles(),
-                hyperparameters={},
+                hyperparameters={"bandwidth_multiplier": candidate},
                 seed=seed,
                 cache_directory=cache_directory,
             )
             total = 0.0
             for arm, matrix in result.weights.items():
+                # Weights from the rescaled fit, atoms and realised outcomes
+                # on the original scale: the score must not shrink with the
+                # candidate's units.
                 law = LawPrediction.from_forest_weights(
-                    sample.quantiles[~validation] / candidate, matrix
+                    sample.quantiles[~validation], matrix
                 )
-                realised = (
-                    sample.quantiles[validation][:, None, :] / candidate
-                )
+                # One realised outcome distribution per held-out row: a
+                # single truth node of weight one, which is exactly the
+                # proper energy score S(P̂, y).
+                realised = sample.quantiles[validation][:, None, :]
                 total += float(np.mean(energy_risk_against_truth(
-                    law, realised, np.ones(int(validation.sum())),
+                    law, realised, np.ones(1),
                     dgp.grid.weights, epsilon=1e-3,
                 )))
             scores[candidate].append(total / 2.0)
@@ -215,13 +214,13 @@ class LogForestAdapter:
 class RetunedCausalDRFAdapter:
     """Causal-DRF at a frozen, held-out-selected kernel bandwidth multiplier.
 
-    The multiplier enters as exact outcome rescaling. With
-    ``response.scaling = FALSE`` and the data-driven bandwidth, fitting on
-    ``Q / m`` reproduces, kernel value for kernel value, the fit that would
-    have run at bandwidth ``m`` times the default; the arm weights returned by
-    the untouched published driver therefore apply to the original-scale atom
-    bank directly. Everything except the effective bandwidth follows the
-    authors' call path.
+    The dedicated driver passes ``bandwidth = multiplier * default`` into the
+    authors' fit call, which the causal-clean package exposes for exactly this
+    purpose; everything else follows their published path. (An earlier design
+    entered the multiplier as outcome rescaling and was dropped before any
+    decisive cell: with the data-driven median-heuristic bandwidth the whole
+    pipeline is exactly scale invariant, so rescaling provably changes nothing,
+    which the pilot confirmed by returning identical weights per candidate.)
     """
 
     produces_law = True
@@ -253,14 +252,14 @@ class RetunedCausalDRFAdapter:
             )
         before = peak_ram_mb()
         result = r_bridge.fit_predict(
-            "causal_drf",
+            "causal_drf_retn",
             X_train=train.X,
             treatment=train.treatment,
-            Q_train=train.quantiles / multiplier,
+            Q_train=train.quantiles,
             X_test=X_test,
             quad_weights=dgp.grid.weights,
             reference_quantiles=dgp.grid.reference_quantiles(),
-            hyperparameters={},
+            hyperparameters={"bandwidth_multiplier": multiplier},
             seed=seed,
             cache_directory=self.cache_directory,
             timeout_seconds=self.timeout_seconds,

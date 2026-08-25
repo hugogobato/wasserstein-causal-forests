@@ -30,6 +30,9 @@ DRIVER_RELATIVE_PATH = "research/baselines/g3_driver.R"
 ORIGINAL_CAUSAL_DRF_DRIVER_RELATIVE_PATH = (
     "research/baselines/g3_causal_drf_original_driver.R"
 )
+RETN_CAUSAL_DRF_DRIVER_RELATIVE_PATH = (
+    "research/baselines/g3_causal_drf_retn_driver.R"
+)
 ORIGINAL_DRF_DRIVER_RELATIVE_PATH = "research/baselines/g3_drf_original_driver.R"
 RCPP_CACHE_VARIABLE = "WCF_RCPP_CACHE"
 
@@ -144,10 +147,19 @@ def fit_predict(
     cache_directory: Path | None = None,
     timeout_seconds: float = 3600.0,
 ) -> ForestBaselineResult:
-    """Fit one R baseline and return its per-arm weights over the bank."""
+    """Fit one R baseline and return its per-arm weights over the bank.
 
-    if method not in {"wdrft", "causal_drf", "drf"}:
-        raise ValueError("method must be 'wdrft', 'causal_drf', or 'drf'")
+    ``causal_drf_retn`` is the Phase 6.5 retune control: the authors' fit call
+    with an explicit kernel bandwidth of
+    ``spec["bandwidth_multiplier"]`` times the data-driven default. The
+    multiplier must be supplied through ``hyperparameters``; the driver fails
+    loudly without it.
+    """
+
+    if method not in {"wdrft", "causal_drf", "drf", "causal_drf_retn"}:
+        raise ValueError(
+            "method must be 'wdrft', 'causal_drf', 'drf', or 'causal_drf_retn'"
+        )
     executable = rscript_executable()
     if executable is None:
         raise RBridgeError("Rscript is not available on PATH")
@@ -166,7 +178,7 @@ def fit_predict(
         "min_node_size": 15,
         "min_arm_leaf": 5,
     }
-    if method == "causal_drf":
+    if method in {"causal_drf", "causal_drf_retn"}:
         # These are the authors' simulation settings in
         # code/causal_drf_paper-main/R/simulation_study.R.
         spec.update({"num_trees": 2500, "ci_group_size": 50})
@@ -189,26 +201,24 @@ def fit_predict(
                      directory / "reference.bin")
         (directory / "spec.json").write_text(json.dumps(spec), encoding="utf-8")
 
-        selected_driver = (
-            repository_root() / ORIGINAL_CAUSAL_DRF_DRIVER_RELATIVE_PATH
-            if method == "causal_drf"
-            else (
-                repository_root() / ORIGINAL_DRF_DRIVER_RELATIVE_PATH
-                if method == "drf"
-                else driver_path()
+        if method == "causal_drf":
+            selected_driver = (
+                repository_root() / ORIGINAL_CAUSAL_DRF_DRIVER_RELATIVE_PATH
             )
-        )
+            command = [executable, str(selected_driver), str(directory)]
+        elif method == "causal_drf_retn":
+            selected_driver = (
+                repository_root() / RETN_CAUSAL_DRF_DRIVER_RELATIVE_PATH
+            )
+            command = [executable, str(selected_driver), str(directory)]
+        else:
+            selected_driver = repository_root() / (
+                ORIGINAL_DRF_DRIVER_RELATIVE_PATH if method == "drf"
+                else DRIVER_RELATIVE_PATH
+            )
+            command = [executable, str(selected_driver), str(directory), method]
         completed = subprocess.run(
-            [
-                executable,
-                str(selected_driver),
-                str(directory),
-            ] if method == "causal_drf" else [
-                executable,
-                str(selected_driver),
-                str(directory),
-                method,
-            ],
+            command,
             capture_output=True,
             text=True,
             env=_environment(cache_directory),
