@@ -1,0 +1,394 @@
+\section{Complete results: the Phase 5.5 orthogonalized variants}
+\label{sec:complete55}
+
+Section~\ref{sec:complete} reports the whole measurement surface for the
+proposed model and its comparators on the frozen tournament coordinates. This
+section does the same job for the three orthogonalized variants introduced in
+Phase 5.5, which were screened on their own manifest and therefore cannot be
+appended as extra columns to the tables above without silently changing what a
+column means. Every number here is generated from the audited result files by
+\texttt{report/build\_phase55\_assets.py} for the Stage 1 screen and by
+\texttt{report/build\_phase55\_stage2\_assets.py} for Stage 2, both of which
+read and aggregate but never fit a model, exactly as their companion does.
+
+The three variants replace one component of the estimator and leave the rest of
+the pipeline frozen. \texttt{cwdb\_rmean} is a vector R-learner in the sense of
+Nie and Wager: it fits the causal contrast by minimising the R-loss
+$n^{-1}\sum_i \lVert Z_i - \hat m_{-i}(X_i) - (A_i - \hat e_{-i}(X_i))\,t(X_i)
+\rVert^2$ over the rescaled quantile coordinates, with exact weighted
+least-squares leaves that never divide by $A - \hat e$. \texttt{cwdb\_mutau} is
+the Bayesian-causal-forest reparameterisation of the arm-shared tree, carrying a
+prognostic field and a contrast field in each leaf through $z_{a,m}(x) = b_m(x)
++ (a - \hat e(x))\,d_m(x)$. \texttt{cwdb\_xmean} is a vector X-learner with
+out-of-fold imputed pseudo-outcomes. All three draw their propensity and
+prognostic nuisances from one cross-fitted stack with a declared clip of
+$[0.02, 0.98]$ and a canonical fold plan that is a pure function of the data
+rather than of row order.
+
+The contract difference between them is not cosmetic and it governs which
+tables a variant may appear in. \texttt{cwdb\_mutau} produces a conditional law
+and is therefore scored on every metric in the report. \texttt{cwdb\_rmean} and
+\texttt{cwdb\_xmean} target the arm contrast only and produce no law at all, so
+their entries in the law tables are \emph{n/a} by construction rather than by
+omission, and no reading of those tables should treat a missing law column as a
+loss.
+
+\paragraph{Conventions, and where they differ from Section~\ref{sec:complete}.}
+Two of them differ and both differences are deliberate. First, every method in
+this section, incumbents included, is restricted to seeds 0 through 9, because
+the Phase 5.5 manifest declared ten seeds rather than twenty. Pooling a
+twenty-seed incumbent mean against a ten-seed claimant mean in one row would
+compare two designs, so the incumbent columns here are recomputed on the
+claimant's seeds and will not always equal the same cell in
+Section~\ref{sec:complete}. Second, only D0, D2, D7 and D8 appear in the Stage 1
+tables. The screen was declared as a mechanism test on the four regimes that
+isolate one mechanism each, so it never ran D1, D3, D4, D5, D6 or D9, and no
+Stage 1 table supports a statement about the variants outside those four
+regimes. Subsection~\ref{sub:stage2} lifts that restriction for the one variant
+that continued, at twenty seeds and on all ten regimes; it remains in force for
+\texttt{cwdb\_rmean} and \texttt{cwdb\_xmean}, which were never run elsewhere.
+Otherwise the conventions carry over: an entry is a mean over cells with the
+standard error in parentheses, a cell is one (grid, regime, $n$, $K$, $M$,
+method, seed) combination with arm-specific rows averaged inside the cell first,
+bold marks the best method in a regime, and a regime mean pools $n = 500$ and
+$n = 1000$, which is why the numbers here are not identical to the per-$n$
+figures quoted in the G3.5 screen memo. The Causal-DRF and DRF columns are the
+original-code reruns, matching the corrected comparator record of
+Section~\ref{sec:complete} rather than the retired local drivers.
+
+\subsection{The contrast surface}
+
+Table~\ref{tab:p55-meanq} is the primary table of this section, because
+\texttt{mean\_quantile\_rmse} against \texttt{MEANQ-A-K} is the one metric all
+seven methods produce. Four readings are worth stating, and the fourth is the
+one the screen memo initially failed to make.
+
+The null and deterministic regimes separate the variants sharply. On D2, where
+the true effect is exactly zero, \texttt{rmean} records $0.0191$ against
+$0.0551$ for PTA-S and $0.0595$ for R3, and Table~\ref{tab:p55-paired-rmean}
+shows those gaps are $8.8$ and $3.2$ paired standard errors. This is the
+clearest single result of Phase 5.5: orthogonalisation, not more capacity, is
+what removes manufactured heterogeneity, and it removes it against the
+comparator that motivated the whole repair track. On D8, the confounded regime
+that rule 2 of the original gate treated as primary, \texttt{rmean} beats PTA-S
+by $2.8$ standard errors but loses to R3 by $5.9$, so the R-loss buys
+null-safety at some cost in confounded accuracy.
+
+D7 is where \texttt{rmean} is weakest, at $0.1033$ against $0.0637$ for PTA-S
+and $0.0661$ for R3, losing to every comparator in the table by between $2.2$
+and $10.9$ standard errors. D7 is the regime whose effect acts through the shape
+of the law rather than its location, so a method that estimates the contrast
+directly and never represents the law has the least to work with there. That is
+a coherent explanation rather than an excuse, and it is also the reason
+\texttt{rmean} is recommended as a benchmark rather than as the claimant.
+
+\texttt{cwdb\_mutau} sits close to R3 everywhere and is not interchangeable with
+it. Table~\ref{tab:p55-paired-mutau} shows two regimes where the difference
+crosses the decision multiple and both go against \texttt{mutau}: D0 by $3.3$
+standard errors and D8 by $2.6$. D2 and D7 are ties at $0.4$ and $0.6$. The
+honest summary is that the $\mu/\tau$ leaf rule buys nothing against R3 on the
+contrast at these sample sizes while costing a little on two regimes, and that
+its case rests on the law and functional tables rather than on this one.
+
+\paragraph{The D0 result, stated rather than passed over.} D0 is the regime with
+no treatment effect and no confounding, so it is the closest thing in the suite
+to a pure bias check. Every C-WDB variant loses it decisively to PTA-S:
+$0.0969$ for \texttt{rmean}, $0.0985$ for \texttt{mutau} and $0.0943$ for R3,
+against $0.0544$. In paired terms that is $16.0$ standard errors for
+\texttt{rmean} and $37.6$ for \texttt{mutau}. The screen memo originally
+reported D0 only as passing the $0.15$ correctness cap while reporting the D2
+and D8 differences against the same comparator in full, which is a selective
+presentation of a comparison that had already been computed. It is corrected
+here and in the memo. The deficit is family-wide, not variant-specific, so it is
+best read as a property of the boosted particle representation in the regime
+where the truth is a single fixed law and the direct learner has nothing to
+estimate. It remains an open weakness of the approach, and Stage 2 should report
+D0 alongside D2 and D8 as a comparison rather than as a cap check.
+
+Table~\ref{tab:p55-bary} gives the arm-level barycenter error, which is a
+different quantity and is never pooled with the contrast. PTA-S is the best
+method in all four regimes there, by a wide margin, which is exactly what a
+direct arm-level learner should be good at, and the fact that R3 and
+\texttt{mutau} nonetheless win contrasts on D8 is the substantive point: the
+contrast is not recoverable from arm-level accuracy alone. Tables
+\ref{tab:p55-reftcate} and \ref{tab:p55-refate} report the Wasserstein
+reference effects, where \texttt{mutau} is best on D7 for both the conditional
+and the marginal version and R3 is best on D2 and D8, all by margins smaller
+than the ones separating either from the forest comparators.
+
+\subsection{The law surface}
+
+Only \texttt{cwdb\_mutau} enters Tables \ref{tab:p55-kernel} through
+\ref{tab:p55-tail}, and the result there is a near-exact tie with R3.
+Table~\ref{tab:p55-paired-mutau-law} makes this precise: on
+\texttt{kernel\_law\_error} the paired difference against R3 never exceeds
+$1.4$ standard errors in any regime, while the difference against Causal-DRF is
+a \texttt{mutau} win in all four at between $8.4$ and $23.7$. This is the
+expected result and it is a validity check rather than a discovery. The
+$\mu/\tau$ parameterisation provably collapses to the reparameterised shared
+tree when the propensity basis is the leaf share, a collapse verified in the
+test suite to $10^{-14}$ at both the tree and the model level, so a large law
+difference against R3 would have indicated a defect rather than a gain.
+
+The functional tables carry the one substantive law-side finding.
+Table~\ref{tab:p55-tcate} shows \texttt{mutau} best or tied-best on
+\texttt{grid\_mean} and \texttt{grid\_upper\_tail\_mean} in three of four
+regimes, and it shows D7 skewness as a failure region for both C-WDB variants:
+$0.1134$ for \texttt{mutau} and $0.0860$ for R3 against $0.0514$ for Causal-DRF
+and $0.0580$ for DRF, with the same ordering on the marginal version in
+Table~\ref{tab:p55-tate}. This is the same documented failure region
+Section~\ref{sec:complete} reports for R3 and it is not repaired by the
+$\mu/\tau$ leaf rule; if anything \texttt{mutau} is worse there, which is the
+$n = 500$ skewness flag recorded in the screen memo. Pure skewness contrasts
+remain a region where the forest comparators are better and no claim should be
+made over them.
+
+Table~\ref{tab:p55-mode} is a degenerate check in this section, since D6 is not
+in the Phase 5.5 manifest and every regime here is single-mode, so the uniform
+$1.0000$ column establishes only that nothing broke.
+
+\subsection{The inherited correctness screen}
+
+Table~\ref{tab:p55-rule1} evaluates inherited rule 1 per sample size, under one
+convention applied identically to every method: the D2 false-effect ratio
+divides a single $n$'s D2 mean by the best frozen baseline at that same $n$.
+Pooling the baseline across sample sizes, or mixing a per-$n$ numerator with a
+pooled denominator, produces different numbers and appeared in an earlier draft
+of the screen memo; it is not the convention and has been removed there too.
+
+The table carries two entries that need reading with care. The first is
+\texttt{cwdb\_xmean}, which fails the D0 cap of $0.15$ outright at both sample
+sizes, $0.3545$ and $0.3536$. That is the cleanest available statement of its
+failure and it is stronger than the comparative statement the screen memo
+originally used. The second is R3 at $n = 500$, which shows a D2 ratio of
+$1.26$ against a cap of $1.25$. This is an artefact of the ten-seed restriction
+and not a new failure: on the full twenty seeds of its own track the same ratio
+is $0.98$ at $n = 500$ and $0.93$ pooled, which is what
+Section~\ref{sec:complete} reports and what the gate was evaluated on. It is
+printed here rather than suppressed because a reader comparing the two sections
+would otherwise find the discrepancy unexplained, and because it is a useful
+reminder that a threshold evaluated on half the seeds is a different test.
+
+\subsection{The negative finding, and why it is a mechanism result}
+
+\texttt{cwdb\_xmean} exists to test one hypothesis: that out-of-fold imputation
+of the missing potential outcome helps when the arms are unbalanced. That
+hypothesis is specific to the imbalance regime, so a result outside it could not
+support the method, which is why the \texttt{imbalance} extension grid was
+declared before the run. Table~\ref{tab:p55-imbalance} reports it. At a realised
+mean propensity of $0.307$, \texttt{xmean} wins D7-imb by $9.9$ paired standard
+errors, loses D2-imb by $8.0$, and on D8-imb is behind by $1.9$, which does not
+cross the decision multiple. One win in the regime the method was built for,
+paid for with a large loss on the null, is not a result that continues to
+Stage 2.
+
+The verdict was reached on that table alone. Table~\ref{tab:p55-budget} then
+answers a separate question, namely whether the failure is a property of the
+mechanism or of the frozen three-step effect budget, and it is included here
+because the two answers imply different Stage 2 decisions and the difference
+must not be settled by assertion. Two observations settle it. The D0 error is
+flat in $n$, $0.3545$ against $0.3536$, which no variance story predicts and an
+underfit does; and relaxing the budget from three trees to fifty drops D0 from
+$0.3550$ to $0.0658$ while D2 rises from $0.0546$ to $0.1636$ and D8 from
+$0.1112$ to $0.2222$ over the very same sweep. So the D0 wall is a bias floor
+imposed by a total boosting weight of $0.36$ against the R-loss contrast's
+$2.4$, and no budget on the sweep is simultaneously effect-recovering and
+null-safe. On the imbalance grid the best available budget is the frozen one and
+it still loses D2-imb and D8-imb to \texttt{rmean}. The negative finding is
+therefore about the mechanism and survives the objection that the budget was
+simply miscalibrated. The structural reason is visible in
+Table~\ref{tab:p55-diagnostics}: \texttt{rmean} selects its contrast ridge per
+cell by cross-fitted selection, choosing $0$ on D0 and between $50$ and $500$
+on the regimes with signal, whereas the X pseudo-outcome regression has only a
+global constant and no adaptive regulariser at all.
+
+\subsection{Diagnostics and cost}
+\label{sub:p55cost}
+
+Table~\ref{tab:p55-diagnostics} collects the quantities only the Phase 5.5
+variants emit. Two entries carry weight. The effective particle support is
+$10$ of $10$ in every regime for \texttt{mutau}, against a rule-5 floor of
+$0.6M = 6$, so the $\mu/\tau$ leaf rule does not collapse the particle cloud.
+The selected ridge is $0$ on D0 for both \texttt{rmean} and \texttt{mutau} and
+rises to between $250$ and $430$ on the regimes carrying signal, which is the
+adaptive behaviour the negative finding above turns on.
+
+Table~\ref{tab:p55-cost} reports runtime with two ratios rather than one,
+because the rule-6 verdict for \texttt{mutau} depends entirely on which
+Causal-DRF is the denominator and the project contains two. Against the
+original-code rerun on exactly these cells, a median of $14.47$ seconds, the
+\texttt{mutau} ratio is $11.8$ and comfortably inside the cap of $60$. Against
+the retired local driver at $1.87$ seconds, the ratio is $91.1$ and breaches it.
+The $91\times$ figure quoted in the screen memo is the second of these. The
+first is the denominator the rest of this report uses, so the defensible
+statement is that \texttt{mutau} passes rule 6 against the current comparator
+record while remaining the most expensive method in the roster at roughly twice
+R3 and twelve times Causal-DRF. Two caveats apply to every row. All Phase 5.5
+cells ran on a loaded machine alongside other work, so these are upper bounds
+rather than clean measurements; and \texttt{mutau} performs a fully nested
+refit for its contrast selection while \texttt{rmean} performs a
+nested-approximate one that reuses a single nuisance stack, so the eight-second
+median of \texttt{rmean} and the one hundred and seventy second median of
+\texttt{mutau} are not measurements of the same procedure.
+
+\subsection{Stage 2: the \texorpdfstring{$\mu/\tau$}{mu/tau} claimant on the whole grid}
+\label{sub:stage2}
+
+Everything above is the Stage 1 mechanism screen. Phase 5.5 was declared as a
+two-stage design in which the screen decides whether a variant addresses its
+intended mechanism and Stage 2 is the frozen comparison against the full
+tournament record. Only \texttt{cwdb\_mutau} reached it: \texttt{cwdb\_rmean}
+cannot supply a law target by contract and was retained as a benchmark rather
+than as a claimant, and \texttt{cwdb\_xmean} failed its screen. Stage 2 runs the
+claimant on all ten regimes at the twenty seeds every incumbent already carries,
+which is $320$ new cells (the six regimes the screen omitted at twenty seeds,
+and a seed top-up on the four it ran at ten). The merge audit returned
+\textsc{pass} with $320$ of $320$ cells observed, no duplicate keys and no
+failures, against manifest checksum
+\texttt{29d7ca09\allowbreak 28aa5420\allowbreak 23a091fd\allowbreak 2ffa3943}.
+
+The stage exists because the screen left the phase's own requirement for this
+variant unsatisfied. That requirement names D2, D3, D5, D6, D7, D8 and D9, and
+the phase's decision table contains the row stating that a candidate which fixes
+D2 by losing D3 or D7 is rejected as the main claimant. D3, D5, D6 and D9 had
+never been run for this method, so the missing evidence was exactly the evidence
+that could overturn the Stage 1 verdict. Thresholds were frozen in
+\texttt{research/simulation\_preregistration\_phase55\_stage2.md} before the
+first Stage 2 cell was executed, including a numerical definition of the phase
+document's word ``materially'' (a paired \texttt{kernel\_law\_error} loss to R3
+crossing two standard errors on D3 or D7) and a declaration of which Causal-DRF
+record is the rule 6 denominator, since the ambiguity described in
+Subsection~\ref{sub:p55cost} would otherwise have recurred.
+
+\paragraph{Two measurement caveats, both settled before the tables were read.}
+The first is that \texttt{mutau}'s implementation was modified after the Stage 1
+shards were written, during the adversarial audit of the screen memo, and the
+source tree is not under version control, so the change could not be diffed. It
+was tested instead, by rerunning three cells at coordinates Stage 1 also ran.
+Every accuracy quantity reproduced inside the Stage 1 spread while runtime fell
+by a factor near five, so the change is a performance change and the two stages
+pool on accuracy but not on cost. A subsequent check across all four shared
+regimes and four metrics found no difference between the stages at the five
+percent level in sixteen comparisons. Accordingly the accuracy tables pool both
+stages and every runtime figure is read from Stage 2 rows alone. The second is
+that the pooled paired comparisons in the analysis library keyed their per-cell
+values by seed alone, so a comparison pooling both sample sizes silently
+overwrote one with the other and used half its design points, with the surviving
+half determined by dictionary order rather than by the design. This was found
+while reconciling the payload against the generated tables, has been corrected
+to key on the full design point, and every number in this subsection is
+post-correction. Comparisons restricted to a single sample size were never
+affected, which includes the Stage 1 tables above.
+
+\paragraph{The gate.} Table~\ref{tab:p55s2-gate} states each preregistered rule
+and what it returned. Rules 1 through 6 all pass. Rule 1 clears both caps with
+room, at D0 means of $0.1061$ and $0.0894$ against a cap of $0.15$ and D2
+false-effect ratios of $0.88$ and $0.69$ against a cap of $1.25$. Rule 5 passes
+with the effective particle support at $10$ of $10$ in every regime against a
+floor of six, and with D6 mode coverage at $0.9930$, which is the first
+measurement of multimodal behaviour for this variant and is the check the screen
+could not perform because D6 was not in its manifest. Rule 6 passes at a ratio
+of $13.9$ against a cap of $60$.
+
+\paragraph{The law surface.} Tables~\ref{tab:p55s2-kernel}
+through~\ref{tab:p55s2-tail} give the law metrics on all ten regimes and
+Table~\ref{tab:p55s2-paired-law} gives the paired differences. Rule 2 passes
+comfortably: on \texttt{kernel\_law\_error} \texttt{mutau} beats Causal-DRF in
+eight regimes against a requirement of two, ties D9, and loses only D6, where
+Causal-DRF records $0.0077$ against \texttt{mutau}'s $0.0244$, a loss of $16.1$
+paired standard errors. That D6 deficit is the same multimodality weakness
+Section~\ref{sec:complete} documents for the C-WDB family and it is not repaired
+by the $\mu/\tau$ leaf rule.
+
+Against C-WDB R3 the law result is a tie in seven regimes of ten and a loss in
+three, D3 at $3.1$ standard errors, D5 at $2.4$ and D4 at $2.2$, with no regime
+in which \texttt{mutau} is better. The Stage 1 conclusion that the two are
+near-indistinguishable on the law therefore survives the widening in most
+regimes but not everywhere, and where it breaks it breaks against the claimant.
+Against C-WDB V1 the picture is genuinely mixed, with \texttt{mutau} better on
+D2, D6, D7 and D8 and worse on D0, D1, D4, D5 and D9, which is the expected
+signature of a reparameterisation that helps where the contrast is small
+relative to the prognostic surface and costs where it is not.
+
+\paragraph{The contrast surface and the accuracy clause.}
+Table~\ref{tab:p55s2-meanq} and Table~\ref{tab:p55s2-paired-meanq} carry the
+common contrast target. Against R3, \texttt{mutau} loses D0, D3, D4 and D8 by
+between $2.3$ and $3.6$ standard errors, wins D5 by $3.1$, and ties the other
+five, so the Stage 1 reading that the $\mu/\tau$ leaf rule buys nothing against
+R3 on the contrast holds on the wider grid. Against PTA-S it wins D2, D3 and D8
+and loses D0, D1, D4, D5 and D6, with the D0 loss at $55.9$ standard errors,
+which is the family-wide D0 weakness recorded above at its most extreme.
+
+The accuracy clause is the one place where Stage 2 improves materially on the
+original tournament. That clause, frozen before decisive execution, requires a
+full-law candidate to win at least one target that PTA-S also estimates, because
+the G3 memo recorded rule 4 passing on three capability wins and \emph{zero}
+accuracy wins. \texttt{mutau} returns seventeen accuracy wins spread over seven
+regimes (D1, D2, D3, D4, D6, D8 and D9), including the marginal functional on
+D6 by $5.9$ standard errors and every reference target on D8. This is a real
+gain over the incumbent claimant and it is the strongest argument the variant
+has.
+
+\paragraph{The degradation clause, which fails.} Table~\ref{tab:p55s2-degradation}
+reports it. On D3, the separate-head-favourable regime that a shared prognostic
+and contrast tree puts at risk, \texttt{mutau} loses the law metric to R3 at
+$n = 500$ by $3.0$ paired standard errors, and the loss shrinks to $1.3$ at
+$n = 1000$. D7 is a tie at both sample sizes, so the pure-shape-transfer half of
+the clause is satisfied and the sharing half is not. Under the phase's own
+decision table this is the row reading that a candidate which fixes D2 while
+losing D3 is rejected as the main claimant and its regularisation tradeoff is
+reported instead. The magnitude is small in absolute terms, $0.00078$ against a
+level near $0.02$, and it is confined to the smaller sample size; the
+preregistration nonetheless defined the clause in standard errors rather than in
+absolute terms, before the number existed, and the honest reading is that the
+clause fails as written rather than that the threshold should now be
+reinterpreted.
+
+\paragraph{Diagnostics and cost.} Table~\ref{tab:p55s2-diagnostics} shows the
+effective support at the full ten particles in every regime and the selected
+contrast strength moving with the signal, at zero on D0 and D2 and rising on the
+regimes that carry an effect, which is the adaptive behaviour the mechanism
+depends on. Table~\ref{tab:p55s2-cost} puts the \texttt{mutau} median at
+$199.3$ seconds against the original-code Causal-DRF's $14.36$, a ratio of
+$13.9$. Every figure there is an upper bound: the Stage 2 cells ran sixteen at a
+time on one laptop, and the same implementation on an idle machine finishes a
+cell in roughly a fifth of the time. Runtime in this project is dominated by
+machine load, so the cost rows order the methods reliably and measure none of
+them precisely.
+
+\subsection{What this section supports}
+
+Four statements, and no more than four. First, \texttt{cwdb\_rmean} is a
+credible null-safe benchmark: it is the best method in the suite on the null
+regime by a wide margin, it beats PTA-S on the confounded regime, and it is
+cheap, but it loses D0 and D7 badly enough that it is a benchmark and not a
+claimant. Second, \texttt{cwdb\_xmean} is a negative finding on the mechanism,
+not a tuning failure, and it produced no Stage 2 manifest.
+
+Third, on the evidence of Stage 2, \texttt{cwdb\_mutau} is a real improvement on
+the incumbent claimant in one specific respect and not a replacement for it. The
+improvement is the accuracy clause: seventeen wins against PTA-S on targets
+PTA-S also estimates, spread over seven regimes, where the original tournament
+recorded rule 4 passing on capability wins alone. Alongside it the variant
+clears every inherited gate rule, beats Causal-DRF on the law metric in eight
+regimes of ten, holds full particle support, and is the first C-WDB variant
+measured on D6 multimodality, at a mode coverage of $0.9930$. Against that, it
+is never better than R3 on the law metric in any regime and is worse in three,
+it loses the common contrast to R3 in four regimes and wins one, and it fails
+the preregistered degradation clause on D3 at $n = 500$, which is the row the
+phase's decision table maps to rejection as the main claimant. The defensible
+position is therefore that the $\mu/\tau$ reparameterisation is a reportable
+regularisation tradeoff and a candidate complementary estimator, and that
+nothing here licenses replacing R3 with it.
+
+Fourth, the scope limits. The Stage 1 tables speak only to D0, D2, D7 and D8,
+and nothing in this section speaks to \texttt{cwdb\_rmean} or
+\texttt{cwdb\_xmean} outside those four regimes. Stage 2 covers all ten regimes
+for \texttt{cwdb\_mutau} alone. No part of this section speaks to any sample
+size other than $500$ and $1000$, to any grid resolution other than $K = 25$, to
+any particle count other than $M = 10$, or to uncertainty coverage for any
+variant, since none has an interval construction and the estimand contract
+forbids substituting a posterior-draw quantity.
+
+\input{tables_generated/phase55_tables.tex}
+\input{tables_generated/phase55_stage2_tables.tex}

@@ -1,0 +1,441 @@
+\begin{table}[htbp]
+\centering
+\caption{Phase 5.5 Stage 2 against the rules frozen in \texttt{research/simulation\_preregistration\_phase55\_stage2.md} before the first Stage 2 cell was executed. Claimant \texttt{cwdb\_mutau}, ten regimes, twenty seeds.}
+\label{tab:p55s2-gate}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}p{0.30\textwidth}p{0.50\textwidth}l@{}}
+\toprule
+Rule & Result & Verdict \\
+\midrule
+Rule 1, correctness and nulls & D0 0.1061 and 0.0894 under 0.15; D2 ratio 0.88 and 0.69 under 1.25 & \textbf{PASS} \\
+Rule 2, law advantage over Causal-DRF & 8 regimes of 2 required: D0, D1, D2, D3, D4, D5, D7, D8 & \textbf{PASS} \\
+Rules 3 and 4, transfer and direct learner & 25 functional or reference targets won against Causal-DRF; 17 accuracy wins against PTA-S across 7 regimes & \textbf{PASS} \\
+Rule 5, no particle collapse & effective support 10.0 of 10 against a floor of 6; D6 mode coverage 0.9930 & \textbf{PASS} \\
+Rule 6, cost & median 199.3\,s against 14.36\,s, ratio 13.9 against a cap of 60 & \textbf{PASS} \\
+Accuracy clause, at least one win over PTA-S & 17 wins on targets both methods estimate, in D1, D2, D3, D4, D6, D8, D9 & \textbf{PASS} \\
+Degradation clause, D3 sharing and D7 shape & D3@n500 crosses the multiple against R3 & \textbf{FAIL} \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}\parbox{0.96\textwidth}{\scriptsize Rules 1 through 6 are the inherited G3 gate rules. The last two rows are the clauses the phase document froze specifically for a Stage 2 full-law candidate. The degradation clause was given its numerical definition (a paired \texttt{kernel\_law\_error} loss to R3 crossing two standard errors on D3 or D7) in the preregistration, before the result existed.}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Stage 2 grid causal mean: \texttt{mean\_quantile\_rmse} against \texttt{MEANQ-A-K}, every regime, twenty seeds. Mean over cells with the standard error in parentheses; bold marks the best method in a regime.}
+\label{tab:p55s2-meanq}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Regime & mutau & R3 & v1 & PTA-S & C-DRF & DRF \\
+\midrule
+D0 & 0.0977\,(0.0015) & 0.0952\,(0.0016) & 0.1091\,(0.0021) & \textbf{0.0547\,(0.0013)} & 0.1621\,(0.0038) & 0.1935\,(0.0048) \\
+D1 & 0.2053\,(0.0044) & 0.2043\,(0.0042) & 0.1899\,(0.0042) & \textbf{0.1427\,(0.0030)} & 0.2119\,(0.0062) & 0.2017\,(0.0049) \\
+D2 & \textbf{0.0433\,(0.0054)} & 0.0506\,(0.0063) & 0.1466\,(0.0038) & 0.0545\,(0.0030) & 0.0960\,(0.0046) & 0.0754\,(0.0042) \\
+D3 & 0.2896\,(0.0054) & \textbf{0.2861\,(0.0049)} & 0.2891\,(0.0058) & 0.2947\,(0.0058) & 0.4301\,(0.0060) & 0.4088\,(0.0072) \\
+D4 & 0.2062\,(0.0053) & 0.2002\,(0.0048) & 0.1979\,(0.0051) & \textbf{0.1372\,(0.0036)} & 0.1603\,(0.0062) & 0.1697\,(0.0078) \\
+D5 & 0.1346\,(0.0131) & 0.1644\,(0.0133) & 0.1757\,(0.0037) & \textbf{0.0500\,(0.0031)} & 0.0885\,(0.0038) & 0.1004\,(0.0041) \\
+D6 & 0.2530\,(0.0120) & 0.2477\,(0.0108) & 0.2898\,(0.0125) & 0.2320\,(0.0098) & 0.2567\,(0.0128) & \textbf{0.2247\,(0.0129)} \\
+D7 & 0.0713\,(0.0056) & 0.0683\,(0.0042) & 0.1460\,(0.0037) & \textbf{0.0636\,(0.0026)} & 0.0870\,(0.0042) & 0.0794\,(0.0043) \\
+D8 & 0.0776\,(0.0020) & \textbf{0.0735\,(0.0022)} & 0.1848\,(0.0041) & 0.0950\,(0.0030) & 0.2638\,(0.0104) & 0.1790\,(0.0053) \\
+D9 & 0.2819\,(0.0094) & 0.2819\,(0.0087) & 0.2503\,(0.0065) & \textbf{0.1900\,(0.0045)} & 0.2891\,(0.0095) & 0.3034\,(0.0101) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Stage 2 arm-level barycenter error. A different quantity from the contrast and never pooled with it.}
+\label{tab:p55s2-bary}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Regime & mutau & R3 & v1 & PTA-S & C-DRF & DRF \\
+\midrule
+D0 & 0.1077\,(0.0018) & 0.1062\,(0.0019) & 0.1027\,(0.0016) & \textbf{0.0544\,(0.0014)} & 0.2098\,(0.0035) & 0.2313\,(0.0040) \\
+D1 & 0.2177\,(0.0040) & 0.2174\,(0.0041) & 0.2124\,(0.0038) & \textbf{0.1497\,(0.0028)} & 0.2632\,(0.0064) & 0.2448\,(0.0043) \\
+D2 & 0.1871\,(0.0035) & 0.1886\,(0.0035) & 0.1974\,(0.0037) & \textbf{0.1316\,(0.0027)} & 0.2506\,(0.0041) & 0.2302\,(0.0033) \\
+D3 & 0.2362\,(0.0039) & 0.2340\,(0.0037) & 0.2357\,(0.0041) & \textbf{0.1950\,(0.0033)} & 0.3028\,(0.0042) & 0.2881\,(0.0051) \\
+D4 & 0.2234\,(0.0042) & 0.2206\,(0.0040) & 0.2170\,(0.0040) & \textbf{0.1402\,(0.0030)} & 0.2236\,(0.0065) & 0.2289\,(0.0085) \\
+D5 & 0.1808\,(0.0050) & 0.1846\,(0.0049) & 0.1846\,(0.0034) & \textbf{0.1405\,(0.0030)} & 0.2167\,(0.0037) & 0.2346\,(0.0034) \\
+D6 & 0.3752\,(0.0087) & 0.3731\,(0.0086) & 0.3789\,(0.0096) & 0.2788\,(0.0051) & \textbf{0.2764\,(0.0070)} & 0.2977\,(0.0090) \\
+D7 & 0.1889\,(0.0037) & 0.1884\,(0.0035) & 0.1971\,(0.0038) & \textbf{0.1327\,(0.0027)} & 0.2285\,(0.0039) & 0.2352\,(0.0035) \\
+D8 & 0.2498\,(0.0040) & 0.2500\,(0.0042) & 0.2712\,(0.0037) & \textbf{0.1943\,(0.0034)} & 0.4517\,(0.0075) & 0.4384\,(0.0051) \\
+D9 & 0.2589\,(0.0064) & 0.2596\,(0.0059) & 0.2417\,(0.0051) & \textbf{0.1773\,(0.0037)} & 0.2692\,(0.0058) & 0.3070\,(0.0079) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Stage 2 Wasserstein reference effect, \texttt{REF-ATE-K}.}
+\label{tab:p55s2-refate}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Regime & mutau & R3 & v1 & PTA-S & C-DRF & DRF \\
+\midrule
+D0 & 0.0428\,(0.0011) & 0.0393\,(0.0010) & 0.0421\,(0.0017) & \textbf{0.0058\,(0.0008)} & 0.0126\,(0.0015) & 0.0114\,(0.0018) \\
+D1 & 0.0420\,(0.0052) & 0.0381\,(0.0049) & 0.0269\,(0.0035) & \textbf{0.0188\,(0.0029)} & 0.0206\,(0.0030) & 0.0211\,(0.0028) \\
+D2 & 0.0100\,(0.0019) & \textbf{0.0099\,(0.0016)} & 0.0205\,(0.0027) & 0.0168\,(0.0026) & 0.0178\,(0.0029) & 0.0175\,(0.0026) \\
+D3 & 0.0213\,(0.0028) & \textbf{0.0209\,(0.0028)} & 0.0301\,(0.0034) & 0.0251\,(0.0030) & 0.0238\,(0.0032) & 0.0241\,(0.0031) \\
+D4 & 0.0710\,(0.0062) & 0.0562\,(0.0049) & 0.0298\,(0.0039) & \textbf{0.0198\,(0.0029)} & 0.0240\,(0.0033) & 0.0251\,(0.0029) \\
+D5 & 0.1210\,(0.0039) & 0.1152\,(0.0036) & 0.0998\,(0.0043) & 0.0223\,(0.0024) & 0.0229\,(0.0026) & \textbf{0.0214\,(0.0026)} \\
+D6 & \textbf{0.0240\,(0.0031)} & 0.0262\,(0.0030) & 0.0643\,(0.0072) & 0.0424\,(0.0064) & 0.0422\,(0.0061) & 0.0417\,(0.0067) \\
+D7 & \textbf{0.0134\,(0.0017)} & 0.0143\,(0.0019) & 0.0204\,(0.0023) & 0.0158\,(0.0022) & 0.0164\,(0.0025) & 0.0167\,(0.0022) \\
+D8 & 0.0250\,(0.0024) & \textbf{0.0233\,(0.0021)} & 0.0328\,(0.0040) & 0.0397\,(0.0042) & 0.0458\,(0.0057) & 0.0645\,(0.0066) \\
+D9 & 0.1296\,(0.0103) & 0.1340\,(0.0102) & 0.0437\,(0.0056) & 0.0449\,(0.0049) & \textbf{0.0250\,(0.0028)} & 0.0267\,(0.0034) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Stage 2 conditional Wasserstein reference effect, \texttt{REF-TCATE-K}.}
+\label{tab:p55s2-reftcate}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Regime & mutau & R3 & v1 & PTA-S & C-DRF & DRF \\
+\midrule
+D0 & 0.0542\,(0.0013) & 0.0508\,(0.0012) & 0.0575\,(0.0016) & \textbf{0.0158\,(0.0012)} & 0.1037\,(0.0026) & 0.1140\,(0.0055) \\
+D1 & 0.0775\,(0.0056) & 0.0734\,(0.0054) & \textbf{0.0562\,(0.0032)} & 0.0578\,(0.0039) & 0.1047\,(0.0027) & 0.1138\,(0.0039) \\
+D2 & \textbf{0.0168\,(0.0019)} & 0.0170\,(0.0018) & 0.0328\,(0.0024) & 0.0232\,(0.0024) & 0.0270\,(0.0027) & 0.0291\,(0.0026) \\
+D3 & 0.0384\,(0.0027) & 0.0375\,(0.0030) & 0.0441\,(0.0034) & 0.0354\,(0.0024) & 0.0355\,(0.0028) & \textbf{0.0337\,(0.0026)} \\
+D4 & 0.1132\,(0.0073) & 0.0936\,(0.0057) & 0.0692\,(0.0039) & \textbf{0.0607\,(0.0046)} & 0.1098\,(0.0044) & 0.1193\,(0.0074) \\
+D5 & 0.1234\,(0.0038) & 0.1180\,(0.0035) & 0.1032\,(0.0042) & \textbf{0.0286\,(0.0025)} & 0.0330\,(0.0027) & 0.0311\,(0.0024) \\
+D6 & \textbf{0.0355\,(0.0031)} & 0.0389\,(0.0032) & 0.0897\,(0.0070) & 0.0549\,(0.0062) & 0.0646\,(0.0058) & 0.0610\,(0.0062) \\
+D7 & \textbf{0.0208\,(0.0016)} & 0.0215\,(0.0017) & 0.0309\,(0.0021) & 0.0243\,(0.0019) & 0.0278\,(0.0022) & 0.0285\,(0.0020) \\
+D8 & 0.0421\,(0.0025) & \textbf{0.0406\,(0.0026)} & 0.0576\,(0.0038) & 0.0558\,(0.0038) & 0.0642\,(0.0050) & 0.0830\,(0.0056) \\
+D9 & 0.1675\,(0.0096) & 0.1708\,(0.0096) & \textbf{0.0832\,(0.0058)} & 0.1021\,(0.0048) & 0.1044\,(0.0031) & 0.1277\,(0.0036) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Stage 2 primary law metric, \texttt{kernel\_law\_error}. Only methods that produce a conditional law appear.}
+\label{tab:p55s2-kernel}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Regime & mutau & R3 & v1 & W-DRF-T & C-DRF & DRF \\
+\midrule
+D0 & 0.0284\,(0.0011) & 0.0280\,(0.0012) & \textbf{0.0252\,(0.0010)} & 0.0964\,(0.0030) & 0.1166\,(0.0035) & 0.1365\,(0.0044) \\
+D1 & 0.0138\,(0.0005) & 0.0137\,(0.0005) & 0.0133\,(0.0005) & \textbf{0.0123\,(0.0003)} & 0.0191\,(0.0009) & 0.0171\,(0.0006) \\
+D2 & \textbf{0.0114\,(0.0004)} & 0.0115\,(0.0004) & 0.0127\,(0.0005) & 0.0125\,(0.0003) & 0.0184\,(0.0006) & 0.0158\,(0.0005) \\
+D3 & 0.0168\,(0.0006) & 0.0162\,(0.0005) & 0.0165\,(0.0006) & \textbf{0.0158\,(0.0006)} & 0.0259\,(0.0007) & 0.0238\,(0.0008) \\
+D4 & 0.0118\,(0.0004) & 0.0115\,(0.0004) & 0.0111\,(0.0004) & \textbf{0.0065\,(0.0004)} & 0.0128\,(0.0007) & 0.0141\,(0.0010) \\
+D5 & 0.0250\,(0.0009) & 0.0234\,(0.0006) & \textbf{0.0234\,(0.0007)} & 0.0363\,(0.0010) & 0.0431\,(0.0013) & 0.0478\,(0.0012) \\
+D6 & 0.0244\,(0.0012) & 0.0246\,(0.0013) & 0.0278\,(0.0016) & \textbf{0.0066\,(0.0003)} & 0.0077\,(0.0004) & 0.0082\,(0.0005) \\
+D7 & 0.0115\,(0.0004) & \textbf{0.0114\,(0.0004)} & 0.0127\,(0.0005) & 0.0129\,(0.0003) & 0.0155\,(0.0005) & 0.0165\,(0.0005) \\
+D8 & \textbf{0.0151\,(0.0005)} & 0.0151\,(0.0005) & 0.0176\,(0.0005) & 0.0376\,(0.0008) & 0.0489\,(0.0014) & 0.0466\,(0.0011) \\
+D9 & 0.0199\,(0.0010) & 0.0197\,(0.0009) & 0.0169\,(0.0007) & \textbf{0.0162\,(0.0006)} & 0.0200\,(0.0008) & 0.0260\,(0.0013) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Stage 2 excess energy risk by arm, averaged inside the cell.}
+\label{tab:p55s2-energy}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Regime & mutau & R3 & v1 & W-DRF-T & C-DRF & DRF \\
+\midrule
+D0 & 0.0594\,(0.0012) & 0.0586\,(0.0012) & \textbf{0.0562\,(0.0010)} & 0.1192\,(0.0017) & 0.1318\,(0.0019) & 0.1464\,(0.0026) \\
+D1 & 0.0626\,(0.0020) & 0.0624\,(0.0021) & 0.0624\,(0.0020) & \textbf{0.0360\,(0.0008)} & 0.0507\,(0.0019) & 0.0477\,(0.0015) \\
+D2 & 0.0526\,(0.0017) & 0.0534\,(0.0018) & 0.0585\,(0.0019) & \textbf{0.0327\,(0.0007)} & 0.0451\,(0.0012) & 0.0400\,(0.0010) \\
+D3 & 0.0703\,(0.0021) & 0.0692\,(0.0019) & 0.0684\,(0.0020) & \textbf{0.0421\,(0.0014)} & 0.0643\,(0.0014) & 0.0597\,(0.0018) \\
+D4 & 0.0609\,(0.0020) & 0.0607\,(0.0020) & 0.0599\,(0.0017) & \textbf{0.0233\,(0.0013)} & 0.0405\,(0.0018) & 0.0443\,(0.0027) \\
+D5 & 0.0589\,(0.0022) & 0.0592\,(0.0020) & 0.0581\,(0.0016) & \textbf{0.0456\,(0.0010)} & 0.0511\,(0.0013) & 0.0568\,(0.0013) \\
+D6 & 0.0839\,(0.0033) & 0.0841\,(0.0034) & 0.0920\,(0.0039) & \textbf{0.0299\,(0.0008)} & 0.0344\,(0.0012) & 0.0400\,(0.0017) \\
+D7 & 0.0541\,(0.0019) & 0.0540\,(0.0018) & 0.0590\,(0.0019) & \textbf{0.0345\,(0.0007)} & 0.0398\,(0.0011) & 0.0422\,(0.0011) \\
+D8 & \textbf{0.0641\,(0.0018)} & 0.0642\,(0.0018) & 0.0727\,(0.0017) & 0.0972\,(0.0018) & 0.1211\,(0.0030) & 0.1168\,(0.0023) \\
+D9 & 0.0735\,(0.0032) & 0.0737\,(0.0028) & 0.0675\,(0.0024) & \textbf{0.0449\,(0.0014)} & 0.0528\,(0.0018) & 0.0658\,(0.0027) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Stage 2 mode coverage. D6 is the multimodal regime and is the only row that carries information; a uniform 1.0000 elsewhere records that the single-mode regimes stayed single-mode.}
+\label{tab:p55s2-mode}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Regime & mutau & R3 & v1 & W-DRF-T & C-DRF & DRF \\
+\midrule
+D0 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D1 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D2 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D3 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D4 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D5 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D6 & 0.9930\,(0.0012) & 0.9931\,(0.0012) & 0.9897\,(0.0020) & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D7 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D8 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D9 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Stage 2 upper-tail calibration.}
+\label{tab:p55s2-tail}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Regime & mutau & R3 & v1 & W-DRF-T & C-DRF & DRF \\
+\midrule
+D0 & 0.0711\,(0.0020) & \textbf{0.0708\,(0.0022)} & 0.0716\,(0.0019) & 0.1435\,(0.0032) & 0.1783\,(0.0029) & 0.1792\,(0.0041) \\
+D1 & 0.1058\,(0.0024) & 0.1058\,(0.0022) & 0.1065\,(0.0024) & \textbf{0.0833\,(0.0016)} & 0.1085\,(0.0025) & 0.1032\,(0.0024) \\
+D2 & 0.1135\,(0.0023) & 0.1139\,(0.0024) & 0.1174\,(0.0022) & \textbf{0.0796\,(0.0011)} & 0.1019\,(0.0017) & 0.0938\,(0.0018) \\
+D3 & 0.1152\,(0.0022) & 0.1150\,(0.0021) & 0.1134\,(0.0022) & \textbf{0.0877\,(0.0022)} & 0.1259\,(0.0023) & 0.1135\,(0.0029) \\
+D4 & 0.0764\,(0.0027) & 0.0771\,(0.0026) & 0.0787\,(0.0020) & \textbf{0.0414\,(0.0018)} & 0.0858\,(0.0032) & 0.0689\,(0.0035) \\
+D5 & 0.0953\,(0.0027) & 0.0944\,(0.0025) & 0.0936\,(0.0029) & \textbf{0.0690\,(0.0015)} & 0.0722\,(0.0016) & 0.0805\,(0.0020) \\
+D6 & 0.0940\,(0.0033) & 0.0955\,(0.0034) & 0.1010\,(0.0040) & 0.0547\,(0.0013) & 0.0555\,(0.0013) & \textbf{0.0546\,(0.0015)} \\
+D7 & 0.0519\,(0.0011) & 0.0521\,(0.0011) & 0.0541\,(0.0011) & \textbf{0.0372\,(0.0010)} & 0.0426\,(0.0010) & 0.0430\,(0.0012) \\
+D8 & \textbf{0.0977\,(0.0024)} & 0.0992\,(0.0022) & 0.1027\,(0.0026) & 0.1131\,(0.0022) & 0.1452\,(0.0031) & 0.1320\,(0.0026) \\
+D9 & 0.1175\,(0.0036) & 0.1187\,(0.0031) & 0.1153\,(0.0028) & \textbf{0.1050\,(0.0024)} & 0.1124\,(0.0025) & 0.1324\,(0.0031) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Stage 2 conditional functional targets, \texttt{TCATE-K}. A blank cell is a target the method cannot supply by contract.}
+\label{tab:p55s2-tcate}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}llrrrrr@{}}
+\toprule
+Functional & Regime & mutau & R3 & PTA-S & C-DRF & DRF \\
+\midrule
+grid\_mean & D0 & 0.0603\,(0.0012) & 0.0569\,(0.0013) & \textbf{0.0113\,(0.0009)} & 0.1153\,(0.0038) & 0.1123\,(0.0061) \\
+ & D1 & 0.1251\,(0.0074) & 0.1185\,(0.0075) & \textbf{0.0630\,(0.0042)} & 0.1696\,(0.0071) & 0.1314\,(0.0051) \\
+ & D2 & \textbf{0.0226\,(0.0023)} & 0.0240\,(0.0026) & 0.0336\,(0.0031) & 0.0756\,(0.0056) & 0.0491\,(0.0051) \\
+ & D3 & 0.1047\,(0.0045) & 0.1016\,(0.0044) & \textbf{0.0802\,(0.0044)} & 0.1381\,(0.0086) & 0.0993\,(0.0060) \\
+ & D4 & 0.1367\,(0.0082) & 0.1165\,(0.0064) & \textbf{0.0633\,(0.0042)} & 0.1250\,(0.0064) & 0.1183\,(0.0081) \\
+ & D5 & 0.0346\,(0.0031) & 0.0369\,(0.0034) & \textbf{0.0235\,(0.0022)} & 0.0544\,(0.0047) & 0.0608\,(0.0057) \\
+ & D6 & 0.2306\,(0.0133) & 0.2239\,(0.0122) & \textbf{0.1896\,(0.0120)} & 0.1980\,(0.0157) & 0.1957\,(0.0141) \\
+ & D7 & \textbf{0.0232\,(0.0023)} & 0.0265\,(0.0025) & 0.0319\,(0.0032) & 0.0606\,(0.0053) & 0.0504\,(0.0053) \\
+ & D8 & 0.0566\,(0.0032) & \textbf{0.0531\,(0.0030)} & 0.0590\,(0.0042) & 0.2248\,(0.0125) & 0.1250\,(0.0076) \\
+ & D9 & 0.2314\,(0.0109) & 0.2380\,(0.0104) & \textbf{0.1329\,(0.0057)} & 0.2430\,(0.0105) & 0.2523\,(0.0114) \\
+\midrule
+grid\_sd & D0 & 0.0118\,(0.0007) & 0.0104\,(0.0006) & \textbf{0.0011\,(0.0001)} & 0.0180\,(0.0012) & 0.0173\,(0.0013) \\
+ & D1 & 0.0289\,(0.0024) & 0.0294\,(0.0023) & \textbf{0.0166\,(0.0014)} & 0.0276\,(0.0017) & 0.0272\,(0.0020) \\
+ & D2 & 0.0165\,(0.0015) & 0.0181\,(0.0014) & \textbf{0.0155\,(0.0013)} & 0.0194\,(0.0015) & 0.0205\,(0.0016) \\
+ & D3 & 0.0300\,(0.0021) & 0.0296\,(0.0017) & \textbf{0.0171\,(0.0014)} & 0.0284\,(0.0019) & 0.0254\,(0.0016) \\
+ & D4 & 0.0471\,(0.0028) & 0.0402\,(0.0025) & \textbf{0.0325\,(0.0023)} & 0.0503\,(0.0024) & 0.0474\,(0.0027) \\
+ & D5 & 0.0432\,(0.0034) & 0.0471\,(0.0030) & \textbf{0.0227\,(0.0028)} & 0.0354\,(0.0024) & 0.0314\,(0.0028) \\
+ & D6 & 0.0139\,(0.0012) & 0.0139\,(0.0011) & \textbf{0.0119\,(0.0010)} & 0.0174\,(0.0012) & 0.0155\,(0.0013) \\
+ & D7 & 0.0194\,(0.0014) & 0.0191\,(0.0015) & \textbf{0.0163\,(0.0012)} & 0.0210\,(0.0016) & 0.0203\,(0.0016) \\
+ & D8 & 0.0189\,(0.0014) & \textbf{0.0178\,(0.0015)} & 0.0197\,(0.0015) & 0.0258\,(0.0017) & 0.0252\,(0.0019) \\
+ & D9 & 0.0434\,(0.0032) & 0.0407\,(0.0025) & \textbf{0.0175\,(0.0019)} & 0.0572\,(0.0031) & 0.0642\,(0.0032) \\
+\midrule
+grid\_skewness & D0 & 0.0102\,(0.0014) & 0.0101\,(0.0015) & n/a & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+ & D1 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & n/a & \textbf{0.0000\,(0.0000)} & 0.0000\,(0.0000) \\
+ & D2 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & n/a & \textbf{0.0000\,(0.0000)} & 0.0000\,(0.0000) \\
+ & D3 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & n/a & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+ & D4 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & n/a & \textbf{0.0000\,(0.0000)} & 0.0000\,(0.0000) \\
+ & D5 & 0.0030\,(0.0012) & 0.0034\,(0.0011) & n/a & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+ & D6 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & n/a & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+ & D7 & 0.1188\,(0.0093) & 0.0904\,(0.0067) & n/a & \textbf{0.0500\,(0.0021)} & 0.0567\,(0.0016) \\
+ & D8 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & n/a & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+ & D9 & 0.0005\,(0.0003) & 0.0000\,(0.0000) & n/a & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+\midrule
+grid\_upper\_tail\_mean & D0 & 0.0607\,(0.0013) & \textbf{0.0570\,(0.0014)} & n/a & 0.1208\,(0.0042) & 0.1158\,(0.0063) \\
+ & D1 & 0.1283\,(0.0073) & \textbf{0.1209\,(0.0073)} & n/a & 0.1760\,(0.0078) & 0.1362\,(0.0054) \\
+ & D2 & \textbf{0.0264\,(0.0026)} & 0.0291\,(0.0030) & n/a & 0.0782\,(0.0059) & 0.0532\,(0.0054) \\
+ & D3 & 0.1091\,(0.0049) & \textbf{0.1049\,(0.0044)} & n/a & 0.1453\,(0.0088) & 0.1057\,(0.0061) \\
+ & D4 & 0.1658\,(0.0095) & \textbf{0.1383\,(0.0076)} & n/a & 0.1576\,(0.0074) & 0.1469\,(0.0100) \\
+ & D5 & \textbf{0.0508\,(0.0040)} & 0.0552\,(0.0040) & n/a & 0.0611\,(0.0046) & 0.0683\,(0.0057) \\
+ & D6 & 0.2291\,(0.0134) & 0.2224\,(0.0123) & n/a & \textbf{0.1969\,(0.0159)} & 0.1969\,(0.0141) \\
+ & D7 & \textbf{0.0286\,(0.0027)} & 0.0314\,(0.0024) & n/a & 0.0635\,(0.0054) & 0.0536\,(0.0055) \\
+ & D8 & 0.0606\,(0.0034) & \textbf{0.0566\,(0.0031)} & n/a & 0.2319\,(0.0130) & 0.1300\,(0.0075) \\
+ & D9 & \textbf{0.2574\,(0.0098)} & 0.2622\,(0.0099) & n/a & 0.2798\,(0.0115) & 0.2935\,(0.0119) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Stage 2 marginal functional targets, \texttt{TATE-K}.}
+\label{tab:p55s2-tate}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}llrrrrr@{}}
+\toprule
+Functional & Regime & mutau & R3 & PTA-S & C-DRF & DRF \\
+\midrule
+grid\_mean & D0 & 0.0057\,(0.0007) & 0.0065\,(0.0009) & \textbf{0.0038\,(0.0005)} & 0.0547\,(0.0039) & 0.0286\,(0.0032) \\
+ & D1 & \textbf{0.0169\,(0.0020)} & 0.0181\,(0.0024) & 0.0207\,(0.0021) & 0.0925\,(0.0068) & 0.0319\,(0.0042) \\
+ & D2 & \textbf{0.0150\,(0.0015)} & 0.0156\,(0.0019) & 0.0241\,(0.0025) & 0.0686\,(0.0058) & 0.0226\,(0.0042) \\
+ & D3 & 0.0216\,(0.0023) & \textbf{0.0177\,(0.0021)} & 0.0228\,(0.0020) & 0.0289\,(0.0043) & 0.0234\,(0.0025) \\
+ & D4 & \textbf{0.0187\,(0.0024)} & 0.0196\,(0.0023) & 0.0217\,(0.0023) & 0.0613\,(0.0062) & 0.0312\,(0.0048) \\
+ & D5 & 0.0168\,(0.0021) & \textbf{0.0155\,(0.0023)} & 0.0156\,(0.0018) & 0.0384\,(0.0053) & 0.0207\,(0.0036) \\
+ & D6 & \textbf{0.0427\,(0.0053)} & 0.0476\,(0.0057) & 0.0956\,(0.0114) & 0.1205\,(0.0147) & 0.1158\,(0.0146) \\
+ & D7 & \textbf{0.0145\,(0.0019)} & 0.0152\,(0.0018) & 0.0222\,(0.0024) & 0.0478\,(0.0057) & 0.0234\,(0.0042) \\
+ & D8 & 0.0315\,(0.0034) & \textbf{0.0313\,(0.0033)} & 0.0336\,(0.0046) & 0.2001\,(0.0144) & 0.0751\,(0.0086) \\
+ & D9 & 0.0301\,(0.0028) & \textbf{0.0247\,(0.0033)} & 0.0353\,(0.0035) & 0.1872\,(0.0106) & 0.2076\,(0.0117) \\
+\midrule
+grid\_sd & D0 & 0.0064\,(0.0007) & 0.0055\,(0.0007) & \textbf{0.0007\,(0.0001)} & 0.0134\,(0.0012) & 0.0122\,(0.0012) \\
+ & D1 & 0.0167\,(0.0019) & 0.0170\,(0.0020) & \textbf{0.0134\,(0.0015)} & 0.0192\,(0.0021) & 0.0181\,(0.0023) \\
+ & D2 & \textbf{0.0128\,(0.0015)} & 0.0130\,(0.0012) & 0.0131\,(0.0014) & 0.0140\,(0.0017) & 0.0142\,(0.0016) \\
+ & D3 & 0.0157\,(0.0017) & 0.0145\,(0.0016) & \textbf{0.0133\,(0.0015)} & 0.0199\,(0.0020) & 0.0181\,(0.0021) \\
+ & D4 & 0.0155\,(0.0018) & \textbf{0.0151\,(0.0018)} & 0.0151\,(0.0014) & 0.0305\,(0.0026) & 0.0223\,(0.0025) \\
+ & D5 & 0.0279\,(0.0034) & 0.0260\,(0.0032) & \textbf{0.0219\,(0.0029)} & 0.0247\,(0.0026) & 0.0242\,(0.0027) \\
+ & D6 & \textbf{0.0092\,(0.0011)} & 0.0098\,(0.0010) & 0.0093\,(0.0010) & 0.0110\,(0.0014) & 0.0113\,(0.0014) \\
+ & D7 & 0.0142\,(0.0012) & 0.0136\,(0.0013) & \textbf{0.0125\,(0.0014)} & 0.0141\,(0.0017) & 0.0141\,(0.0016) \\
+ & D8 & 0.0136\,(0.0013) & \textbf{0.0126\,(0.0015)} & 0.0174\,(0.0017) & 0.0186\,(0.0020) & 0.0194\,(0.0022) \\
+ & D9 & \textbf{0.0146\,(0.0019)} & 0.0162\,(0.0022) & 0.0150\,(0.0021) & 0.0470\,(0.0037) & 0.0519\,(0.0036) \\
+\midrule
+grid\_skewness & D0 & 0.0075\,(0.0014) & 0.0085\,(0.0015) & n/a & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+ & D1 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & n/a & \textbf{0.0000\,(0.0000)} & 0.0000\,(0.0000) \\
+ & D2 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & n/a & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+ & D3 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & n/a & \textbf{0.0000\,(0.0000)} & 0.0000\,(0.0000) \\
+ & D4 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & n/a & \textbf{0.0000\,(0.0000)} & 0.0000\,(0.0000) \\
+ & D5 & 0.0023\,(0.0011) & 0.0029\,(0.0011) & n/a & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+ & D6 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & n/a & \textbf{0.0000\,(0.0000)} & 0.0000\,(0.0000) \\
+ & D7 & 0.1024\,(0.0084) & 0.0746\,(0.0060) & n/a & 0.0167\,(0.0016) & \textbf{0.0130\,(0.0014)} \\
+ & D8 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & n/a & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+ & D9 & 0.0005\,(0.0003) & 0.0000\,(0.0000) & n/a & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+\midrule
+grid\_upper\_tail\_mean & D0 & \textbf{0.0070\,(0.0009)} & 0.0078\,(0.0010) & n/a & 0.0644\,(0.0041) & 0.0364\,(0.0035) \\
+ & D1 & \textbf{0.0223\,(0.0027)} & 0.0234\,(0.0031) & n/a & 0.1037\,(0.0077) & 0.0410\,(0.0052) \\
+ & D2 & \textbf{0.0188\,(0.0021)} & 0.0197\,(0.0024) & n/a & 0.0707\,(0.0062) & 0.0261\,(0.0046) \\
+ & D3 & 0.0247\,(0.0026) & \textbf{0.0223\,(0.0023)} & n/a & 0.0389\,(0.0054) & 0.0288\,(0.0033) \\
+ & D4 & 0.0257\,(0.0029) & \textbf{0.0244\,(0.0029)} & n/a & 0.0837\,(0.0071) & 0.0440\,(0.0058) \\
+ & D5 & 0.0317\,(0.0029) & 0.0307\,(0.0029) & n/a & 0.0426\,(0.0057) & \textbf{0.0299\,(0.0039)} \\
+ & D6 & \textbf{0.0424\,(0.0049)} & 0.0477\,(0.0056) & n/a & 0.1189\,(0.0149) & 0.1145\,(0.0148) \\
+ & D7 & \textbf{0.0194\,(0.0025)} & 0.0195\,(0.0023) & n/a & 0.0503\,(0.0058) & 0.0260\,(0.0046) \\
+ & D8 & \textbf{0.0328\,(0.0038)} & 0.0339\,(0.0034) & n/a & 0.2076\,(0.0149) & 0.0833\,(0.0088) \\
+ & D9 & 0.0310\,(0.0032) & \textbf{0.0282\,(0.0042)} & n/a & 0.2233\,(0.0109) & 0.2479\,(0.0121) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Stage 2 seed-paired differences on the primary law metric, \texttt{kernel\_law\_error}.}
+\label{tab:p55s2-paired-law}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrrrrrr@{}}
+\toprule
+Regime & \multicolumn{3}{c}{vs R3} & \multicolumn{3}{c}{vs v1} & \multicolumn{3}{c}{vs C-DRF} \\
+  & diff. & SE & $|$diff$|/$SE & diff. & SE & $|$diff$|/$SE & diff. & SE & $|$diff$|/$SE \\
+\midrule
+D0 & +0.0004 & 0.0005 & 0.7 & +0.0032$^{\dagger}$ & 0.0007 & 4.5 & -0.0883$^{\ast}$ & 0.0027 & 33.0 \\
+D1 & +0.0002 & 0.0001 & 1.4 & +0.0006$^{\dagger}$ & 0.0002 & 2.8 & -0.0052$^{\ast}$ & 0.0007 & 7.8 \\
+D2 & -0.0002 & 0.0002 & 0.8 & -0.0013$^{\ast}$ & 0.0002 & 6.2 & -0.0070$^{\ast}$ & 0.0004 & 18.7 \\
+D3 & +0.0005$^{\dagger}$ & 0.0002 & 3.1 & +0.0003 & 0.0002 & 1.3 & -0.0091$^{\ast}$ & 0.0003 & 28.4 \\
+D4 & +0.0003$^{\dagger}$ & 0.0001 & 2.2 & +0.0007$^{\dagger}$ & 0.0002 & 4.2 & -0.0010$^{\ast}$ & 0.0004 & 2.5 \\
+D5 & +0.0016$^{\dagger}$ & 0.0007 & 2.4 & +0.0016$^{\dagger}$ & 0.0006 & 2.8 & -0.0180$^{\ast}$ & 0.0009 & 19.6 \\
+D6 & -0.0002 & 0.0002 & 1.1 & -0.0034$^{\ast}$ & 0.0005 & 6.9 & +0.0167$^{\dagger}$ & 0.0010 & 16.1 \\
+D7 & +0.0001 & 0.0002 & 0.9 & -0.0012$^{\ast}$ & 0.0002 & 6.2 & -0.0040$^{\ast}$ & 0.0003 & 13.1 \\
+D8 & -0.0000 & 0.0002 & 0.0 & -0.0025$^{\ast}$ & 0.0002 & 11.1 & -0.0337$^{\ast}$ & 0.0011 & 30.6 \\
+D9 & +0.0002 & 0.0006 & 0.3 & +0.0031$^{\dagger}$ & 0.0005 & 5.8 & -0.0001 & 0.0006 & 0.1 \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}\parbox{0.96\textwidth}{\scriptsize Negative favours \texttt{mutau}. $\ast$ marks a claimant win and $\dagger$ a comparator win, both at more than two paired standard errors, the frozen decision multiple. The third column of each block expresses the same difference in standard errors, so a reader can see how far past the threshold a result sits rather than only that it crossed.}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Stage 2 seed-paired differences on the grid causal mean, \texttt{mean\_quantile\_rmse}.}
+\label{tab:p55s2-paired-meanq}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrrrrrr@{}}
+\toprule
+Regime & \multicolumn{3}{c}{vs R3} & \multicolumn{3}{c}{vs PTA-S} & \multicolumn{3}{c}{vs C-DRF} \\
+  & diff. & SE & $|$diff$|/$SE & diff. & SE & $|$diff$|/$SE & diff. & SE & $|$diff$|/$SE \\
+\midrule
+D0 & +0.0025$^{\dagger}$ & 0.0009 & 2.7 & +0.0430$^{\dagger}$ & 0.0008 & 55.9 & -0.0643$^{\ast}$ & 0.0028 & 23.2 \\
+D1 & +0.0009 & 0.0015 & 0.6 & +0.0626$^{\dagger}$ & 0.0031 & 20.0 & -0.0066 & 0.0040 & 1.7 \\
+D2 & -0.0073 & 0.0080 & 0.9 & -0.0112$^{\ast}$ & 0.0049 & 2.3 & -0.0527$^{\ast}$ & 0.0067 & 7.8 \\
+D3 & +0.0035$^{\dagger}$ & 0.0015 & 2.3 & -0.0050$^{\ast}$ & 0.0022 & 2.3 & -0.1405$^{\ast}$ & 0.0027 & 51.2 \\
+D4 & +0.0060$^{\dagger}$ & 0.0017 & 3.6 & +0.0690$^{\dagger}$ & 0.0037 & 18.7 & +0.0459$^{\dagger}$ & 0.0033 & 13.8 \\
+D5 & -0.0298$^{\ast}$ & 0.0097 & 3.1 & +0.0846$^{\dagger}$ & 0.0121 & 7.0 & +0.0461$^{\dagger}$ & 0.0122 & 3.8 \\
+D6 & +0.0053 & 0.0107 & 0.5 & +0.0210$^{\dagger}$ & 0.0094 & 2.2 & -0.0036 & 0.0099 & 0.4 \\
+D7 & +0.0030 & 0.0043 & 0.7 & +0.0077 & 0.0051 & 1.5 & -0.0157$^{\ast}$ & 0.0058 & 2.7 \\
+D8 & +0.0042$^{\dagger}$ & 0.0016 & 2.7 & -0.0173$^{\ast}$ & 0.0028 & 6.1 & -0.1861$^{\ast}$ & 0.0105 & 17.8 \\
+D9 & -0.0000 & 0.0079 & 0.0 & +0.0919$^{\dagger}$ & 0.0066 & 14.0 & -0.0072 & 0.0058 & 1.2 \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}\parbox{0.96\textwidth}{\scriptsize Negative favours \texttt{mutau}. $\ast$ marks a claimant win and $\dagger$ a comparator win, both at more than two paired standard errors, the frozen decision multiple. The third column of each block expresses the same difference in standard errors, so a reader can see how far past the threshold a result sits rather than only that it crossed.}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{The degradation clause, per sample size. Paired \texttt{kernel\_law\_error} difference, \texttt{mutau} minus C-WDB R3, on the two regimes the phase document names.}
+\label{tab:p55s2-degradation}
+\scriptsize
+\begin{tabular}{@{}llrrrl@{}}
+\toprule
+Regime & $n$ & diff. & SE & $|$diff$|/$SE & Verdict \\
+\midrule
+D3 & 500 & +0.00078 & 0.00026 & 3.0 & \textbf{R3 better} \\
+D3 & 1000 & +0.00026 & 0.00020 & 1.3 & tie \\
+D7 & 500 & +0.00030 & 0.00026 & 1.2 & tie \\
+D7 & 1000 & -0.00004 & 0.00016 & 0.2 & tie \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}\parbox{0.9\textwidth}{\scriptsize D3 is the separate-head-favourable regime, which is what the $\mu/\tau$ reparameterisation puts at risk because it carries the prognostic and contrast fields in one shared tree. D7 is the pure-shape-transfer regime. Positive favours R3.}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Mechanism diagnostics for \texttt{cwdb\_mutau} across all ten regimes, pooled over sample sizes and twenty seeds.}
+\label{tab:p55s2-diagnostics}
+\scriptsize
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Regime & Effective support (of $M = 10$) & Selected contrast strength & Boosting steps & Training risk \\
+\midrule
+D0 & 10.00 & 0.0 & 100 & 0.0227 \\
+D1 & 10.00 & 28.8 & 100 & 0.1233 \\
+D2 & 10.00 & 341.2 & 100 & 0.1314 \\
+D3 & 10.00 & 0.0 & 100 & 0.1097 \\
+D4 & 10.00 & 33.8 & 100 & 0.1335 \\
+D5 & 10.00 & 32.5 & 100 & 0.1339 \\
+D6 & 10.00 & 185.0 & 100 & 0.6427 \\
+D7 & 10.00 & 295.0 & 100 & 0.1307 \\
+D8 & 10.00 & 320.0 & 100 & 0.1587 \\
+D9 & 10.00 & 102.5 & 100 & 0.1503 \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}\parbox{0.9\textwidth}{\scriptsize The rule 5 floor is $0.6M = 6$ particles. The selected contrast strength is chosen per cell by held-out risk over the frozen candidate set $\{0, 50, 500\}$, so a regime mean between the candidates means the selection varies across cells rather than that an intermediate value was ever used.}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Runtime on the main grid. The \texttt{mutau} row is measured on the Stage 2 rows alone; every other row is that method's own frozen record.}
+\label{tab:p55s2-cost}
+\scriptsize
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Method & Median (s) & Max (s) & Ratio to Causal-DRF \\
+\midrule
+DRF & 11.90 & 41.1 & 0.8 \\
+C-DRF & 14.36 & 46.2 & 1.0 \\
+v1 & 16.18 & 36.3 & 1.1 \\
+PTA-S & 36.20 & 52.8 & 2.5 \\
+R3 & 92.23 & 135.7 & 6.4 \\
+mutau & 199.27 & 420.3 & 13.9 \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}\parbox{0.92\textwidth}{\scriptsize The rule 6 cap is 60. The denominator is the original-code Causal-DRF median of 14.36\,s, declared in the preregistration before the run because the project contains two Causal-DRF records and the verdict depends on which is used. Every figure here is an upper bound: the Stage 2 cells ran sixteen at a time on one laptop, and the same implementation measured on an idle machine completes a cell in about a fifth of the time. Runtime in this project is dominated by machine load and is not a clean measure of algorithmic cost.}
+\end{table}

@@ -1,0 +1,34 @@
+{
+  "by_dimension": {
+    "2": {
+      "cells": 3.0,
+      "max_runtime_seconds": 20.82217864999984,
+      "mean_contrast_rmse": 0.11738760136971421,
+      "mean_peak_ram_mb": 202.48567708333334,
+      "mean_runtime_seconds": 20.37558548166756
+    },
+    "4": {
+      "cells": 3.0,
+      "max_runtime_seconds": 32.61306008899919,
+      "mean_contrast_rmse": 0.10056786304987984,
+      "mean_peak_ram_mb": 236.03515625,
+      "mean_runtime_seconds": 27.431588305999565
+    },
+    "8": {
+      "cells": 3.0,
+      "max_runtime_seconds": 51.81901165400268,
+      "mean_contrast_rmse": 0.14694513725464756,
+      "mean_peak_ram_mb": 357.6484375,
+      "mean_runtime_seconds": 51.00320345966611
+    }
+  },
+  "decision": "VIABLE",
+  "evaluation_manifest_id": "PTA-F-DIMENSION-SCALING-v1",
+  "failed_cells": 0,
+  "runtime_growth_ratios": {
+    "4_over_2": 1.346296936138619,
+    "8_over_4": 1.8592872891910235
+  },
+  "runtime_limit_seconds": 1800.0,
+  "slowest_cell_seconds": 51.81901165400268
+}

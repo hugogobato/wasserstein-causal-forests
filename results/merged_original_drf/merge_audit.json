@@ -1,0 +1,24 @@
+{
+  "manifest_contract_id": "G3-MAIN-v1",
+  "manifest_checksum": "be04a3a289d0082dbfc381d769f05365ffc4b4a57f82fab0265c647617aac79e",
+  "n_manifest_cells": 600,
+  "n_observed_cells": 600,
+  "n_duplicate_keys": 0,
+  "n_rows": 14400,
+  "n_failed_cells": 0,
+  "failed_cells": [],
+  "failure_reasons": {},
+  "missing_cells": [],
+  "unknown_cells": [],
+  "shard_files": {
+    "shard_original_drf_000.parquet": "8ed98cc5677e3fcbca60a47a9a2cd61e0d1fb5e6fc6de7021d45295a68cc0408",
+    "shard_original_drf_001.parquet": "f3163736a7118121dbbc8f415f4803f3e9fb1c512a510336924c27ebf33ae280",
+    "shard_original_drf_002.parquet": "3de46861df24993b0a3325c6a01653e4fd205bc95a5de1ca0e33696d3add9f6e",
+    "shard_original_drf_003.parquet": "d52d3fc8e2701f92a1005a08fc9e21be4cc5203595c6812afa12808a3ae3092f",
+    "shard_original_drf_004.parquet": "f6a23b5c6ea1da59b32689abe1713fd49bce380e4d840cd9ce842a40e02b11b4",
+    "shard_original_drf_005.parquet": "13ca30f750510ceef245aee00d18a241560141724da1e11d421899697af52484"
+  },
+  "merged_checksum": "e2a0237b0b703c906543d965b9438d23bbe446d688875de17fc169ca1c2eb60e",
+  "problems": [],
+  "status": "PASS"
+}

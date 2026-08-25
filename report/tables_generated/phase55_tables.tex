@@ -1,0 +1,410 @@
+\begin{table}[htbp]
+\centering
+\caption{Grid causal mean error \texttt{mean\_quantile\_rmse} against \texttt{MEANQ-A-K}, main grid, mean over 20 cells ($n\in\{500,1000\}$, ten seeds) with the standard error in parentheses. This is the primary contrast metric and the one every Phase 5.5 variant was screened on.}
+\label{tab:p55-meanq}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+Regime & rmean & mutau & xmean & R3 & PTA-S & C-DRF & DRF \\
+\midrule
+D0 & 0.0969\,(0.0038) & 0.0985\,(0.0022) & 0.3540\,(0.0012) & 0.0943\,(0.0021) & \textbf{0.0544\,(0.0018)} & 0.1637\,(0.0059) & 0.1920\,(0.0061) \\
+D2 & \textbf{0.0191\,(0.0030)} & 0.0532\,(0.0098) & 0.0473\,(0.0024) & 0.0595\,(0.0116) & 0.0551\,(0.0039) & 0.0952\,(0.0070) & 0.0743\,(0.0064) \\
+D7 & 0.1033\,(0.0040) & 0.0647\,(0.0028) & \textbf{0.0624\,(0.0019)} & 0.0661\,(0.0034) & 0.0637\,(0.0035) & 0.0871\,(0.0066) & 0.0787\,(0.0066) \\
+D8 & 0.0885\,(0.0025) & 0.0795\,(0.0031) & 0.0915\,(0.0048) & \textbf{0.0739\,(0.0034)} & 0.0984\,(0.0047) & 0.2513\,(0.0137) & 0.1843\,(0.0084) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Arm-level barycenter error \texttt{barycenter\_rmse}, main grid. This is an arm-level quantity, never pooled with the contrast of Table~\ref{tab:p55-meanq}.}
+\label{tab:p55-bary}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+Regime & rmean & mutau & xmean & R3 & PTA-S & C-DRF & DRF \\
+\midrule
+D0 & 0.1252\,(0.0028) & 0.1077\,(0.0027) & 0.2605\,(0.0013) & 0.1065\,(0.0026) & \textbf{0.0544\,(0.0019)} & 0.2115\,(0.0055) & 0.2321\,(0.0058) \\
+D2 & 0.1490\,(0.0019) & 0.1884\,(0.0053) & 0.1653\,(0.0037) & 0.1908\,(0.0053) & \textbf{0.1294\,(0.0032)} & 0.2509\,(0.0060) & 0.2322\,(0.0047) \\
+D7 & 0.1482\,(0.0029) & 0.1892\,(0.0050) & 0.1639\,(0.0041) & 0.1892\,(0.0049) & \textbf{0.1306\,(0.0033)} & 0.2294\,(0.0056) & 0.2375\,(0.0050) \\
+D8 & 0.3034\,(0.0030) & 0.2540\,(0.0056) & 0.3285\,(0.0062) & 0.2529\,(0.0061) & \textbf{0.1950\,(0.0054)} & 0.4529\,(0.0105) & 0.4436\,(0.0080) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Declared primary law metric \texttt{kernel\_law\_error} (squared MMD to the true conditional law), main grid. Only \texttt{mutau} produces a law among the Phase 5.5 variants; \texttt{rmean} and \texttt{xmean} target the contrast only and are absent by construction, not by omission.}
+\label{tab:p55-kernel}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Regime & mutau & R3 & C-DRF & DRF \\
+\midrule
+D0 & 0.0289\,(0.0016) & \textbf{0.0287\,(0.0017)} & 0.1209\,(0.0050) & 0.1422\,(0.0062) \\
+D2 & \textbf{0.0117\,(0.0006)} & 0.0122\,(0.0006) & 0.0188\,(0.0008) & 0.0163\,(0.0006) \\
+D7 & 0.0118\,(0.0006) & \textbf{0.0117\,(0.0006)} & 0.0159\,(0.0008) & 0.0170\,(0.0007) \\
+D8 & 0.0157\,(0.0007) & \textbf{0.0155\,(0.0007)} & 0.0498\,(0.0021) & 0.0483\,(0.0018) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Excess energy risk over the true conditional law \texttt{arm\_energy\_risk}, main grid. This is the loss the law methods actually optimise.}
+\label{tab:p55-energy}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Regime & mutau & R3 & C-DRF & DRF \\
+\midrule
+D0 & 0.0584\,(0.0016) & \textbf{0.0579\,(0.0016)} & 0.1312\,(0.0028) & 0.1458\,(0.0037) \\
+D2 & 0.0536\,(0.0026) & 0.0551\,(0.0026) & 0.0456\,(0.0018) & \textbf{0.0407\,(0.0014)} \\
+D7 & 0.0545\,(0.0026) & 0.0549\,(0.0026) & \textbf{0.0403\,(0.0016)} & 0.0430\,(0.0015) \\
+D8 & 0.0650\,(0.0026) & \textbf{0.0644\,(0.0026)} & 0.1213\,(0.0043) & 0.1187\,(0.0037) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{\texttt{mode\_coverage}, the fraction of true outer modes carrying predicted mass, main grid. Higher is better. D6, the only multimodal regime, is not in the Phase 5.5 manifest, so every row here is a degenerate single-mode check.}
+\label{tab:p55-mode}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Regime & mutau & R3 & C-DRF & DRF \\
+\midrule
+D0 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D2 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D7 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D8 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{\texttt{tail\_calibration}, absolute error of a predeclared threshold event under the grid law, main grid.}
+\label{tab:p55-tail}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Regime & mutau & R3 & C-DRF & DRF \\
+\midrule
+D0 & 0.0701\,(0.0019) & \textbf{0.0691\,(0.0023)} & 0.1794\,(0.0045) & 0.1816\,(0.0058) \\
+D2 & 0.1165\,(0.0033) & 0.1165\,(0.0034) & 0.1037\,(0.0024) & \textbf{0.0962\,(0.0024)} \\
+D7 & 0.0533\,(0.0017) & 0.0534\,(0.0017) & \textbf{0.0433\,(0.0016)} & 0.0442\,(0.0017) \\
+D8 & \textbf{0.0988\,(0.0034)} & 0.1002\,(0.0032) & 0.1451\,(0.0041) & 0.1337\,(0.0039) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Conditional Wasserstein reference effect \texttt{REF-TCATE-K} with $\nu_\star$ the standard normal, main grid.}
+\label{tab:p55-reftcate}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+Regime & rmean & mutau & xmean & R3 & PTA-S & C-DRF & DRF \\
+\midrule
+D0 & n/a & 0.0550\,(0.0019) & n/a & 0.0496\,(0.0017) & \textbf{0.0174\,(0.0019)} & 0.1033\,(0.0039) & 0.1113\,(0.0077) \\
+D2 & n/a & 0.0202\,(0.0035) & n/a & \textbf{0.0184\,(0.0030)} & 0.0235\,(0.0043) & 0.0287\,(0.0045) & 0.0301\,(0.0045) \\
+D7 & n/a & \textbf{0.0215\,(0.0027)} & n/a & 0.0232\,(0.0028) & 0.0244\,(0.0035) & 0.0294\,(0.0036) & 0.0296\,(0.0036) \\
+D8 & n/a & \textbf{0.0426\,(0.0038)} & n/a & 0.0444\,(0.0036) & 0.0624\,(0.0039) & 0.0695\,(0.0069) & 0.0866\,(0.0080) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Marginal Wasserstein reference effect \texttt{REF-ATE-K}, main grid.}
+\label{tab:p55-refate}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+Regime & rmean & mutau & xmean & R3 & PTA-S & C-DRF & DRF \\
+\midrule
+D0 & n/a & 0.0436\,(0.0016) & n/a & 0.0385\,(0.0014) & \textbf{0.0047\,(0.0009)} & 0.0129\,(0.0025) & 0.0102\,(0.0031) \\
+D2 & n/a & 0.0123\,(0.0036) & n/a & \textbf{0.0096\,(0.0026)} & 0.0169\,(0.0047) & 0.0195\,(0.0051) & 0.0182\,(0.0046) \\
+D7 & n/a & \textbf{0.0140\,(0.0029)} & n/a & 0.0150\,(0.0033) & 0.0158\,(0.0040) & 0.0174\,(0.0044) & 0.0167\,(0.0039) \\
+D8 & n/a & 0.0239\,(0.0033) & n/a & \textbf{0.0238\,(0.0028)} & 0.0412\,(0.0057) & 0.0491\,(0.0081) & 0.0667\,(0.0101) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Conditional functional treatment effects \texttt{tcate\_functional\_rmse}, main grid. D7 is the transfer regime the law claim rests on.}
+\label{tab:p55-tcate}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+Functional & Regime & mutau & R3 & C-DRF & DRF \\
+\midrule
+\texttt{grid\_mean} & D0 & 0.0606\,(0.0019) & \textbf{0.0555\,(0.0019)} & 0.1166\,(0.0058) & 0.1093\,(0.0087) \\
+ & D2 & \textbf{0.0268\,(0.0042)} & 0.0274\,(0.0043) & 0.0741\,(0.0087) & 0.0527\,(0.0082) \\
+ & D7 & \textbf{0.0244\,(0.0032)} & 0.0295\,(0.0040) & 0.0608\,(0.0084) & 0.0535\,(0.0086) \\
+ & D8 & \textbf{0.0573\,(0.0049)} & 0.0586\,(0.0037) & 0.2117\,(0.0165) & 0.1306\,(0.0125) \\
+\midrule
+\texttt{grid\_sd} & D0 & 0.0117\,(0.0009) & \textbf{0.0101\,(0.0008)} & 0.0171\,(0.0014) & 0.0168\,(0.0015) \\
+ & D2 & \textbf{0.0169\,(0.0021)} & 0.0173\,(0.0019) & 0.0180\,(0.0022) & 0.0182\,(0.0020) \\
+ & D7 & 0.0183\,(0.0016) & 0.0182\,(0.0021) & 0.0198\,(0.0024) & \textbf{0.0182\,(0.0020)} \\
+ & D8 & 0.0204\,(0.0022) & \textbf{0.0173\,(0.0022)} & 0.0267\,(0.0021) & 0.0238\,(0.0021) \\
+\midrule
+\texttt{grid\_skewness} & D0 & 0.0124\,(0.0023) & 0.0120\,(0.0023) & \textbf{0.0000\,(0.0000)} & 0.0000\,(0.0000) \\
+ & D2 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+ & D7 & 0.1134\,(0.0140) & 0.0860\,(0.0068) & \textbf{0.0514\,(0.0032)} & 0.0580\,(0.0026) \\
+ & D8 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+\midrule
+\texttt{grid\_upper\_tail\_mean} & D0 & 0.0603\,(0.0019) & \textbf{0.0551\,(0.0018)} & 0.1223\,(0.0063) & 0.1129\,(0.0089) \\
+ & D2 & \textbf{0.0308\,(0.0040)} & 0.0311\,(0.0045) & 0.0784\,(0.0089) & 0.0567\,(0.0085) \\
+ & D7 & \textbf{0.0291\,(0.0033)} & 0.0330\,(0.0038) & 0.0643\,(0.0084) & 0.0572\,(0.0088) \\
+ & D8 & 0.0608\,(0.0050) & \textbf{0.0596\,(0.0039)} & 0.2207\,(0.0169) & 0.1361\,(0.0124) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Marginal functional treatment effects \texttt{tate\_functional\_rmse}, main grid.}
+\label{tab:p55-tate}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+Functional & Regime & mutau & R3 & C-DRF & DRF \\
+\midrule
+\texttt{grid\_mean} & D0 & 0.0064\,(0.0011) & \textbf{0.0052\,(0.0011)} & 0.0575\,(0.0060) & 0.0312\,(0.0048) \\
+ & D2 & \textbf{0.0158\,(0.0024)} & 0.0177\,(0.0029) & 0.0657\,(0.0088) & 0.0255\,(0.0056) \\
+ & D7 & \textbf{0.0163\,(0.0027)} & 0.0178\,(0.0027) & 0.0462\,(0.0086) & 0.0263\,(0.0057) \\
+ & D8 & \textbf{0.0318\,(0.0054)} & 0.0369\,(0.0048) & 0.1850\,(0.0197) & 0.0714\,(0.0136) \\
+\midrule
+\texttt{grid\_sd} & D0 & 0.0057\,(0.0010) & \textbf{0.0042\,(0.0009)} & 0.0138\,(0.0017) & 0.0132\,(0.0017) \\
+ & D2 & \textbf{0.0119\,(0.0021)} & 0.0121\,(0.0017) & 0.0142\,(0.0024) & 0.0137\,(0.0023) \\
+ & D7 & \textbf{0.0118\,(0.0014)} & 0.0124\,(0.0019) & 0.0143\,(0.0026) & 0.0136\,(0.0023) \\
+ & D8 & 0.0137\,(0.0019) & \textbf{0.0121\,(0.0023)} & 0.0191\,(0.0022) & 0.0192\,(0.0022) \\
+\midrule
+\texttt{grid\_skewness} & D0 & 0.0102\,(0.0024) & 0.0106\,(0.0024) & \textbf{0.0000\,(0.0000)} & 0.0000\,(0.0000) \\
+ & D2 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+ & D7 & 0.0977\,(0.0124) & 0.0704\,(0.0059) & 0.0181\,(0.0026) & \textbf{0.0148\,(0.0023)} \\
+ & D8 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} & 0.0000\,(0.0000) \\
+\midrule
+\texttt{grid\_upper\_tail\_mean} & D0 & 0.0071\,(0.0014) & \textbf{0.0055\,(0.0007)} & 0.0677\,(0.0065) & 0.0400\,(0.0052) \\
+ & D2 & 0.0204\,(0.0030) & \textbf{0.0197\,(0.0035)} & 0.0706\,(0.0091) & 0.0301\,(0.0066) \\
+ & D7 & \textbf{0.0191\,(0.0037)} & 0.0203\,(0.0036) & 0.0504\,(0.0088) & 0.0301\,(0.0065) \\
+ & D8 & \textbf{0.0317\,(0.0059)} & 0.0357\,(0.0050) & 0.1953\,(0.0199) & 0.0820\,(0.0141) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Inherited rule 1, evaluated per sample size on the ten Phase 5.5 seeds. The D0 cap is 0.15, the D2 cap is 0.15, and the D2 false-effect ratio cap is 1.25 times the best frozen baseline at the same $n$.}
+\label{tab:p55-rule1}
+\small
+\begin{tabular}{@{}llrrrrl@{}}
+\toprule
+Method & $n$ & D0 & D2 & baseline & ratio & Verdict \\
+\midrule
+rmean & 500 & 0.1095 & 0.0149 & 0.0620 & 0.24 & \textsc{pass} \\
+rmean & 1000 & 0.0842 & 0.0233 & 0.0482 & 0.48 & \textsc{pass} \\
+\addlinespace
+mutau & 500 & 0.1063 & 0.0714 & 0.0620 & 1.15 & \textsc{pass} \\
+mutau & 1000 & 0.0907 & 0.0349 & 0.0482 & 0.72 & \textsc{pass} \\
+\addlinespace
+xmean & 500 & 0.3545 & 0.0553 & 0.0620 & 0.89 & \textbf{FAIL} \\
+xmean & 1000 & 0.3536 & 0.0394 & 0.0482 & 0.82 & \textbf{FAIL} \\
+\addlinespace
+R3 & 500 & 0.1017 & 0.0780 & 0.0620 & 1.26 & \textbf{FAIL} \\
+R3 & 1000 & 0.0868 & 0.0410 & 0.0482 & 0.85 & \textsc{pass} \\
+\addlinespace
+PTA-S & 500 & 0.0623 & 0.0620 & 0.0620 & 1.00 & \textsc{pass} \\
+PTA-S & 1000 & 0.0465 & 0.0482 & 0.0482 & 1.00 & \textsc{pass} \\
+\addlinespace
+C-DRF & 500 & 0.1883 & 0.1086 & 0.0620 & 1.75 & \textbf{FAIL} \\
+C-DRF & 1000 & 0.1391 & 0.0818 & 0.0482 & 1.70 & \textbf{FAIL} \\
+\addlinespace
+DRF & 500 & 0.2168 & 0.0860 & 0.0620 & 1.39 & \textbf{FAIL} \\
+DRF & 1000 & 0.1672 & 0.0627 & 0.0482 & 1.30 & \textbf{FAIL} \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}\parbox{0.9\textwidth}{\scriptsize The baseline column is the smallest D2 mean among PTA-S, C-WDB-v0, C-WDB-v1, W-DRF-T and Causal-DRF at that $n$, on the same ten seeds. Causal-DRF and DRF are included as rows for reference; they are incumbents, not claimants, and rule 1 was never a gate on them.}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Seed-paired \texttt{mean\_quantile\_rmse} differences for \texttt{cwdb\_rmean}. The D8 column is the primary confounding test and the D0 column is the one the screen memo initially omitted.}
+\label{tab:p55-paired-rmean}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrrrrrr@{}}
+\toprule
+Regime & \multicolumn{3}{c}{vs PTA-S} & \multicolumn{3}{c}{vs R3} & \multicolumn{3}{c}{vs C-DRF} \\
+  & diff. & SE & $|$diff$|/$SE & diff. & SE & $|$diff$|/$SE & diff. & SE & $|$diff$|/$SE \\
+\midrule
+D0 & +0.0425$^{\dagger}$ & 0.0026 & 16.0 & +0.0026 & 0.0033 & 0.8 & -0.0669$^{\ast}$ & 0.0039 & 17.0 \\
+D2 & -0.0360$^{\ast}$ & 0.0041 & 8.8 & -0.0404$^{\ast}$ & 0.0127 & 3.2 & -0.0761$^{\ast}$ & 0.0082 & 9.3 \\
+D7 & +0.0396$^{\dagger}$ & 0.0036 & 10.9 & +0.0372$^{\dagger}$ & 0.0039 & 9.5 & +0.0163$^{\dagger}$ & 0.0073 & 2.2 \\
+D8 & -0.0100$^{\ast}$ & 0.0036 & 2.8 & +0.0145$^{\dagger}$ & 0.0025 & 5.9 & -0.1628$^{\ast}$ & 0.0134 & 12.1 \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}\parbox{0.96\textwidth}{\scriptsize Negative favours the claimant. $\ast$ marks a claimant win and $\dagger$ a comparator win, both at more than two paired standard errors, which is the frozen decision multiple. The third column of each block is the same quantity expressed in standard errors, so a reader can see how far past the threshold a result sits rather than only that it crossed.}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Seed-paired \texttt{mean\_quantile\_rmse} differences for \texttt{cwdb\_mutau}. The R3 block is the informative one: \texttt{mutau} is a reparameterisation of the same shared tree, so a difference against R3 is a difference the $\mu/\tau$ leaf rule caused.}
+\label{tab:p55-paired-mutau}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrrrrrr@{}}
+\toprule
+Regime & \multicolumn{3}{c}{vs R3} & \multicolumn{3}{c}{vs PTA-S} & \multicolumn{3}{c}{vs C-DRF} \\
+  & diff. & SE & $|$diff$|/$SE & diff. & SE & $|$diff$|/$SE & diff. & SE & $|$diff$|/$SE \\
+\midrule
+D0 & +0.0042$^{\dagger}$ & 0.0013 & 3.3 & +0.0441$^{\dagger}$ & 0.0012 & 37.6 & -0.0652$^{\ast}$ & 0.0045 & 14.5 \\
+D2 & -0.0063 & 0.0148 & 0.4 & -0.0019 & 0.0084 & 0.2 & -0.0420$^{\ast}$ & 0.0120 & 3.5 \\
+D7 & -0.0015 & 0.0027 & 0.6 & +0.0009 & 0.0024 & 0.4 & -0.0224$^{\ast}$ & 0.0060 & 3.7 \\
+D8 & +0.0055$^{\dagger}$ & 0.0022 & 2.6 & -0.0190$^{\ast}$ & 0.0042 & 4.6 & -0.1718$^{\ast}$ & 0.0143 & 12.1 \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}\parbox{0.96\textwidth}{\scriptsize Negative favours the claimant. $\ast$ marks a claimant win and $\dagger$ a comparator win, both at more than two paired standard errors, which is the frozen decision multiple. The third column of each block is the same quantity expressed in standard errors, so a reader can see how far past the threshold a result sits rather than only that it crossed.}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Seed-paired \texttt{mean\_quantile\_rmse} differences for \texttt{cwdb\_xmean} on the main grid. The imbalance grid, which is where its premise lives, is Table~\ref{tab:p55-imbalance}.}
+\label{tab:p55-paired-xmean}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrrrrrr@{}}
+\toprule
+Regime & \multicolumn{3}{c}{vs rmean} & \multicolumn{3}{c}{vs PTA-S} & \multicolumn{3}{c}{vs R3} \\
+  & diff. & SE & $|$diff$|/$SE & diff. & SE & $|$diff$|/$SE & diff. & SE & $|$diff$|/$SE \\
+\midrule
+D0 & +0.2572$^{\dagger}$ & 0.0037 & 70.3 & +0.2996$^{\dagger}$ & 0.0021 & 140.3 & +0.2597$^{\dagger}$ & 0.0027 & 97.7 \\
+D2 & +0.0283$^{\dagger}$ & 0.0042 & 6.7 & -0.0077$^{\ast}$ & 0.0031 & 2.5 & -0.0122 & 0.0118 & 1.0 \\
+D7 & -0.0410$^{\ast}$ & 0.0037 & 11.1 & -0.0014 & 0.0029 & 0.5 & -0.0038 & 0.0025 & 1.5 \\
+D8 & +0.0031 & 0.0049 & 0.6 & -0.0069 & 0.0056 & 1.2 & +0.0176$^{\dagger}$ & 0.0036 & 4.9 \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}\parbox{0.96\textwidth}{\scriptsize Negative favours the claimant. $\ast$ marks a claimant win and $\dagger$ a comparator win, both at more than two paired standard errors, which is the frozen decision multiple. The third column of each block is the same quantity expressed in standard errors, so a reader can see how far past the threshold a result sits rather than only that it crossed.}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Seed-paired \texttt{kernel\_law\_error} differences for \texttt{cwdb\_mutau}, the law metric.}
+\label{tab:p55-paired-mutau-law}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Regime & \multicolumn{3}{c}{vs R3} & \multicolumn{3}{c}{vs C-DRF} \\
+  & diff. & SE & $|$diff$|/$SE & diff. & SE & $|$diff$|/$SE \\
+\midrule
+D0 & +0.0001 & 0.0006 & 0.2 & -0.0920$^{\ast}$ & 0.0039 & 23.7 \\
+D2 & -0.0005 & 0.0004 & 1.4 & -0.0071$^{\ast}$ & 0.0006 & 11.6 \\
+D7 & +0.0000 & 0.0002 & 0.1 & -0.0041$^{\ast}$ & 0.0005 & 8.4 \\
+D8 & +0.0003 & 0.0003 & 1.0 & -0.0341$^{\ast}$ & 0.0016 & 21.3 \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}\parbox{0.96\textwidth}{\scriptsize Negative favours the claimant. $\ast$ marks a claimant win and $\dagger$ a comparator win, both at more than two paired standard errors, which is the frozen decision multiple. The third column of each block is the same quantity expressed in standard errors, so a reader can see how far past the threshold a result sits rather than only that it crossed.}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{The \texttt{imbalance} extension grid, $n=500$, ten seeds. This grid was added for WP5.5-D: the vector X-learner's claimed advantage is specific to arm imbalance, so a result outside this grid could not support it. The last two columns are the seed-paired difference of \texttt{xmean} against \texttt{rmean} on \texttt{mean\_quantile\_rmse}.}
+\label{tab:p55-imbalance}
+\small
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+& \multicolumn{2}{c}{\texttt{mean\_quantile\_rmse}} & \multicolumn{2}{c}{\texttt{barycenter\_rmse}} & \multicolumn{2}{c}{paired diff.} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Regime & rmean & xmean & rmean & xmean & diff. & SE \\
+\midrule
+D2-imb & 0.0153\,(0.0056) & 0.0706\,(0.0053) & 0.1585\,(0.0028) & 0.1797\,(0.0026) & +0.0553$^{\dagger}$ & 0.0069 \\
+D7-imb & 0.1289\,(0.0039) & 0.0833\,(0.0043) & 0.1722\,(0.0030) & 0.1785\,(0.0039) & -0.0456$^{\ast}$ & 0.0046 \\
+D8-imb & 0.0911\,(0.0026) & 0.1033\,(0.0054) & 0.2954\,(0.0042) & 0.3103\,(0.0055) & +0.0121 & 0.0064 \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}\parbox{0.9\textwidth}{\scriptsize Negative favours \texttt{xmean}; $\dagger$ marks an \texttt{rmean} win beyond two paired standard errors. The imbalance actually realised, as the mean fitted propensity: D2-imb 0.307, D7-imb 0.307, D8-imb 0.307.}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Post-decision diagnostic for \texttt{cwdb\_xmean}: \texttt{mean\_quantile\_rmse} as the frozen three-step effect budget is relaxed, five seeds. The frozen budget is the first column. No column is simultaneously effect-recovering and null-safe, and on the imbalance grid the best available column is still the frozen one and still loses to \texttt{rmean}.}
+\label{tab:p55-budget}
+\small
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Cell & $B=3$ & $B=10$ & $B=20$ & $B=50$ & \texttt{rmean} \\
+\midrule
+\texttt{D0/n500} & 0.3550 & 0.1669 & 0.0850 & 0.0658 & n/a \\
+\texttt{D0/n1000} & 0.3510 & 0.1644 & 0.0767 & 0.0520 & n/a \\
+\texttt{D2/n500} & 0.0546 & 0.0925 & 0.1217 & 0.1636 & n/a \\
+\texttt{D2/n1000} & 0.0387 & 0.0716 & 0.0958 & 0.1295 & n/a \\
+\texttt{D8/n500} & 0.1112 & 0.1472 & 0.1770 & 0.2222 & n/a \\
+\texttt{D8/n1000} & 0.0854 & 0.1145 & 0.1446 & 0.1810 & n/a \\
+\midrule
+\texttt{D2-imb/n500} & 0.0682 & 0.1132 & 0.1499 & 0.1926 & 0.0086 \\
+\texttt{D7-imb/n500} & 0.0816 & 0.1181 & 0.1483 & 0.1893 & 0.1305 \\
+\texttt{D8-imb/n500} & 0.1017 & 0.1532 & 0.1900 & 0.2338 & 0.0931 \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}\parbox{0.9\textwidth}{\scriptsize $B$ is \texttt{n\_estimators} in the effect regression; the learning rate stays at 0.12, so the frozen budget carries total boosting weight 0.36 against the R-loss contrast's 2.4. Generated by \texttt{research/checks/phase55\_xmean\_budget\_probe.py}. This probe explains a verdict already reached and no threshold depends on it.}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Mechanism diagnostics recorded by the Phase 5.5 variants, main grid, mean over the twenty cells of a regime with the standard error in parentheses. These are not comparisons: no incumbent emits them.}
+\label{tab:p55-diagnostics}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+Method & Diagnostic & D0 & D2 & D7 & D8 \\
+\midrule
+rmean & selected ridge $\lambda$ & 0.000\,(0.000) & 432.500\,(36.863) & 50.000\,(0.000) & 297.500\,(51.360) \\
+mutau & selected ridge $\lambda$ & 0.000\,(0.000) & 272.500\,(52.249) & 252.500\,(51.360) & 297.500\,(51.360) \\
+mutau & boosting steps used & 100.000\,(0.000) & 100.000\,(0.000) & 100.000\,(0.000) & 100.000\,(0.000) \\
+mutau & effective particle support & 10.000\,(0.000) & 10.000\,(0.000) & 10.000\,(0.000) & 10.000\,(0.000) \\
+xmean & $\bar{\hat e}$ & 0.497\,(0.005) & 0.497\,(0.005) & 0.497\,(0.005) & 0.496\,(0.004) \\
+xmean & sd of $\hat e$ & 0.128\,(0.004) & 0.128\,(0.004) & 0.128\,(0.004) & 0.295\,(0.003) \\
+rmean & training risk & 0.011\,(0.000) & 0.189\,(0.002) & 0.185\,(0.002) & 0.255\,(0.004) \\
+mutau & training risk & 0.023\,(0.000) & 0.130\,(0.006) & 0.131\,(0.006) & 0.158\,(0.005) \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}\parbox{0.94\textwidth}{\scriptsize The effective support is the number of the $M=10$ particles carrying non-negligible weight, so 10 is the ceiling and the floor for rule 5 is $0.6M=6$. The selected $\lambda$ is chosen per cell from $\{0, 50, 500\}$ by cross-fitted selection, so its mean is a per-regime average of a discrete choice and not itself a tuned value.}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Operational cost on the Phase 5.5 coordinates: every \texttt{main} grid cell of D0, D2, D7 and D8 at ten seeds. Two cost ratios are reported against the inherited cap of 60, because the rule-6 verdict depends on which Causal-DRF is the denominator and the project contains two.}
+\label{tab:p55-cost}
+\small
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+Method & Cells & Median (s) & Mean (s) & Max (s) & Ratio$_{\text{orig}}$ & Ratio$_{\text{local}}$ & Median RAM (MB) \\
+\midrule
+C-WDB rmean (vector R-learner) & 80 & 8.27 & 8.77 & 15.8 & 0.6 & 4.4 & 0 \\
+C-WDB mutau ($\mu/\tau$ shared tree) & 80 & 170.19 & 180.68 & 321.4 & 11.8 & 91.1 & 0 \\
+C-WDB xmean (vector X-learner) & 80 & 5.03 & 5.40 & 9.8 & 0.3 & 2.7 & 0 \\
+C-WDB R3 (cv-ridge) & 80 & 84.47 & 87.11 & 134.0 & 5.8 & 45.2 & 0 \\
+PTA-S & 80 & 35.36 & 35.73 & 51.4 & 2.4 & 18.9 & 0 \\
+Causal-DRF & 80 & 14.47 & 13.10 & 38.1 & 1.0 & 7.7 & 336 \\
+DRF (separate, paper benchmark) & 80 & 11.32 & 10.93 & 33.4 & 0.8 & 6.1 & 431 \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}\parbox{0.94\textwidth}{\scriptsize Ratio$_{\text{orig}}$ divides by the original-code Causal-DRF rerun on exactly these cells (median 14.47\,s), which is the comparator record the rest of this report uses. Ratio$_{\text{local}}$ divides by the retired local Causal-DRF driver pooled over its own \texttt{main} grid, all ten regimes (median 1.87\,s), which is the denominator the G3.5 screen memo quoted. Every Phase 5.5 cell ran on a loaded machine alongside other work, so these are upper bounds on the variants' cost rather than clean measurements; the ratios are reported anyway because the cap is a declared gate and a favourable rerun cannot be assumed.}
+\end{table}

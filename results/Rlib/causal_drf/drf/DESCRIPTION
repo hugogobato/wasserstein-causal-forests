@@ -1,0 +1,17 @@
+Package: drf
+Title: Distributional Random Forests
+Version: 1.1.0
+Author: Loris Michel, Domagoj Cevid
+Maintainer: Loris Michel <michel@stat.math.ethz.ch>
+BugReports: https://github.com/lorismichel/drf/issues
+Description: An implementation of distributional random forests as introduced in Cevid & Michel & Meinshausen & Buhlmann (2020) <arXiv:2005.14458>.
+License: GPL-3
+LinkingTo: Rcpp, RcppEigen
+Depends: R (>= 3.4.4)
+Imports: stats, fastDummies, Matrix, methods, Rcpp (>= 0.12.15),
+        transport, kernlab
+RoxygenNote: 7.2.3
+Suggests: DiagrammeR
+SystemRequirements: GNU make
+URL: https://github.com/lorismichel/drf
+Built: R 4.3.3; x86_64-pc-linux-gnu; 2026-08-22 23:04:44 UTC; unix

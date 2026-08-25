@@ -1,0 +1,1662 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{pdflscape}
+\usepackage[hidelinks]{hyperref}
+\usepackage{microtype}
+\sloppy
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\newcommand{\Pcal}{\mathcal{P}}
+\newcommand{\Qcal}{\mathcal{Q}}
+\newcommand{\Xcal}{\mathcal{X}}
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\Exp}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\dW}{d_W}
+\newcommand{\CWDB}{\textsf{C-WDB}}
+
+\title{Causal Wasserstein Distribution Boosting (C-WDB):\\
+Method, Simulation Evidence, and What May Be Claimed\\
+\large A consolidated technical report through Phase 5 and its repair track}
+\author{Prepared for the Wasserstein Causal Forests project}
+\date{1 August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This report consolidates everything the project has established about Causal
+Wasserstein Distribution Boosting (\CWDB), the proposed contribution, before the
+applied study begins. It states the estimands and the identification argument,
+develops the proper scoring rule the method optimizes and the gradient the
+implementation actually uses, describes the boosting algorithm in both its
+independent-arm and shared-partition forms, documents the ten simulation regimes
+and the oracle truth construction, and reports the preregistered tournament
+together with the repair track that followed it. The tournament returned
+\texttt{NOT-GO} on one of six rules, the null-regime correctness rule, and the
+repair track returned \texttt{GO} for two variants of the contrast regularizer.
+The final section states precisely which claims the evidence supports, which it
+does not, and what an applied study may therefore assert.
+\end{abstract}
+
+\tableofcontents
+
+\section{Purpose and scope of this document}
+
+The project builds a treatment-aware learner for the \emph{conditional law} of a
+distribution-valued potential outcome. Its selling point is that a method
+holding a whole conditional distribution can answer questions about functionals
+that were not named at training time, whereas a method holding a fixed vector of
+target coordinates cannot. Everything below exists to test whether that selling
+point survives contact with a preregistered simulation tournament that includes
+the published incumbent.
+
+The document is deliberately self-contained. Sections 2 through 5 are the
+mathematics and the algorithm, Section 6 the data generating processes, Section 7
+the evaluation protocol and the gate rules, Sections 8 through 10 the results,
+and Sections 11 and 12 the limitations and the consequences for the applied
+study. Every number reported here comes from a frozen artefact in the
+repository; the artefact list and checksums are in Section 13.
+
+\section{Setup, estimands, identification}
+
+\subsection{Observation regime}
+
+The observational unit is $O = (X, A, Y)$ with $X \in \Xcal$ pre-treatment
+covariates, $A \in \{0,1\}$ a binary treatment, and $Y = Y^A$ an
+outcome that is itself a probability measure, $Y^0, Y^1 \in \Pcal_2(\Real)$.
+Each unit therefore carries a whole distribution as its response: a firm's
+distribution of daily returns, a hospital's distribution of patient waiting
+times, a country's distribution of household incomes. A pre-specified
+low-dimensional moderator $V = g(X)$ is fixed before any outcome analysis.
+
+The current observation regime is called \texttt{ORACLE-V1}: each $Y_i$ is
+treated as fully observed and represented exactly by its quantile vector on a
+declared grid. Inner-sample uncertainty, histogram-count noise, and measurement
+error in the inner distribution are deliberately deferred, and the regime
+where they matter (D10 in the original template) is dormant. This is assumption
+A6 in the ledger, and it is the single largest simplification in the work so
+far.
+
+\subsection{Finite-grid representation and geometry}
+
+Fix levels $0 < u_1 < \cdots < u_K < 1$ and positive quadrature weights $w_k$
+normalized so that $\sum_k w_k = 1$. Writing $Q_Y(u) = \inf\{t : F_Y(t) \geq u\}$
+for the left-continuous generalized inverse, the stored representation of an
+outcome is
+\[
+q(Y) = \bigl(Q_Y(u_1), \ldots, Q_Y(u_K)\bigr) \in \Qcal_K,
+\qquad
+\Qcal_K = \{q \in \Real^K : q_1 \leq \cdots \leq q_K\},
+\]
+the closed monotone cone. With $W = \operatorname{diag}(w_1,\ldots,w_K)$ the
+declared metric is
+\[
+\dW(q, q') = \Bigl\{\textstyle\sum_{k} w_k (q_k - q'_k)^2\Bigr\}^{1/2},
+\qquad
+z = W^{1/2} q,
+\qquad
+\dW(q,q') = \|z - z'\|_2 .
+\]
+This is the finite-grid, quadrature version of the $2$-Wasserstein distance on
+$\Pcal_2(\Real)$, and the contract writes it $W_{2,K}$ rather than $W_2$ so that
+the discretization is never silently identified with the continuum object. The
+rescaling $L(q) = W^{1/2} q$ is injective because every $w_k > 0$; this fact is
+used in the propriety proof.
+
+\subsection{Estimands}
+
+The frozen estimand dictionary separates four levels that are routinely
+conflated in this literature. Table~\ref{tab:estimands} lists the identifiers
+that appear in every result row.
+
+\begin{table}[htbp]
+\centering
+\caption{Frozen estimand dictionary (contract \texttt{G0-WP0-A-v1}). Grid and
+continuum versions carry different identifiers and are never pooled.}
+\label{tab:estimands}
+\small
+\begin{tabular}{@{}llp{7.3cm}@{}}
+\toprule
+Identifier & Level & Definition \\
+\midrule
+\texttt{LAW-A-K} & grid law & $P_a^K(x) = \mathcal{L}\{q(Y^a) \mid X = x\}$ \\
+\texttt{MEANQ-A-K} & grid barycenter coordinate & $\bar q_a(x) = \Exp\{q(Y^a) \mid X=x\}$ \\
+\texttt{BARY-A} & continuum barycenter & $m_a(x) \in \arg\min_\nu \Exp\{W_2^2(Y^a,\nu)\mid X=x\}$ \\
+\texttt{TATE-K-}$j$ & grid outcome level & $\Exp\{h_j(q(Y^1))\} - \Exp\{h_j(q(Y^0))\}$ \\
+\texttt{TCATE-K-}$j$ & grid outcome level & $\Exp[h_j(q(Y^1)) - h_j(q(Y^0)) \mid V = v]$ \\
+\texttt{REF-A-K} & grid outcome level & $r_a^K(x) = \Exp\{\dW(q(Y^a), q(\nu_\star)) \mid X = x\}$ \\
+\texttt{REF-ATE-K}, \texttt{REF-TCATE-K} & grid outcome level & marginal and moderator-conditional contrasts of $r_a^K$ \\
+\texttt{LAW-A-M-K} & finite-particle law & the fixed-$M$ score projection of Section~\ref{sec:finiteM} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The mandatory common target, the one every method in the tournament can produce
+without any substitution, is the grid causal mean
+\[
+\tau_q^K(x) = \Exp\{q(Y^1) - q(Y^0) \mid X = x\} \in \Real^K .
+\]
+
+\subsection{Identification, and what is not identified}
+
+Under A1 (binary treatment), A2 (consistency, $Y = Y^A$), A3 (conditional
+ignorability, $(Y^0,Y^1) \perp A \mid X$), and A4 (overlap, $0 < e(X) < 1$), the
+usual g-formula holds at the level of whole laws: for every Borel
+$B \subseteq \Qcal_K$,
+\[
+P_a^K(x)(B) = \Prob\{q(Y^a) \in B \mid X = x\}
+            = \Prob\{q(Y) \in B \mid A = a,\ X = x\},
+\]
+and consequently, for every integrable measurable $h$,
+$\Exp\{h(q(Y))\mid A=a, X=x\} = \Exp\{h(q(Y^a))\mid X=x\}$. Every target in
+Table~\ref{tab:estimands} is a functional of the two arm-marginal conditional
+laws and is therefore identified.
+
+Two negative statements matter as much as the positive one, and both are
+enforced in code rather than left to discipline.
+
+First, the joint law $\mathcal{L}(Y^0, Y^1 \mid X = x)$ is \emph{not} identified.
+The witness in the contract takes $X$ constant, randomized $A$, and
+$Y^a = \delta_{B_a}$ with $B_0, B_1$ marginally Bernoulli$(1/2)$: the coupling
+$B_1 = B_0$ and the coupling $B_1 = 1 - B_0$ induce the same law of $(A, Y)$ but
+give $\Prob(Y^1 = Y^0) = 1$ and $\Prob(Y^1 = Y^0) = 0$ respectively. Individual
+treatment-effect distributions, cross-arm particle pairings, and shared ranks
+across arms are therefore outside the contract. In particular, if the method
+outputs $M$ particles per arm, the quantity $p_{1m}(x) - p_{0m}(x)$ has no causal
+meaning, and every reported output must be invariant to permuting particle
+labels within an arm (assumption A14).
+
+Second, the barycenter level and the outcome level are different. In one
+dimension the conditional barycenter has quantile function
+$Q_{m_a(x)}(u) = \Exp\{Q_{Y^a}(u) \mid X = x\}$, so
+$q\{m_a(x)\} = \Exp\{q(Y^a) \mid X = x\}$ holds coordinatewise and
+\texttt{MEANQ-A-K} is recoverable. But for nonlinear $T_j$,
+\[
+T_j\{m_a(x)\} \neq \Exp\{T_j(Y^a) \mid X = x\}
+\]
+in general. A barycenter draw, or a posterior draw of a mean surface, may not be
+relabelled as a draw from the outcome law. This prohibition is what forces the
+two Bayesian baselines to report \texttt{not\_applicable} on every law-level
+metric rather than a substitute quantity, and it is the reason the transfer
+claim in D7 is testable at all.
+
+\section{The proper score}
+
+\subsection{Definition}
+
+For $\varepsilon \geq 0$ define the smoothed distance and the loss-oriented
+energy score
+\[
+\rho_\varepsilon(p,q) = \bigl\{\dW^2(p,q) + \varepsilon^2\bigr\}^{1/2} - \varepsilon,
+\qquad
+S_\varepsilon(P, y) = \Exp_{Z \sim P}\, \rho_\varepsilon(Z, y)
+ - \tfrac12 \Exp_{Z, Z' \sim P}\, \rho_\varepsilon(Z, Z').
+\]
+For the equal-weight $M$-particle law $P_M = M^{-1}\sum_m \delta_{p_m}$ this is
+\begin{equation}
+S_{M,\varepsilon}(p_{1:M}, y)
+= \underbrace{\frac{1}{M}\sum_{m=1}^M \rho_\varepsilon(p_m, y)}_{\text{attraction}}
+- \underbrace{\frac{1}{2M^2}\sum_{m,\ell=1}^M \rho_\varepsilon(p_m, p_\ell)}_{\text{repulsion}} .
+\label{eq:score}
+\end{equation}
+The subtraction of $\varepsilon$ makes $\rho_\varepsilon(p,p) = 0$; additive
+constants would cancel from the energy divergence anyway. The value
+$\varepsilon = 10^{-3}$ is frozen in the manifest and the same value is used in
+the objective, the gradient, the tuning risk, and the definition of the
+fixed-$M$ target. It is not an undocumented denominator patch: $S_\varepsilon$
+is exactly the score being optimized, and it is proper in its own right.
+
+\subsection{Strict propriety}
+
+\begin{proposition}[Strict propriety on the weighted monotone cone]
+For every $\varepsilon \geq 0$, $S_\varepsilon$ is strictly proper on
+$\Pcal_1(\Qcal_K, \dW)$: the population risk
+$R_\varepsilon(P,Q) = \Exp_{Y \sim Q} S_\varepsilon(P,Y)$ satisfies
+$R_\varepsilon(P,Q) \geq R_\varepsilon(Q,Q)$ with equality if and only if
+$P = Q$.
+\end{proposition}
+
+\noindent Direct expansion gives
+$R_\varepsilon(P,Q) - R_\varepsilon(Q,Q) = \tfrac12 D_{\rho_\varepsilon}(P,Q)$
+with
+$D_{\rho_\varepsilon}(P,Q) = 2\Exp \rho_\varepsilon(X,Y) - \Exp\rho_\varepsilon(X,X') - \Exp\rho_\varepsilon(Y,Y')$
+for independent $X, X' \sim P$ and $Y, Y' \sim Q$. The identity
+\[
+\sqrt{t + \varepsilon^2} - \varepsilon
+= \frac{1}{2\sqrt\pi}\int_0^\infty \{1 - e^{-st}\}\, e^{-s\varepsilon^2}\, s^{-3/2}\, ds,
+\qquad t \geq 0,
+\]
+applied with $t = \|L(p) - L(q)\|_2^2$ turns the divergence into a positive
+mixture of squared maximum mean discrepancies,
+\[
+D_{\rho_\varepsilon}(P,Q)
+= \frac{1}{2\sqrt\pi}\int_0^\infty \operatorname{MMD}^2_{k_s}(L_\# P, L_\# Q)\,
+e^{-s\varepsilon^2} s^{-3/2}\, ds,
+\qquad k_s(z,z') = e^{-s\|z - z'\|_2^2}.
+\]
+Every integrand is nonnegative, Gaussian kernels are characteristic on Euclidean
+space, and the mixing density is strictly positive, so the divergence vanishes
+only when $L_\#P = L_\#Q$, hence only when $P = Q$ by injectivity of $L$.
+Restricting to the closed subset $\Qcal_K$ does not weaken strictness. At
+$\varepsilon = 0$ this reduces to the classical energy-score result of Gneiting
+and Raftery (2007, Theorem 5); the distance-to-RKHS equivalence is that of
+Sejdinovic et al.\ (2013) and Sz\'ekely and Rizzo (2013).
+
+The practical content of this proposition is assumption A13: because the score
+is strictly proper over the \emph{unrestricted} finite-grid law space, minimizing
+its conditional risk identifies $P_a^K(x)$ itself, not some summary of it.
+
+\subsection{Gradient, and why the repulsion term cannot be dropped}
+
+Writing $r_{my,\varepsilon} = \{(p_m - y)^\top W (p_m - y) + \varepsilon^2\}^{1/2}$
+and similarly $r_{m\ell,\varepsilon}$ for particle pairs, differentiating
+\eqref{eq:score} and counting both ordered appearances of $p_m$ in the double sum
+gives
+\begin{equation}
+\nabla_{p_m} S_{M,\varepsilon}
+= \frac{1}{M}\,\frac{W(p_m - y)}{r_{my,\varepsilon}}
+- \frac{1}{M^2}\sum_{\ell=1}^M \frac{W(p_m - p_\ell)}{r_{m\ell,\varepsilon}} .
+\label{eq:grad}
+\end{equation}
+The second term couples every particle to the entire ensemble. A particlewise
+attraction gradient that omits it is not the gradient of the certified score,
+and the consequence of omitting it is not cosmetic.
+
+\begin{proposition}[Squared-$W_2$ collapse]
+The improper ablation that removes the repulsion term minimizes
+$L_{\mathrm{sq}}(p_{1:M}) = M^{-1}\sum_m \Exp\{\dW^2(p_m, q(Y))\}$. Each summand
+is independent of the other particles, $\Qcal_K$ is convex, and
+$\Exp\{q(Y)\} \in \Qcal_K$, so every particle has the same unique minimizer
+$p_m^\star = \Exp\{q(Y)\}$. The ensemble collapses to the barycenter whatever
+the outer law.
+\end{proposition}
+
+This is why the tournament carries a squared-$W_2$ booster as a preregistered
+ablation: it is the same tree machinery with \eqref{eq:score} replaced by a
+squared loss, so any difference isolates the repulsion term and nothing else.
+The certified numerical witness records a final particle spread of
+$3.5 \times 10^{-18}$ for the ablation, and the D6 tournament result in
+Section~\ref{sec:tournament} is the empirical counterpart.
+
+\subsection{The fixed-$M$ target}
+\label{sec:finiteM}
+
+Strict propriety identifies the truth over all laws. It does \emph{not} promise
+exact recovery inside a finite particle class. The class
+$\Pcal_M^{\mathrm{emp}}(\Qcal_K)$ consists of equal-weight empirical measures
+with $M$ slots and repeated particles allowed, so after merging duplicates the
+atom masses are integer multiples of $1/M$. The implemented population target is
+the constrained risk projection
+\[
+P_{a,M,\varepsilon}^{K,\star}(x)
+\in \arg\min_{P \in \Pcal_M^{\mathrm{emp}}(\Qcal_K)}
+\Exp\{S_\varepsilon(P, q(Y)) \mid A = a,\ X = x\} .
+\]
+Existence follows from coercivity: with $r_m = \dW(p_m, 0)$ and
+$C = \Exp\{\dW(q(Y^a), 0) \mid X = x\} < \infty$ under A8, the triangle
+inequality and the missing diagonal pairs give
+$R_\varepsilon(p_{1:M}) \geq M^{-2}\sum_m r_m - C - \varepsilon$, so sublevel
+sets are bounded and closed in finite dimension. Uniqueness of the parameter
+vector is impossible by permutation symmetry, and uniqueness of the optimal law
+is not claimed.
+
+Assumption A17 follows: the method reports \texttt{LAW-A-M-K}, not
+\texttt{LAW-A-K}, and its $M$-sensitivity must be measured. It is, in
+Section~\ref{sec:particles}.
+
+\subsection{Monotone-cone projection}
+
+A tree step can leave the cone, so every candidate is projected,
+\[
+\Pi_W(v) = \arg\min_{q_1 \leq \cdots \leq q_K} \tfrac12 \sum_k w_k (q_k - v_k)^2 ,
+\]
+which exists and is unique because $W$ is positive definite and $\Qcal_K$ is
+nonempty, closed, and convex. Weighted pool-adjacent-violators computes it
+exactly by replacing each violating adjacent block with its weighted mean; the
+recorded maximum KKT residual is $1.7 \times 10^{-17}$. The implementation
+skips rows already inside the cone, which is exact (PAVA pools nothing there)
+and skips essentially all rows during boosting. Projection keeps particles in the
+space on which propriety was proved. It is not claimed that projecting an
+arbitrary tree step always decreases the score; that is what the line search in
+Section~\ref{sec:boosting} handles.
+
+\section{The algorithm}
+\label{sec:algo}
+
+\subsection{Two architectures}
+
+\CWDB{} comes in two forms that differ only in how the two arms share tree
+structure.
+
+\emph{v0, independent arms.} One particle booster is fitted per arm on that
+arm's observations. It is the separate-head limit and serves as the ablation
+that isolates the value of sharing.
+
+\emph{v1, shared partition.} One sequence of trees is grown on the pooled sample;
+each tree has a single covariate partition but arm-specific leaf vectors. This is
+the architecture the project claims, and the mechanism is that a split found on
+one arm's data localizes both arms.
+
+\subsection{The boosting loop}
+\label{sec:boosting}
+
+Let $F^{(t)}(x, a) \in \Qcal_K^M$ denote the current particle block. The loop is
+a projected functional gradient descent on the empirical energy risk.
+
+\begin{enumerate}
+\item \emph{Initialize.} Every unit starts from a base law
+$F^{(0)}$ built by \texttt{compute\_init\_base}, which lexicographically sorts
+the observed quantile vectors and takes $M$ evenly spaced order statistics, a
+deterministic spread-preserving empirical initialization. Whether the base is
+computed per arm or pooled is the \texttt{init\_sharing} switch, and
+Section~\ref{sec:diagnosis} shows this switch was a genuine defect.
+\item \emph{Gradient.} Compute \eqref{eq:grad} at every training row, then form
+the preconditioned descent target $-M\, \nabla / w$, which is the negative
+gradient expressed in the rescaled coordinates where the geometry is Euclidean.
+\item \emph{Fit one weak learner} to that target. In v0 this is an ordinary
+multi-output regression tree; in v1 it is the arm-shared tree of
+Section~\ref{sec:armtree}. Splits use only the gradient of each unit's
+\emph{realized} arm, so no counterfactual quantity enters the split search.
+\item \emph{Line search with projection.} With step $\eta$ starting at the
+learning rate, form $\Pi_W(F^{(t)} + \eta\,\text{direction})$ and accept it only
+if the empirical risk did not increase; otherwise halve $\eta$, up to twelve
+backtracks. If no step is accepted the boosting stops early. This is what makes
+the descent guarantee hold despite the projection and the tree approximation.
+\item \emph{Record} the step, the loss before and after, the number of
+backtracks, and the projection magnitude, so the whole path is auditable.
+\end{enumerate}
+
+Prediction replays the accepted steps and their step sizes on new $X$, projecting
+after each. Outputs are canonicalized so that the particle ordering carries no
+information, which is A14 enforced in code.
+
+The split criterion is multi-output sum-of-squares reduction on the gradient
+block. The implementation uses the closed form
+$\text{gain} = \|S_L\|^2/n_L + \|S_R\|^2/n_R - \|S\|^2/n$ with $S$ the column
+sums, so one sort plus one cumulative sum per covariate scores every admissible
+threshold. That reduces the naive $O(n^2 M K p)$ rescan to
+$O(p\, n (MK + \log n))$, and a slow reference implementation is retained as the
+semantic definition and checked against it in the tests.
+
+\subsection{The arm-shared tree and its leaf rule}
+\label{sec:armtree}
+
+In v1, a candidate split is admissible only if both children contain at least
+\texttt{min\_arm\_leaf} observations from \emph{both} arms, which is what keeps
+every leaf able to express a contrast. Given a leaf with index set $I$, let
+$\bar g$ be the pooled gradient mean over $I$, and $\bar g_0, \bar g_1$ the
+arm-specific means with counts $n_0, n_1$.
+
+The frozen G3 rule, \texttt{arm\_shrinkage} with parameter $\lambda$, sets
+\[
+v_a = \frac{n_a\,\bar g_a + \lambda\,\bar g}{n_a + \lambda},
+\qquad a \in \{0,1\}.
+\]
+This pulls each arm mean toward the pooled mean. Crucially it shrinks the
+\emph{contrast} only as a side effect: at a balanced leaf the surviving contrast
+is the raw gap times $n_a/(n_a + \lambda)$, which at $\lambda = 5$ and a typical
+main-grid leaf is $0.86$. Almost nothing is regularized. This is the defect
+diagnosed in Section~\ref{sec:diagnosis}.
+
+The repair reparameterizes the leaf so that the pooled component is immovable:
+\begin{equation}
+v_a = \bar g + (a - \pi)\,\kappa\,\delta,
+\qquad
+\delta = \bar g_1 - \bar g_0,
+\qquad
+\pi = \frac{n_1}{n_0 + n_1} .
+\label{eq:reparam}
+\end{equation}
+Then $v_1 - v_0 = \kappa \delta$ and $\pi v_1 + (1-\pi) v_0 = \bar g$
+\emph{identically}, so a contrast rule shrinks the contrast and provably cannot
+move the pooled fit. This is what makes the three candidate rules comparable:
+they differ only in the scalar $\kappa \in [0,1]$.
+
+\begin{description}
+\item[R1, fixed ridge.] $\kappa = n_{\mathrm{eff}}/(n_{\mathrm{eff}} + \lambda_\tau)$
+with $n_{\mathrm{eff}} = n_0 n_1/(n_0 + n_1)$, the effective sample size the arm
+gap is estimated from. This is the posterior mean under a mean-zero Gaussian
+prior on the contrast, and is the direct analogue of the half-Cauchy prior that
+Bayesian causal forests place on the treatment-effect scale. The constant
+$\lambda_\tau = 50$ was hand-tuned on pilot seeds, which is declared: R1 is the
+tuned reference in the roster and the two adaptive rules received no equivalent
+tuning.
+\item[R2, adaptive threshold.]
+$\kappa = \bigl(1 - c\,\hat\sigma^2/\|\delta\|^2\bigr)_+$, where
+$\hat\sigma^2 = \sum_d (s_{0d}^2/n_0 + s_{1d}^2/n_1)$ is the plug-in variance of
+the arm gap in that leaf. This is a positive-part James--Stein factor calibrated
+against the leaf's own noise: under an exactly null gap
+$\Exp\|\delta\|^2 = \hat\sigma^2$, so the retained fraction is zero in
+expectation, while a gap far above the noise passes through undamped. Two
+calibrations are entered and both reported, $c = 1$ (null-calibrated, the
+principled default) and $c = 3$ (conservative sensitivity). Within-leaf covariate
+heterogeneity inflates $\hat\sigma^2$, so the rule is conservative in exactly the
+direction a null regime rewards and costs power where within-leaf structure is
+strong.
+\item[R3, cross-fitted ridge.] R1's functional form with $\lambda_\tau$ chosen on
+held-out energy risk rather than frozen. Candidates $\{0, 50, 500\}$ over two
+arm-stratified folds; each held-out unit is scored only against its \emph{own
+observed arm}, so no counterfactual enters the selection and the score is
+strictly proper for the law that unit realizes. Ties break toward the stronger
+regularizer, on the grounds that when the data cannot distinguish two strengths
+the null-safe one is the right default for a method whose failure mode is
+manufacturing effects. Assumption A15 is satisfied: every candidate is scored
+only on folds excluded from the fit that produced it.
+\end{description}
+
+The identification argument for R3 is worth stating because it is the reason
+cross-fitting can tune a \emph{causal} quantity without a counterfactual.
+Over-shrinking the contrast when the arms genuinely differ pushes both arm laws
+toward a pooled law that fits neither, so the held-out risk rises;
+under-shrinking when they do not differ fits sampling noise in the arm gap, and
+the risk rises too. Because the pooled component is fixed by construction in
+\eqref{eq:reparam}, the minimizer is informative about the contrast rather than
+about the pooled fit.
+
+\subsection{Cost}
+
+R3 costs roughly $1 + n_{\text{folds}} \times |\text{candidates}| \times
+(n_{\text{folds}}-1)/n_{\text{folds}}$ ordinary fits. Two folds over three
+candidates is about four fits, which is why that configuration was frozen on cost
+grounds before any accuracy result existed. The energy computations chunk their
+pairwise tensors to a 128 MB budget, exactly, because the $(rows, M, M, K)$
+temporaries reach several gigabytes at the largest cells.
+
+\section{The comparison roster}
+
+\begin{table}[htbp]
+\centering
+\caption{Methods in the tournament. Only \CWDB{} can return \texttt{GO}; the
+others are held to correctness and cost reporting.}
+\label{tab:roster}
+\small
+\begin{tabular}{@{}llp{7.6cm}c@{}}
+\toprule
+Label & Registry & Role and mechanism & Law? \\
+\midrule
+C-WDB-v1 & \texttt{cwdb\_v1} & claimant: shared partition, arm-specific leaves & yes \\
+C-WDB-v0 & \texttt{cwdb\_v0} & ablation: independent arms, isolates sharing & yes \\
+no-shrink & \texttt{cwdb\_v1\_noshrink} & ablation: \texttt{arm\_shrinkage}$=0$ & yes \\
+sq-$W_2$ & \texttt{sqw2\_booster} & ablation: repulsion term deleted & degenerate \\
+PTA-S & \texttt{pta\_s} & baseline: separately tuned Bayesian scalar heads & no \\
+PTA-F & \texttt{pta\_f} & baseline: forced-shared multivariate BCF & no \\
+W-DRF-T & \texttt{wdrft} & baseline: two ordinary predictive DRFs, one per arm & yes \\
+Causal-DRF & \texttt{causal\_drf} & incumbent: one shared treatment-aware forest with weighted-MMD splitting and signed weights & yes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Three points about the roster carry restrictions into everything below.
+
+Causal-DRF is the published direct-hit incumbent and the comparison that matters
+scientifically. It is run from the authors' supplied
+\texttt{code/causal\_drf\_paper-main/R/simulation\_study\_setup.R}, using the
+\texttt{causal-clean} branch of \texttt{herbps10/drf}, commit
+\texttt{0a1a508444176b5b1553f13e832be93a374b0af2}. Its kernel bandwidth uses a
+median-distance rule because the package convention is not scale equivariant.
+
+W-DRF-T is an ordinary two-forest T-learner on the rescaled coordinates, pinned
+to CRAN \texttt{drf} 1.3.1. It is not Causal-DRF, and calling it that would
+attribute a method it does not implement.
+
+PTA-S and PTA-F are the two surviving endpoints of a line that failed its own
+preregistered crossover test, so the project returned
+\texttt{RETAIN-STRONGEST-ENDPOINT} for that line: partial pooling did not beat
+its endpoints, and neither endpoint is a contribution of this project. They enter
+only as baselines, they estimate conditional \emph{means} of a fixed target
+vector, and under the contract they report \texttt{not\_applicable} on every
+law-level metric rather than substituting a posterior draw of a mean surface.
+
+\section{Data generating processes}
+
+\subsection{One generative form}
+
+Every regime shares a single form, which is what makes the oracle truth uniform
+across regimes:
+\begin{equation}
+q(Y^a)_k = m_a(x) + \xi + e^{\,s_a(x) + \eta}\,\psi(z_k;\gamma_a(x)),
+\qquad z_k = \Phi^{-1}(u_k),
+\label{eq:dgp}
+\end{equation}
+with the outer latent pair $(\xi, \eta)$ independent of $x$ and $A$ given the
+arm. Here $\xi$ shifts the outer location and $\eta$ the outer log scale: they
+are what makes the conditional object a genuine \emph{law over distributions}
+rather than a single distribution per covariate value. The inner reshaping is
+built from the second and third probabilists' Hermite polynomials,
+\[
+\psi(z;\gamma) = z + \gamma\,\frac{\mathrm{He}_2(z)}{2} + \gamma\,\frac{\mathrm{He}_3(z)}{6}
+= z + \gamma\,\frac{z^2 - 1}{2} + \gamma\,\frac{z^3 - 3z}{6}.
+\]
+Both Hermite terms are orthogonal to the identity under the standard normal, so
+$\Exp\{\psi(Z)\} = 0$: the reshaping moves skewness and the upper tail while
+leaving the mean untouched. Its derivative is
+$1 + \gamma(z + (z^2-1)/2)$, minimized at $z = -1$ with value $1 - \gamma$, so
+every draw stays strictly inside the monotone cone for $0 \leq \gamma < 1$ at any
+$K$. The monotone-cone guarantee therefore does not weaken as the grid refines,
+which matters because a violated cone would be an artefact of the simulator
+rather than of any method.
+
+Covariates are $X \sim \mathrm{Uniform}[-1,1]^5$. The moderator $V = g(X)$ is a
+four-bin discretization of $X_0$ at cut points $-0.5, 0, 0.5$; a discrete
+moderator keeps every \texttt{TCATE-K-}$j$ statement a finite collection of
+conditional means, which is what the contract's prohibition on pointwise claims
+at every continuous $v$ requires.
+
+\subsection{The ten regimes}
+
+Regimes differ only in $m_a$, $s_a$, $\gamma_a$, the outer law, and the
+propensity. Table~\ref{tab:dgps} states what each is built to test.
+
+\begin{table}[htbp]
+\centering
+\caption{The ten regimes. Propensities are clipped logistic: mild
+$0.8(X_0 + 0.5X_1)$ clipped to $[0.1,0.9]$; strong
+$2.5(X_0 + 0.7X_1 - 0.5X_2)$ clipped to $[0.05,0.95]$; deteriorating
+$4.0(X_0 + 0.5X_1)$ clipped to $[0.01,0.99]$.}
+\label{tab:dgps}
+\small
+\begin{tabular}{@{}llp{9.2cm}@{}}
+\toprule
+ID & Name & What it is for \\
+\midrule
+D0 & deterministic & no outer randomness, so the conditional law is a point mass and the conditional mean is exactly recoverable; a correctness floor \\
+D1 & smooth stochastic & the reference regime: location-scale surfaces with Gaussian outer location and log-scale \\
+D2 & null effect & both arms share $m$, $s$, $\gamma$ exactly, so the true effect is identically zero; the false-effect test \\
+D3 & separate-head favorable & the two arms' location surfaces depend on disjoint covariates, so one shared partition must carry the union of both arms' structure \\
+D4 & shared-structure favorable & one moderator drives prognosis and effect in both arms, so sharing splits pays \\
+D5 & equal barycenters & the two arms match in every mean but differ in outer law, so any mean-based method sees nothing \\
+D6 & multimodal outer law & the outer location is an equal-weight two-component mixture at $\pm1.5$; the particle-collapse test \\
+D7 & unseen functional transfer & both arms share $m$ and $s$ and differ only in the inner shape $\gamma_a$, so the entire effect sits in skewness and the upper tail, which are excluded from every training manifest \\
+D8 & strong confounding, weak effect & a large prognostic surface, a small effect, and a strong propensity \\
+D9 & overlap deterioration & propensities pushed to the clipping bounds \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+D7 deserves emphasis because it is the regime the contribution is really about.
+Both arms share the location and scale surfaces, and $\psi$ is mean-free, so
+\texttt{grid\_mean} carries almost no signal while \texttt{grid\_skewness} and
+\texttt{grid\_upper\_tail\_mean} carry all of it. Those two functionals are
+deliberately \emph{excluded from every training manifest} and evaluated anyway.
+A method that outputs a full law integrates them at evaluation time; a method
+holding fixed target coordinates cannot produce them at all.
+
+\subsection{Oracle truth}
+
+Because $(\xi, \eta)$ is low dimensional with a known Gaussian or
+Gaussian-mixture law, the conditional expectation of any grid functional is a
+Gauss--Hermite quadrature sum rather than a Monte Carlo average. Truth entering
+an RMSE therefore carries deterministic quadrature error, not sampling noise.
+Twelve nodes per non-degenerate dimension agree with a twenty-node rule to
+$7.5\times10^{-3}$ across every regime and target, and an independent check
+against a 50{,}000-draw Monte Carlo at 140 regime-arm-target combinations returns
+\texttt{PASS} with worst discrepancy $0.0179$ against Monte Carlo standard errors
+of $0.001$ to $0.007$.
+
+One target is not computed this way. The \texttt{tail\_calibration} truth is the
+expectation of an indicator, and no Gaussian quadrature rule integrates a step
+function: the generic path was wrong by $0.069$ against a Monte Carlo standard
+error of $0.002$. The outer location is therefore integrated in closed form
+through the normal survival function and only the smooth log-scale latent goes
+through quadrature.
+
+\section{Evaluation protocol}
+
+\subsection{Metrics}
+
+Law-level metrics require a conditional law and are reported only by the four law
+methods.
+
+\emph{Excess energy risk} (\texttt{arm\_energy\_risk}) is
+$\Exp_{q \sim P_a(x)} S_\varepsilon(\hat P_a(x), q)$ minus the same quantity at
+the truth, evaluated against the quadrature representation of the true
+conditional law rather than a single draw. The irreducible regime-dependent term
+is subtracted so that zero is attainable only at the truth.
+
+\emph{Kernel law error} (\texttt{kernel\_law\_error}) is the squared maximum mean
+discrepancy under a Gaussian kernel on the rescaled coordinates $z$, with a
+median-distance bandwidth so that the discrepancy is scale equivariant in the
+outcome's own units. This is the \emph{declared primary law metric}. The kernel
+is characteristic, so it vanishes only at the true law.
+
+\emph{Mode coverage} counts a true mode as covered when the predicted atoms
+within a radius of its centre carry at least a floor of predicted mass. A law
+collapsed onto one mode of a bimodal outer law scores $0.5$ however well it fits
+that mode, which is precisely the collapse signature.
+
+\emph{Tail calibration} is a predeclared threshold event under the grid law.
+
+Outcome-level metrics are computed by every method that can produce the target:
+\texttt{mean\_quantile\_rmse} against \texttt{MEANQ-A-K} (the mandatory common
+target), \texttt{tcate\_functional\_rmse} and \texttt{tate\_functional\_rmse}
+against the named functional, and \texttt{reference\_tcate\_rmse} and
+\texttt{reference\_effect\_rmse} against the Wasserstein reference effect with
+$\nu_\star$ the standard normal, frozen before any outcome analysis.
+
+The two forest baselines are scored on their native representation, a weighted
+empirical law over the whole training sample, and \CWDB{} on its $M$ particles.
+Both are valid predictive distributions and the score is proper, so a richer
+representation is allowed to win; every row records its atom count so a reader
+can see which is which. This is a deliberate choice not to handicap the
+baselines.
+
+\subsection{Design grids and budgets}
+
+Table~\ref{tab:grids} lists the six grids of the frozen manifest. Every method in
+a replication receives the same training sample and is evaluated on the same test
+design of 1000 points drawn at seed $900000 + s$, disjoint from every training
+seed. PTA-F appears only at $K = 5$ because its cost accelerates in the target
+dimension $D = K + J + 1$ (measured at 20.4 s for $D=2$, 27.4 s for $D=4$, 51.0 s
+for $D=8$, with the ratio itself rising), which is a declared cost limitation and
+never reported as a loss.
+
+\begin{table}[htbp]
+\centering
+\caption{The frozen design grids, 4110 cells in total.}
+\label{tab:grids}
+\small
+\begin{tabular}{@{}lllllll@{}}
+\toprule
+Grid & Purpose & DGPs & $n$ & $K$ & $M$ & Seeds \\
+\midrule
+\texttt{main} & primary tournament & D0--D9 & 500, 1000 & 25 & 10 & 20 \\
+\texttt{smallk} & full roster including PTA-F & D0--D9 & 500 & 5 & 10 & 20 \\
+\texttt{particles} & finite-$M$ claim & D1, D6 & 1000 & 25 & 2,5,10,25 & 20 \\
+\texttt{resolution} & grid resolution & D1, D5, D6, D7 & 1000 & 49 & 10 & 10 \\
+\texttt{shrinkage} & causal regularization & D2, D8 & 1000 & 25 & 10 & 20 \\
+\texttt{scaling} & runtime and memory & D1, D4, D6 & 2000 & 25 & 10 & 10 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Budgets are frozen and regime-independent, and a validator rejects any registry
+entry carrying a regime-dependent parameter, which is how comparable tuning
+effort is enforced rather than asserted. Boosting uses 100 trees, learning rate
+0.12, depth 4, minimum leaf 10, minimum arm leaf 5, $\varepsilon = 10^{-3}$, and
+$\lambda = 5$ for \texttt{arm\_shrinkage}. W-DRF-T uses 1000 trees with honesty
+on; Causal-DRF 2500 trees; PTA-S 50 prognostic and 20 treatment trees with 200
+draws after 100 burn-in and five cross-fitting folds.
+
+A cell that raises is recorded as a failure with its traceback and is
+\emph{never} retried under a different seed, because silently replacing a seed a
+method failed on converts a robustness result into a selection artefact. The
+merge refuses rather than cleans: a duplicate key, a result absent from the
+manifest, a manifest cell with no rows, or a row disagreeing with the manifest on
+its own coordinates makes the audit \texttt{FAIL}.
+
+\subsection{The six gate rules}
+
+A win means a seed-paired difference more negative than twice its paired standard
+error; methods are paired within a replication because they share a training
+sample and a test design. All six rules must hold for \texttt{GO}.
+
+\begin{table}[htbp]
+\centering
+\caption{Preregistered decision rules, frozen before the first decisive seed.}
+\label{tab:rules}
+\small
+\begin{tabular}{@{}clp{9.4cm}@{}}
+\toprule
+\# & Name & Threshold \\
+\midrule
+1 & correctness and nulls & D0 \texttt{mean\_quantile\_rmse} $\leq 0.15$; D2 $\leq 0.15$ \emph{and} $\leq 1.25\times$ the best baseline's \\
+2 & law advantage & beats Causal-DRF on \texttt{kernel\_law\_error} in at least two of D1, D5, D6, D7 \\
+3 & transfer & the advantage reaches at least one functional or reference target in at least one of D5, D6, D7, against Causal-DRF \\
+4 & beats the direct learner & on a target rule 3 actually won, also beats PTA-S \\
+5 & no collapse & D6 mode coverage $\geq 0.90$ and particle participation ratio $\geq 0.60 M$ \\
+6 & cost & median runtime at most 60 times Causal-DRF's \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Rule 4 is evaluated only on rule 3's winners by design: passing by beating PTA-S
+somewhere \CWDB{} lost to Causal-DRF would not be the claimed transfer. The gate
+flags are recomputed by an independent script that shares only the thresholds
+with the analysis code and reimplements the statistics, so a bug appears as a
+disagreement rather than as two copies of one wrong answer.
+
+\section{Results of the preregistered tournament}
+\label{sec:tournament}
+
+\subsection{Execution}
+
+The manifest declared 4110 cells; 4110 produced rows, 97{,}650 in total, with
+zero failures for every method and a merge audit of \texttt{PASS}. Wall time was
+about 2.5 hours on ten workers, and the independent recomputation agreed with the
+analysis code on every rule with zero disagreements.
+
+One defect was found and fixed \emph{before} this run was reported: law methods
+had been handed only the training functionals, so \texttt{grid\_skewness} and
+\texttt{grid\_upper\_tail\_mean} returned \texttt{not\_applicable} for \CWDB{}
+too, which meant the D7 transfer claim was measuring nothing. That required a
+full re-run; the defective run is archived rather than deleted.
+
+\subsection{The verdict, and the rule that failed}
+
+\begin{table}[htbp]
+\centering
+\caption{Gate outcome for C-WDB-v1, preregistered tournament.}
+\label{tab:gate1}
+\small
+\begin{tabular}{@{}clc@{}}
+\toprule
+Rule & Statement & Result \\
+\midrule
+1 & correctness and nulls & \textbf{FAIL} \\
+2 & law advantage over Causal-DRF & PASS (3 wins, 2 required: D1, D5, D7) \\
+3 & transfer to a causal functional & PASS (5 winning targets) \\
+4 & beats PTA-S on a rule-3 winner & PASS (3 wins, all on capability) \\
+5 & no particle collapse & PASS (mode coverage 0.99, participation 10 of 10) \\
+6 & cost & PASS (13.3 s against 1.17 s, ratio 11.3, cap 60) \\
+\midrule
+\multicolumn{2}{l}{\textbf{Verdict}} & \texttt{NOT-GO}, recommendation \texttt{PIVOT} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Rule 1 failed on D2, where the true effect is exactly zero. C-WDB-v1's
+\texttt{mean\_quantile\_rmse} there was $0.1466$ against a best baseline of
+$0.0545$, a false-effect ratio of $2.69$ against a cap of $1.25$. In absolute
+terms $0.147$ is inside the $0.15$ tolerance, so the method is not wildly wrong,
+but it manufactures roughly two and a half times as much apparent heterogeneity
+as the best comparator on data containing none. A distributional causal method
+whose selling point is detecting effects that scalar methods miss cannot also be
+the method most likely to report effects that are not there. That is
+disqualifying on its own terms, not a threshold technicality.
+
+\subsection{What the tournament established}
+
+Three mechanisms behaved as the theory predicts, and each is isolated by an
+ablation rather than inferred from a cross-method comparison.
+
+\emph{The repulsion works.} On D6, whose outer law is a two-component mixture,
+C-WDB-v1 reaches mode coverage $0.990$ with the participation ratio at $10.00$
+of $M=10$, meaning no collapse whatever. The squared-$W_2$ booster, the same
+machinery with the repulsion term deleted and nothing else changed, reaches
+$0.230$, below the $0.5$ that sitting on one mode of two would give. The paired
+differences are large against their standard errors: mode coverage $-0.755$
+(SE $0.005$), kernel law error $-0.160$ (SE $0.001$), excess energy risk $-0.569$
+(SE $0.002$). See Figure~\ref{fig:mode}.
+
+\emph{Full-law transfer works.} On D7, C-WDB-v1's error on
+\texttt{TCATE-K-grid\_skewness} is $0.0121$ against Causal-DRF's $0.0732$, a
+factor of six on the functional carrying the regime's entire treatment effect,
+and PTA-S cannot produce the quantity at all. This is the clearest single result
+in the tournament and it is the mechanism the contribution claims.
+
+\emph{Sharing pays where it should.} Against the independent-arm ablation
+C-WDB-v0, the shared partition wins \texttt{mean\_quantile\_rmse} by $-0.0320$
+(SE $0.0036$) on D3 and by $-0.1012$ (SE $0.0032$) on D4, the two regimes built
+to discriminate separate-head from shared structure.
+
+\emph{Finite-particle cost is controlled.} See Section~\ref{sec:particles}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.86\textwidth]{../figures/simulation/mode_coverage_d6.png}
+\caption{The repulsion ablation on D6. The squared-$W_2$ booster is the identical
+tree machinery with the repulsion term of \eqref{eq:score} deleted; it collapses
+below the level a single mode would give, while every law method that keeps the
+term covers both modes.}
+\label{fig:mode}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.94\textwidth]{figures_generated/kernel_all_regimes.png}
+\caption{The declared primary law metric across all ten regimes on the main grid,
+with two standard errors. Lower is better. The frozen claimant C-WDB-v1 and the
+recommended repaired claimant C-WDB R3 are both shown, together with the two
+forest baselines and the independent-arm ablation. Both C-WDB variants are at or
+near the front almost everywhere; the exception is D6, discussed in the text.
+Numbers behind this figure are in Table~\ref{tab:all-kernel}.}
+\label{fig:crossover}
+\end{figure}
+
+\subsection{The adversarial reading}
+
+The memo states the losses first, on the principle that averaging them into an
+overall score would hide them. C-WDB-v1 is beaten by more than two paired
+standard errors on twelve regime-target combinations, the most important of which
+are collected in Table~\ref{tab:adverse}.
+
+\begin{table}[htbp]
+\centering
+\caption{Selected cells where the claimant loses by more than two paired standard
+errors. Positive differences favour the comparator.}
+\label{tab:adverse}
+\small
+\begin{tabular}{@{}lllrrrr@{}}
+\toprule
+Regime & Target & Comparator & Claimant & Comparator & Difference & SE \\
+\midrule
+D6 & \texttt{kernel\_law\_error} & \texttt{causal\_drf} & 0.0191 & 0.00945 & $+0.00965$ & 0.00045 \\
+D5 & \texttt{REF-ATE-K} & \texttt{causal\_drf} & 0.0937 & 0.0179 & $+0.0758$ & 0.0048 \\
+D5 & \texttt{REF-TCATE-K} & \texttt{causal\_drf} & 0.0961 & 0.0230 & $+0.0730$ & 0.0046 \\
+D6 & \texttt{REF-TCATE-K} & \texttt{causal\_drf} & 0.0746 & 0.0412 & $+0.0335$ & 0.0061 \\
+D5 & \texttt{TCATE-K-grid\_sd} & \texttt{causal\_drf} & 0.0422 & 0.0275 & $+0.0146$ & 0.0024 \\
+D7 & \texttt{TCATE-K-grid\_mean} & \texttt{pta\_s} & 0.0341 & 0.0223 & $+0.0118$ & 0.0041 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two of these matter for how the contribution is framed.
+
+First, \CWDB{} loses the primary law metric on D6, the very regime built to
+showcase its repulsion mechanism, while simultaneously dominating mode coverage
+there. The two are consistent: the method places particles on both modes and so
+wins any metric sensitive to missing a mode, but with only ten atoms it
+represents the shape \emph{within} each mode more coarsely than a forest's
+weighted empirical law over a thousand training points. This is a
+representation-size effect, and the $M$-sensitivity evidence suggests raising $M$
+narrows it slowly. Figure~\ref{fig:worst} shows D6 as the single red bar against
+the incumbent.
+
+Second, rule 4 passed on \textbf{zero accuracy wins and three capability wins}.
+On every target where both methods produce an estimate, PTA-S is at least as
+accurate. \CWDB{} passes only because on three targets PTA-S produces nothing at
+all. That capability advantage is real and it is what a transfer test is for, but
+the honest reading weakens it: PTA-S's remedy is to add the functional to its
+manifest and fit one more scalar head, measured at 1.14 s. The capability gap is
+a convenience advantage of seconds, not a barrier. Set against that, the
+advantage over Causal-DRF, the published incumbent, \emph{is} an accuracy
+advantage, on three of four eligible regimes for the primary law metric and on
+five per-target functional comparisons. The incumbent comparison is the stronger
+of the two, and the paper should be built on it.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/simulation/worst_regime.png}
+\caption{Paired primary-law-metric difference against the published incumbent,
+worst regime first. Negative favours the claimant. Only D6 favours Causal-DRF.}
+\label{fig:worst}
+\end{figure}
+
+\subsection{The recommended claimant placed in the same comparisons}
+\label{sec:r3intournament}
+
+Everything above is the frozen tournament, in which the only claimant was
+C-WDB-v1. Because the repair track reuses the frozen coordinates and seeds
+exactly (Section~\ref{sec:repair}), the recommended variant
+\texttt{cwdb\_r3\_cvridge} can be dropped into precisely the same comparisons
+without recomputing a single frozen number, and this subsection does that. The
+complete metric-by-method tables are collected in Section~\ref{sec:complete};
+what follows is the reading of them.
+
+\begin{table}[htbp]
+\centering
+\caption{Where C-WDB R3 stands against the three comparators that matter, on the
+frozen main grid. Read with Table~\ref{tab:paired-r3}, which gives every paired
+difference and its standard error.}
+\label{tab:r3-summary}
+\small
+\begin{tabular}{@{}lp{9.4cm}@{}}
+\toprule
+Comparator & Outcome for \texttt{cwdb\_r3\_cvridge} \\
+\midrule
+Causal-DRF (incumbent) & wins the primary law metric in nine of ten regimes,
+losing only D6; wins the grid causal mean in six regimes, loses D1 and D5, ties
+D4 and D9 \\
+PTA-S (direct learner) & loses the grid causal mean in five regimes and wins two;
+ties on most functionals both estimate; wins outright only on the two functionals
+PTA-S cannot produce at all \\
+C-WDB-v1 (frozen claimant) & improves six regimes on the grid causal mean, ties
+two, regresses on D1 and D9, cuts the null-regime error by two thirds, and
+\emph{loses the pure-shape transfer result} discussed below \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Four readings deserve stating in words rather than left in the tables, and the
+fourth is the most important thing in this report that is not in either memo.
+
+\emph{The incumbent comparison strengthens.} Figure~\ref{fig:pairedr3} is the
+same construction as Figure~\ref{fig:worst} with the recommended variant in place
+of the frozen one. The pattern is essentially unchanged: R3 wins nine of ten
+regimes and D6 remains the only one the incumbent takes, with the margins within
+a hair of the frozen claimant's (larger for R3 in four regimes, smaller in five,
+and the D6 loss itself smaller at $+0.0131$ against $+0.0163$). The law-level
+advantage is therefore preserved rather than improved, which is the point: the
+contrast rule was not supposed to move the pooled fit and the numbers say it did
+not. On the grid causal mean, where the contrast \emph{is} the estimand, the D8
+advantage is now dramatic, $0.0735$ against Causal-DRF's $0.3769$.
+
+\emph{The null regime is no longer a liability.} On D2 the grid causal mean falls
+from v1's $0.1466$ to $0.0506$, which is \emph{below} the best baseline's
+$0.0545$ rather than $2.69$ times it. Figure~\ref{fig:contrastrules} shows what
+each contrast rule pays for that: the cross-fitted rule is the only one that
+clears the cap on D2 while leaving D0 and D3 essentially where the frozen
+claimant left them.
+
+\emph{The direct target learner is still the one to beat on the common target.}
+On the grid causal mean, PTA-S beats R3 in five regimes (D0, D1, D4, D5, D9) and
+loses in two (D3, D8). Nothing in the repair changes the parent memo's judgement
+that this comparison is the weak part of the case.
+
+\emph{The repair damages the pure-shape transfer result, and this is not
+reported anywhere else in the project's artefacts.} The clearest single result of
+the frozen tournament was D7's \texttt{TCATE-K-grid\_skewness}, where C-WDB-v1
+scored $0.0152$ against Causal-DRF's $0.0840$, a factor of five and a half on the
+functional carrying that regime's entire treatment effect. Every contrast rule
+degrades it, in proportion to how hard it shrinks:
+
+\begin{table}[htbp]
+\centering
+\caption{D7 \texttt{TCATE-K-grid\_skewness}, the functional that carries the whole
+D7 treatment effect and appears in no training manifest. The middle column is the
+paired difference against the frozen claimant, the right column against the
+published incumbent. Positive is worse.}
+\label{tab:d7skew}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Method & Error & vs C-WDB-v1 & vs Causal-DRF \\
+\midrule
+\texttt{cwdb\_v1} & 0.0152 & --- & $-0.0688$ (0.0028) \\
+\texttt{cwdb\_v1\_pooledinit} & 0.0253 & $+0.0101$ (0.0015) & $-0.0587$ (0.0030) \\
+\texttt{cwdb\_r1\_ridge} & 0.0645 & $+0.0493$ (0.0027) & $-0.0195$ (0.0029) \\
+\texttt{cwdb\_r3\_cvridge} & 0.0904 & $+0.0752$ (0.0069) & $+0.0064$ (0.0074) \\
+\texttt{cwdb\_r2\_threshold3} & 0.1986 & $+0.1834$ (0.0052) & $+0.1146$ (0.0046) \\
+\midrule
+\texttt{causal\_drf} & 0.0840 & & \\
+\texttt{wdrft} & 0.0464 & & \\
+\texttt{pta\_s} & \emph{n/a} & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The mechanism is not mysterious and it follows directly from
+Section~\ref{sec:armtree}. D7 places the entire effect in the arm contrast of the
+inner shape, and a contrast regulariser shrinks exactly that. Cross-fitting
+selects a median strength of 50 on D7, so it shrinks a contrast that is real. The
+result is that R3 ties the incumbent on this functional instead of beating it by
+a factor of five, and \texttt{cwdb\_r2\_threshold3} loses to the incumbent
+outright. The effect is not an artefact of one grid or one estimand: it
+reproduces at $K = 5$ ($0.0629$ for R3 against $0.0095$ for v1) and on the
+marginal \texttt{TATE-K-grid\_skewness} ($0.0746$ against $0.0070$), where R3 is
+also worse than both forest baselines.
+
+Two things keep this from being fatal, and both belong in the same breath as the
+finding. First, the transfer claim does not rest on skewness alone: on D7's
+\texttt{TCATE-K-grid\_upper\_tail\_mean}, the other functional excluded from
+every training manifest, R3 still beats Causal-DRF ($0.0314$ against $0.0821$)
+and PTA-S still cannot produce it. Second, the gate rules were satisfied on their
+own terms, because rules 3 and 4 are evaluated over the declared target set and
+not over skewness specifically. But a paper whose headline example is the
+skewness result cannot be written around \texttt{cwdb\_r3\_cvridge} as if the
+repair were free, and an applied study that targets a pure shape contrast should
+expect the regularised claimant to be conservative about exactly that contrast.
+
+Figure~\ref{fig:functionals} shows all four functionals across the three eligible
+regimes and makes the trade visible in one picture.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{figures_generated/paired_r3_vs_drf.png}
+\caption{Paired primary-law-metric difference of the recommended claimant against
+the published incumbent, worst regime first, two paired standard errors. Negative
+favours C-WDB R3. Compare Figure~\ref{fig:worst}, which is the same construction
+for the frozen claimant.}
+\label{fig:pairedr3}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.94\textwidth]{figures_generated/meanq_all_regimes.png}
+\caption{Grid causal mean error, the mandatory common target every method can
+produce, across all ten regimes. The D2 gap between the two C-WDB curves is the
+repair. PTA-S is the strongest comparator on this metric and remains so in six
+regimes, which is the honest statement of where a direct target learner is hard
+to beat. Numbers in Table~\ref{tab:all-meanq}.}
+\label{fig:meanq}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.98\textwidth]{figures_generated/functional_targets.png}
+\caption{Moderator-conditional functional error on the three regimes eligible for
+the transfer rules. \texttt{grid\_skewness} and \texttt{grid\_upper\_tail\_mean}
+are excluded from every training manifest, so PTA-S is marked \emph{n/a} there:
+that is the transfer test, not a missing measurement. On D6 the true skewness
+effect is numerically zero, which is why that panel's bars vanish for every
+method. Numbers in Table~\ref{tab:all-tcate}.}
+\label{fig:functionals}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{figures_generated/contrast_rules_d0_d2_d3.png}
+\caption{What each contrast rule costs and buys, on the grid causal mean. D2 is
+the null regime the gate failed on and the dashed line is its preregistered cap.
+D0 is exactly recoverable, so a rule that cannot switch itself off is penalised
+there, which is what happens to the hand-tuned fixed ridge. D3 is built to favour
+separate heads, so a rule that shrinks every contrast is penalised there, which
+is what happens to both fixed rules. Only the cross-fitted rule is acceptable in
+all three.}
+\label{fig:contrastrules}
+\end{figure}
+
+\subsection{Finite-particle approximation}
+\label{sec:particles}
+
+\begin{table}[htbp]
+\centering
+\caption{Excess energy risk over the true law as a function of the particle
+count, 20 replications each.}
+\label{tab:particles}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Regime & $M=2$ & $M=5$ & $M=10$ & $M=25$ \\
+\midrule
+D1 & 0.0897 & 0.0584 & 0.0508 & 0.0468 \\
+D6 & 0.1063 & 0.0851 & 0.0696 & 0.0651 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Excess risk falls monotonically in $M$ and is nearly flat past $M=10$
+(Figure~\ref{fig:particles}). Ten particles buy most of what twenty-five buy,
+which is what keeps the method at 11.3 times the incumbent's runtime rather than
+far more. This is the empirical counterpart to the fixed-$M$ contract of
+Section~\ref{sec:finiteM}: the approximation is real, it is measured, and it is
+small at the operating point.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.66\textwidth]{../figures/simulation/particle_sensitivity.png}
+\caption{Finite-particle approximation error. The vertical axis is excess energy
+risk over the true conditional law, so zero is attainable only by the truth.}
+\label{fig:particles}
+\end{figure}
+
+\subsection{Cost}
+
+\begin{table}[htbp]
+\centering
+\caption{Runtime and memory across the whole tournament.}
+\label{tab:cost}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Method & Median runtime (s) & Max runtime (s) & Median peak RSS (MB) \\
+\midrule
+\texttt{causal\_drf} & 1.17 & 35.4 & 75.2 \\
+\texttt{sqw2\_booster} & 1.00 & 2.3 & 0 \\
+\texttt{wdrft} & 1.33 & 36.2 & 214 \\
+\texttt{cwdb\_v0} & 8.93 & 42.2 & 0 \\
+\texttt{cwdb\_v1} & 13.3 & 149 & 0 \\
+\texttt{pta\_s} & 28.1 & 77.4 & 0 \\
+\texttt{pta\_f} & 96.1 & 113 & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Diagnosis of the rule-1 failure}
+\label{sec:diagnosis}
+
+Two distinct mechanisms produced the false effect on D2, and separating them
+before writing any fix changed which repair was worth building. Both diagnostics
+ran on pilot seeds outside the manifest.
+
+\subsection{Defect one: confounded initialization}
+
+\texttt{compute\_init\_base} was applied per arm, so each arm started from the
+empirical law of its own treated or control sample. That is a \emph{marginal}
+quantity. Under a covariate-dependent propensity the two marginals differ even
+when the two conditional laws are identical, so the estimated contrast is nonzero
+before a single tree is fitted, and the booster then spends its budget removing an
+offset the initialization created. Measured over 20 samples at $n = 1000$, the
+initial arm gap has root mean square $0.215$ on D2, where the truth is exactly
+zero, and $0.824$ on D8.
+
+\subsection{Defect two: contrast accumulation}
+
+Replaying the fitted path on a held-out design, D2's contrast error reaches a
+minimum near iteration 20 and then rises \emph{monotonically} to the frozen
+budget of 100: $0.077, 0.093, 0.104, 0.114, 0.122$ at iterations
+$20, 40, 60, 80, 100$. Repeating the sweep at \texttt{arm\_shrinkage} of $0$,
+$50$, and $500$ gives final errors of $0.161$, $0.076$, and $0.045$, which
+locates the defect precisely. As Section~\ref{sec:armtree} shows, the frozen rule
+leaves a contrast of $n_a/(n_a+\lambda) \approx 0.86$ of the raw gap at a typical
+leaf. The contrast was barely regularized at all, and one hundred boosting steps
+compounded what survived.
+
+\subsection{Attribution}
+
+The initialization ablation settles which defect is the repair.
+\texttt{cwdb\_v1\_pooledinit} is frozen v1 in every respect except that both arms
+start from one pooled base law. It improves D2 from $0.1466$ to $0.1419$, a
+false-effect ratio of $2.60$ against $2.69$, and \textbf{still fails rule 1}. The
+initialization was a genuine defect and fixing it was free, but it is not the
+repair. The second mechanism is.
+
+\section{The repair track}
+\label{sec:repair}
+
+\subsection{Design}
+
+The repair preregistration amends nothing in the parent document: every
+threshold, metric, eligible regime, decision multiple, and comparator stays as
+frozen. It adds methods and cells only. The 97{,}650 frozen rows were \emph{not}
+recomputed, so a repair variant is compared against the numbers already
+published rather than a fresh draw of them, and repair cells reuse the frozen
+coordinates and seeds so every comparison is paired seed by seed.
+
+The run was staged deliberately. Stage 1 is D2 alone, because rule 1 is the only
+rule the repair exists to fix and a variant that fails to fix it should cost
+nothing further; stage 2 runs every regime and the two ablation grids, and only
+for variants that cleared stage 1. Execution: 2600 repair cells, 68{,}240 rows,
+zero failures, merge audit \texttt{PASS}, independent recomputation agreeing with
+zero disagreements, and the frozen gate flags byte-identical to the published
+payload.
+
+\subsection{Rule 1 across the roster}
+
+\begin{table}[htbp]
+\centering
+\caption{Rule 1 for every variant. The D2 reference is the best of the frozen
+roster, 0.0545, which a repair variant cannot move by entering the pool. The D0
+cap is 0.15 and the D2 ratio cap is 1.25.}
+\label{tab:rule1}
+\small
+\begin{tabular}{@{}lrrrl@{}}
+\toprule
+Method & D2 \texttt{mean\_quantile\_rmse} & Ratio & D0 & Rule 1 \\
+\midrule
+\texttt{cwdb\_v1} (frozen claimant) & 0.1466 & 2.69 & 0.1091 & \textbf{FAIL} \\
+\texttt{cwdb\_v1\_pooledinit} (ablation) & 0.1419 & 2.60 & 0.0939 & \textbf{FAIL} \\
+\texttt{cwdb\_r1\_ridge} ($\lambda_\tau = 50$) & 0.0642 & 1.18 & 0.1574 & \textbf{FAIL} \\
+\texttt{cwdb\_r2\_threshold} ($c=1$) & 0.0790 & 1.45 & not run & \textbf{FAIL} \\
+\texttt{cwdb\_r2\_threshold3} ($c=3$) & 0.0194 & 0.36 & 0.1322 & PASS \\
+\texttt{cwdb\_r3\_cvridge} & 0.0506 & 0.93 & 0.0952 & PASS \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two entries need stating in words. The hand-tuned fixed ridge R1 clears the D2
+ratio at $1.18$ and then fails rule 1 anyway, \emph{on D0}, at $0.1574$ against a
+cap of $0.15$. D0 has deterministic conditional distributions, so its conditional
+mean is exactly recoverable, and a fixed contrast shrinkage that cannot switch
+itself off biases the recoverable answer. R1 is the one variant that was tuned,
+it was tuned on D2, and it broke the regime it was not tuned on. That is the
+argument against a frozen strength, made by the frozen strength itself.
+
+R2 at the principled null-calibrated $c = 1$ missed the cap at $1.45$ and stopped
+after D2 under the preregistered screen. Its rows remain in the merged table and
+in the memo. The calibration that is principled is not the one that passed; the
+one that passed, $c = 3$, is a declared conservative sensitivity, and that
+ordering is reported rather than smoothed over.
+
+\subsection{All six rules}
+
+\begin{table}[htbp]
+\centering
+\caption{Gate outcome for every repair variant.}
+\label{tab:gate2}
+\small
+\begin{tabular}{@{}lcccccccl@{}}
+\toprule
+Method & 1 & 2 & 3 & 4 & 5 & 6 & & Verdict \\
+\midrule
+\texttt{cwdb\_v1} & fail & PASS & PASS & PASS & PASS & PASS & & \texttt{NOT-GO} \\
+\texttt{cwdb\_v1\_pooledinit} & fail & PASS & PASS & PASS & PASS & PASS & & \texttt{NOT-GO} \\
+\texttt{cwdb\_r1\_ridge} & fail & PASS & PASS & PASS & PASS & PASS & & \texttt{NOT-GO} \\
+\texttt{cwdb\_r2\_threshold3} & PASS & PASS & PASS & PASS & PASS & PASS & & \textbf{\texttt{GO}} \\
+\texttt{cwdb\_r3\_cvridge} & PASS & PASS & PASS & PASS & PASS & PASS & & \textbf{\texttt{GO}} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Rule 2 holds for both passing variants with three wins against Causal-DRF on the
+primary law metric, in D1, D5, and D7, the same three regimes the frozen claimant
+won. Rule 5 holds for both, with D6 mode coverage $0.9921$ and $0.9931$ against
+the frozen claimant's $0.9897$ and participation at $10.00$ of $M = 10$ in every
+case. The repulsion mechanism is untouched, which is the point of the
+reparameterization \eqref{eq:reparam}: the contrast rules move only the arm gap
+and provably cannot move the pooled component.
+
+Rule 6, against the original-code Causal-DRF median of $8.77$ s and a ceiling of
+60, gives R3 a median of $55.35$ s and a ratio of $6.3$.
+The repair preregistration recorded, before the run, that R3 was projected near
+64 and might fail; it landed at 55.35 because the projection applied the factor
+measured on the expensive $K=25$ cells to every cell, whereas the cheap $K=5$
+cells carry a smaller multiplier and the median sits among them. The projection
+was pessimistic; the budget was not revised after the fact.
+
+\subsection{What separates the two passing variants}
+
+Both pass. They are not equally good, and the mechanism ablations say why.
+
+\begin{table}[htbp]
+\centering
+\caption{Mechanism ablations, paired differences with standard errors in
+parentheses. Negative favours the claimant. Bold marks the ablation that is lost.}
+\label{tab:ablations}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Ablation & Comparator & \texttt{cwdb\_v1} & \texttt{cwdb\_r2\_threshold3} & \texttt{cwdb\_r3\_cvridge} \\
+\midrule
+Repulsion, D6 mode coverage & \texttt{sqw2\_booster} & $-0.7550$ (0.0050) & $-0.7581$ (0.0064) & $-0.7584$ (0.0061) \\
+Repulsion, D6 law metric & \texttt{sqw2\_booster} & $-0.1602$ (0.0012) & $-0.1646$ (0.0010) & $-0.1646$ (0.0012) \\
+Sharing, D3 mean-quantile & \texttt{cwdb\_v0} & $-0.0320$ (0.0036) & $\mathbf{+0.0944}$ (0.0042) & $-0.0306$ (0.0030) \\
+Sharing, D3 law metric & \texttt{cwdb\_v0} & $-0.0001$ (0.0003) & $\mathbf{+0.0055}$ (0.0004) & $-0.0001$ (0.0003) \\
+Sharing, D4 mean-quantile & \texttt{cwdb\_v0} & $-0.1012$ (0.0032) & $-0.0805$ (0.0062) & $-0.1003$ (0.0039) \\
+Shrinkage, D2 mean-quantile & \texttt{cwdb\_v1\_noshrink} & $-0.0338$ (0.0015) & $-0.1431$ (0.0018) & $-0.1188$ (0.0037) \\
+Shrinkage, D8 mean-quantile & \texttt{cwdb\_v1\_noshrink} & $-0.0320$ (0.0027) & $-0.1336$ (0.0051) & $-0.1420$ (0.0042) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\texttt{cwdb\_r2\_threshold3} \textbf{loses the sharing ablation on D3}, reaching
+$0.3854$ against C-WDB-v0's $0.2910$, and loses the law metric there too. D3 is
+the regime built to favour separate heads, and a rule that shrinks every arm gap
+toward the pooled leaf is punished by exactly the structure D3 contains. The
+shared-partition mechanism is one of the project's own claims and the parent memo
+supports it with this ablation, so a repair that passes the gate and takes that
+claim with it has traded one asset for another. R1 loses the same ablation for
+the same reason.
+
+\texttt{cwdb\_r3\_cvridge} keeps it, at $-0.0306$ (SE 0.0030), matching the
+frozen claimant's $-0.0320$ (SE 0.0036) to within a standard error. It loses
+exactly one ablation, D1 kernel law error against the squared-$W_2$ booster,
+which is the same one the frozen claimant already lost and is therefore not
+damage the repair caused.
+
+The reason is visible in what cross-fitting selects (Table~\ref{tab:selected}).
+On D3 it selects zero strength on every seed, so the shared-partition mechanism
+runs unregularized where the data say a real contrast exists; on D2 and D8 it
+selects hard. That is the adaptivity a fixed rule cannot have, and it is what
+lets one variant repair rule 1 without paying for it anywhere else.
+
+\begin{table}[htbp]
+\centering
+\caption{Median contrast strength selected on held-out energy risk by
+\texttt{cwdb\_r3\_cvridge}.}
+\label{tab:selected}
+\small
+\begin{tabular}{@{}llp{7.2cm}@{}}
+\toprule
+Regimes & Median strength & What the regime contains \\
+\midrule
+D0, D3 & 0 & deterministic laws; strong separate-head effect \\
+D1, D4, D5 & 0 & moderate real effects \\
+D2 & 50 (mean 265) & exactly null effect \\
+D6, D7, D9 & 50 & multimodal; unseen-functional effect; poor overlap \\
+D8 & 500 & strong confounding, weak effect \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Improvement beyond the rule that failed}
+
+\begin{table}[htbp]
+\centering
+\caption{\texttt{cwdb\_r3\_cvridge} against \texttt{cwdb\_v1} on
+\texttt{mean\_quantile\_rmse}, main grid, paired by seed.}
+\label{tab:r3vs}
+\small
+\begin{tabular}{@{}lrrrrl@{}}
+\toprule
+Regime & R3 & v1 & Difference & SE & Favours \\
+\midrule
+D0 & 0.0872 & 0.1013 & $-0.0141$ & 0.0025 & repair \\
+D1 & 0.1809 & 0.1691 & $+0.0118$ & 0.0027 & v1 \\
+D2 & 0.0417 & 0.1266 & $-0.0850$ & 0.0037 & repair \\
+D3 & 0.2603 & 0.2590 & $+0.0014$ & 0.0022 & tie \\
+D4 & 0.1774 & 0.1765 & $+0.0009$ & 0.0032 & tie \\
+D5 & 0.0910 & 0.1559 & $-0.0649$ & 0.0099 & repair \\
+D6 & 0.2130 & 0.2490 & $-0.0360$ & 0.0094 & repair \\
+D7 & 0.0572 & 0.1264 & $-0.0692$ & 0.0020 & repair \\
+D8 & 0.0641 & 0.1741 & $-0.1100$ & 0.0062 & repair \\
+D9 & 0.2442 & 0.2211 & $+0.0231$ & 0.0095 & v1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Six regimes improve, two tie, and two regress. The regressions are D1, a smooth
+location-scale law with a real effect, and D9, where overlap deteriorates to the
+clipping bounds. Both are small in absolute terms and both are cases where
+regularizing a real contrast costs something; neither is a gate rule and neither
+should be described as free. The largest single improvement is D8, from $0.1741$
+to $0.0641$, which is exactly the regime combining both diagnosed defects: its
+initialization gap was $0.824$ and its effect is weak enough that accumulated
+contrast noise dominates it.
+
+\subsection{Recommendation}
+
+Adopt \texttt{cwdb\_r3\_cvridge} as the claimant. It is the only variant that
+repairs rule 1 while leaving every mechanism the project claims as its own
+intact, and the mechanism that makes that possible, choosing the regularization
+strength on held-out energy risk rather than freezing it, is the one the parent
+memo asked for by name.
+
+Report \texttt{cwdb\_r2\_threshold3} alongside it, not as a rejected alternative
+but as the variant that buys three \emph{accuracy} wins over PTA-S (at D6
+\texttt{TCATE-K-grid\_sd}, D7 \texttt{TCATE-K-grid\_mean}, D7
+\texttt{TCATE-K-grid\_sd}) at the price of the shared-partition ablation. A
+reader who cares more about the direct-learner comparison than about the sharing
+claim would prefer it, and the results say so. Neither variant dominates.
+
+
+\clearpage
+\section{Complete results: every metric for the proposed model and comparators}
+\label{sec:complete}
+
+The sections above argue from selected comparisons. This section reports the
+whole measurement surface so that a reader can check any claim in the report, or
+find one it did not make. The tables intentionally retain only
+\texttt{cwdb\_r3\_cvridge} as the proposed C-WDB model, together with the
+original-code Causal-DRF incumbent and the original-code separate-DRF benchmark.
+PTA-S, PTA-F, and the earlier W-DRF-T adapter are not part of this core
+comparison. Nothing here is recomputed: the tables are generated
+directly from the audited result files by
+\texttt{report/build\_report\_assets.py}, which reads and aggregates but never
+fits a model. The Causal-DRF columns use the original-code rerun recorded in
+\texttt{results/merged\_original\_causal\_drf}, not the earlier local driver.
+The DRF columns use the separate half-sample implementation in
+\texttt{code/drfinference-main}, with 2500 total trees and 50 trees per group.
+The selected historical discussion above preserves the original tournament
+record; the tables and figures in this section are the corrected comparator
+record.
+
+\paragraph{Conventions.} Every entry is a mean over cells with the standard error
+in parentheses. A cell is one (grid, regime, $n$, $K$, $M$, method, seed)
+combination, and arm-specific rows are averaged inside a cell first, matching the
+convention of the independent gate-flag recomputation. On the \texttt{main} grid
+that is 40 cells per entry, $n \in \{500, 1000\}$ crossed with 20 seeds; on
+\texttt{smallk} it is 20 cells at $n = 500$, $K = 5$. Bold marks the best method
+in a regime. \emph{n/a} means the method does not produce that quantity at all,
+which for the two PTA endpoints is a contract restriction rather than a
+measurement gap, and for \texttt{cwdb\_r2\_threshold} at $c = 1$ is the
+preregistered stage-1 screen that stopped it after D2.
+
+\paragraph{Reading the comparator.} The squared-$W_2$ booster appears only on
+the small-$K$ mechanism tables as a comparator for the repulsion term. It is not
+a proposed model. The DRF column is the faithful separate-forest benchmark from
+the Causal-DRF paper, whereas W-DRF-T is deliberately excluded from this core
+comparison because it is a different, cheaper adapter.
+
+\paragraph{Treatment-effect reading.} This focused comparison is more relevant
+to the contribution than a leaderboard containing fixed-target mean learners.
+On the main grid, R3 is the lowest-error method in six of ten regimes for
+\texttt{mean\_quantile\_rmse}, seven of ten for \texttt{REF-TCATE-K}, and five
+of ten for \texttt{REF-ATE-K}. Across the forty conditional functional cells,
+R3 is best in twenty-four, compared with eleven for DRF and five for
+Causal-DRF. Across the forty marginal functional cells, R3 is best in
+twenty-eight, compared with eight for DRF and four for Causal-DRF. These are
+cell-average rankings, not a claim of uniform dominance or a replacement for
+the paired standard errors in Table~\ref{tab:paired-r3}.
+
+The most relevant transfer regime is D7. R3 is best for the conditional mean,
+standard deviation, and upper-tail effect, and for all three corresponding
+marginal effects. It loses the D7 skewness effect to both forest comparators:
+the conditional errors are $0.0904$ for R3, $0.0500$ for Causal-DRF, and
+$0.0567$ for DRF. The result supports a narrower and stronger claim: R3 is
+especially effective for marginal and tail treatment-effect functionals, while
+pure skewness contrasts remain a documented failure region.
+
+\paragraph{One caution about pooled means.} A regime mean pools $n = 500$ and
+$n = 1000$, so it is not identical to the per-$n$ numbers quoted in the repair
+memo's Section 6, which are $n = 1000$. Both conventions appear in the project;
+this report uses the pooled one everywhere except where it says otherwise, which
+is the same convention rule 1 is evaluated under.
+
+\begin{landscape}
+\paragraph{Column abbreviations.} The wide tables use short method names:
+R3 is \texttt{cwdb\_r3\_cvridge}, C-DRF is Causal-DRF, DRF is the separate
+half-sample forest benchmark from the original Causal-DRF code, and sq-$W_2$ is
+the repulsion ablation.
+
+\input{tables_generated/all_tables.tex}
+\end{landscape}
+
+\clearpage
+\subsection{Supporting figures}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.94\textwidth]{figures_generated/energy_all_regimes.png}
+\caption{Excess energy risk over the true conditional law across all ten regimes.
+This is the loss the method actually optimises, evaluated against the quadrature
+representation of the truth, so it is the most direct measure of how well the
+conditional law itself is estimated. Numbers in Table~\ref{tab:all-energy}.}
+\label{fig:energyall}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{figures_generated/paired_r3_vs_drf.png}
+\caption{The proposed C-WDB R3 against the original-code Causal-DRF comparator
+on the primary law metric, worst regime first. Negative values favour R3. This
+is the figure behind Table~\ref{tab:paired-r3}.}
+\label{fig:pairedr3drf}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.94\textwidth]{figures_generated/cost_all_methods.png}
+\caption{Median seconds per fitted cell, both tracks pooled, on a logarithmic
+axis. The cross-fitted selector is what separates R3 from the other repair
+variants: it fits roughly four models where they fit one. Numbers in
+Table~\ref{tab:cost-all}.}
+\label{fig:costall}
+\end{figure}
+
+\clearpage
+\input{phase55_complete_results.tex}
+
+\clearpage
+\input{phase6_complete_results.tex}
+
+\section{Limitations, stated as constraints on what may be written}
+
+The gate rule that failed is repaired. The two items the parent memo listed after
+it are not, and a third set of limitations comes from the grids that were not
+re-run.
+
+\begin{enumerate}
+\item \textbf{There is no uncertainty quantification.} \CWDB{} has no interval
+construction: none was built in Phase 2, none in the tournament, and none in the
+repair. The \emph{Uncertainty usable} claim row of the claims matrix is
+\emph{unevaluated}, not failed, and the estimand contract forbids substituting a
+posterior draw of a mean surface for it. A distributional causal method without
+uncertainty is not publishable, and this is the single largest gap in the work.
+It compounds with the Causal-DRF restriction: because that baseline's band
+coverage was not reproduced, even a comparison of interval widths currently has
+no admissible incumbent.
+\item \textbf{Rule 4 still rests mostly on capability, not accuracy, for the
+recommended variant.} With the original-code comparator,\texttt{cwdb\_r3\_cvridge}
+passes rule 4 on four wins, one of them a capability win and three accuracy wins
+on D7 and the reference targets. The repair did not touch this and was never
+going to, because it is a statement about what a direct target learner delivers
+rather than about the contrast.
+\item \textbf{The repair costs the pure-shape transfer result}
+(Section~\ref{sec:r3intournament}, Table~\ref{tab:d7skew}). On D7's
+\texttt{TCATE-K-grid\_skewness} the recommended variant scores $0.0904$ where the
+original-code Causal-DRF comparator scores $0.0500$, and W-DRF-T scores $0.0464$.
+The repaired claimant therefore loses this pure-shape transfer target under the
+correct incumbent implementation, as shown in Table~\ref{tab:all-tcate}.
+The mechanism is intrinsic to the fix rather than a bug: D7 puts the entire
+effect in an arm contrast of shape and a contrast regulariser shrinks arm
+contrasts. The other unseen functional,
+\texttt{TCATE-K-grid\_upper\_tail\_mean}, still favours the repaired claimant, so
+the transfer capability survives while its sharpest instance does not. This
+limitation is not stated in either gate memo and was surfaced by the complete
+tables in Section~\ref{sec:complete}.
+\item \textbf{Three grids were not re-run for the repaired variants:}
+\texttt{particles}, \texttt{resolution}, and \texttt{scaling}. No claim about a
+repaired variant at $M \neq 10$, at $K = 49$, or at $n = 2000$ is supported until
+they are. The finite-$M$, resolution, and scaling evidence in
+Section~\ref{sec:particles} belongs to C-WDB-v1.
+\item \textbf{The oracle regime is a simplification.} Every $Y_i$ is treated as
+exactly observed. Inner-sample noise, histogram-count noise, and measurement
+error are not modelled anywhere in the current evidence.
+\item \textbf{Representation size costs something on the primary law metric in
+multimodal regimes.} Ten particles represent within-mode shape more coarsely than
+a forest's thousand-atom empirical law, and D6 shows it.
+\item \textbf{Novelty is narrow and was gated as such.} The paper may not claim
+the first Wasserstein causal method, the first causal distribution-valued outcome
+method, the first distributional forest, or the first multivariate causal forest.
+The defensible claim is a treatment-aware boosted-tree conditional-law learner
+using strictly proper finite-grid energy-score particle projection, with explicit
+downstream outcome-level functionals.
+\item \textbf{PTA-F is absent above $K = 5$}, which is a declared cost limitation
+and must never be reported as a loss for that method.
+\item \textbf{Grid-resolution conclusions hold for $K \in \{5, 25, 49\}$ only},
+and continuum $W_2$ claims are not licensed by grid results.
+\end{enumerate}
+
+\section{What this means for the applied study}
+
+The applied phase (G4) asks a different question from the simulation phase: not
+whether the method is correct, but whether it changes scientific understanding.
+The evidence above supports entering that phase, with the following constraints
+carried forward explicitly.
+
+\emph{Which method to run.} \texttt{cwdb\_r3\_cvridge} is the claimant.
+Causal-DRF is the mandatory incumbent and W-DRF-T the cheap arm-law comparator.
+PTA-BCF is not run in a confirmatory applied study; if a reviewer asks for a
+Bayesian fixed-target comparison, PTA-S may be added as supplementary robustness,
+labelled a baseline. Given Table~\ref{tab:d7skew}, \emph{also run C-WDB-v1 and
+report it}, declared in advance as the unregularised reference rather than as a
+second bite at the answer. The two differ in a known and preregisterable
+direction: v1 is the one that manufactures effects under a null, R3 is the one
+that damps a real shape contrast, and an applied result that is qualitatively the
+same under both is far stronger than one that is not.
+\texttt{cwdb\_r2\_threshold3} should not be the applied claimant, because it
+loses both the sharing ablation and the shape transfer.
+
+\emph{What the application must be designed to show.} The one result the
+simulation establishes cleanly and no comparator can match is the D7 pattern: a
+functional named \emph{after} training, carrying real signal, estimated from a
+held conditional law. An application whose scientific question is only about a
+mean or a variance will not exercise the contribution and will at best decorate a
+known conclusion, which under the G4 rules is \texttt{INCREMENTAL-ONLY}. The
+application should be chosen so that a shape or tail functional of the outcome
+distribution is the scientifically interesting quantity, and so that the
+functional can be declared after the design is frozen but before the outcome
+analysis.
+
+\emph{With one qualification the simulations now force.} If the applied target is
+a \emph{pure shape} contrast, the analogue of D7 skewness rather than of D7 upper
+tail, the recommended claimant is the conservative choice and will understate the
+effect relative to the frozen claimant, by roughly the factor in
+Table~\ref{tab:d7skew}. Design for this rather than discover it: declare both
+variants, declare that the regularised one is expected to attenuate, and treat a
+null under R3 with a clear effect under v1 as an inconclusive result rather than
+as either a finding or a refutation.
+
+\emph{What must be built first or acknowledged.} Uncertainty quantification is
+absent. Either an interval construction is built before the applied study (the
+memo's item 2, and the honest ordering), or the applied study is run and reported
+with point estimates plus explicitly labelled resampling diagnostics that are not
+claimed as calibrated coverage. The second option is defensible only if stated
+plainly in the applied memo.
+
+\emph{What may not be claimed in writing.} No superiority over the scalar
+baselines on accuracy grounds for the recommended variant; no interval coverage
+claim for any method including the incumbent; no individual-level treatment
+effect, cross-arm particle pairing, or joint potential-outcome statement; no
+barycenter functional reported as an outcome-level functional; no claim at $M
+\neq 10$, $K = 49$, or $n = 2000$ for the repaired variants; and no continuum
+$W_2$ claim from grid evidence without an explicit approximation argument.
+
+\emph{The standing traps.} The applied phase file names two that apply directly
+here. Treating countries, states, or regions as interchangeable independent units
+is an interference failure, not a modelling detail. And a surprising conflict with
+established evidence is to be treated as a pipeline or identification bug until
+proven otherwise, never announced as a discovery.
+
+\section{Reproducibility}
+
+Every result row carries a claim identifier, regime, observation regime,
+evaluation-manifest identifier, $n$, $K$, $M$, seed, method, hyperparameter
+manifest, metric, value, runtime, peak memory, status, and failure reason. The
+principal artefacts are the following.
+
+\begin{table}[htbp]
+\centering
+\caption{Frozen artefacts and checksums.}
+\label{tab:artefacts}
+\small
+\begin{tabular}{@{}lp{9.2cm}@{}}
+\toprule
+Item & Location or value \\
+\midrule
+Tournament memo & \texttt{research/gates/G3\_simulation\_memo.md} \\
+Repair memo & \texttt{research/gates/G3\_repair\_memo.md} \\
+Preregistration & \texttt{research/simulation\_preregistration.md} \\
+Repair addendum & \texttt{research/simulation\_preregistration\_repair.md} \\
+Estimand contract & \texttt{research/estimand\_contract.md} (\texttt{G0-WP0-A-v1}) \\
+Score certificate & \texttt{research/cwdb\_validity\_certificate.md} (\texttt{G0-WP0-B-v1}) \\
+Merged frozen rows & \texttt{results/merged/main\_results.parquet} \\
+Merged repair rows & \texttt{results/merged\_repair/main\_results.parquet} \\
+Original Causal-DRF source & \texttt{code/causal\_drf\_paper-main} and the \texttt{causal-clean} \texttt{drf} commit \texttt{0a1a5084...} \\
+Original Causal-DRF rerun & \texttt{results/merged\_original\_causal\_drf/main\_results.parquet} (670 cells, 16,080 rows) \\
+Paper DRF source & \texttt{code/drfinference-main/drf-foo.R} (50 half-sample groups, 50 trees per group) \\
+Paper DRF rerun & \texttt{results/merged\_original\_drf/main\_results.parquet} (600 cells, 14,400 rows) \\
+Paper DRF merged checksum & \texttt{e2a0237b0b703c906543d965b9438d23\allowbreak bbe446d688875de17fc169ca1c2eb60e} \\
+Frozen results checksum & \texttt{a871fd7b6ab72544e1f0f317c16cb185\allowbreak 51759b575899188c0bfb1d048f9a4a69} \\
+Repair results checksum & \texttt{238a64aff5171c999a80431459dc72ee\allowbreak ee08e5b0cb050455ca89e5afe68a23e2} \\
+Repair manifest checksum & \texttt{dc754113a4d086ceff74fabc0ad0b498\allowbreak 03e250b601f8f1642a1f796ec369a96c} \\
+Independent gate flags & \texttt{research/checks/g3\_gate\_flags.py}, outputs in \texttt{results/merged\_repair/} \\
+Original-code R3 gate check & \texttt{results/merged\_repair/} (original-code R3 check, PASS) \\
+Test suite & 234 tests passing at the close of the repair track \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The merge audit for the repair run caught one real error during execution: the
+stage-2 manifest did not cover the screened-out $c=1$ variant's D2 rows. It was
+fixed by encoding the staging as a declared union rather than by dropping the
+rows, so the screened-out variant remains in the record. Nothing already run was
+recomputed at any point in the repair track, and the frozen gate flags reproduce
+byte-identically against the published payload.
+
+\section*{References}
+
+\begin{enumerate}
+\item Gneiting, T., and Raftery, A. E. (2007). Strictly proper scoring rules,
+prediction, and estimation. \emph{Journal of the American Statistical
+Association}, 102(477), 359--378. \url{https://doi.org/10.1198/016214506000001437}
+\item Sejdinovic, D., Sriperumbudur, B., Gretton, A., and Fukumizu, K. (2013).
+Equivalence of distance-based and RKHS-based statistics in hypothesis testing.
+\emph{The Annals of Statistics}, 41(5), 2263--2291.
+\url{https://doi.org/10.1214/13-AOS1140}
+\item Sz\'ekely, G. J., and Rizzo, M. L. (2013). Energy statistics: a class of
+statistics based on distances. \emph{Journal of Statistical Planning and
+Inference}, 143(8), 1249--1272. \url{https://doi.org/10.1016/j.jspi.2013.03.018}
+\item N\"af, J., Meinshausen, N., and B\"uhlmann, P. (2022). Distributional
+random forests: heterogeneity adjustment and multivariate distributional
+regression. \emph{Journal of Machine Learning Research}, 23(333), 1--79.
+\url{https://doi.org/10.48550/arXiv.2005.14458}. (The engine behind the
+\texttt{W-DRF-T} baseline, used through pinned CRAN \texttt{drf} 1.3.1.)
+\item N\"af, J., Park, J., and Susmann, H. Causal-DRF: conditional kernel
+treatment effect estimation using distributional random forest. arXiv preprint
+2411.08778. \url{https://arxiv.org/abs/2411.08778}. (The published direct-hit
+incumbent, run from the supplied \texttt{code/causal\_drf\_paper-main}
+repository and the pinned \texttt{causal-clean} package.)
+\item N\"af et al.\ (2023), the two-forest uncertainty construction cited as the
+published coverage benchmark in \texttt{research/drf\_baselines\_g2\_report.md}.
+That construction is \emph{not} implemented in this project, which is the source
+of the standing prohibition on coverage claims.
+\end{enumerate}
+
+\end{document}

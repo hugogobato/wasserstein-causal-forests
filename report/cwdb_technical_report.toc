@@ -1,0 +1,81 @@
+\contentsline {section}{\numberline {1}Purpose and scope of this document}{3}{section.1}%
+\contentsline {section}{\numberline {2}Setup, estimands, identification}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Observation regime}{3}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Finite-grid representation and geometry}{3}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Estimands}{4}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Identification, and what is not identified}{4}{subsection.2.4}%
+\contentsline {section}{\numberline {3}The proper score}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Definition}{5}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Strict propriety}{5}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Gradient, and why the repulsion term cannot be dropped}{5}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}The fixed-$M$ target}{6}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Monotone-cone projection}{6}{subsection.3.5}%
+\contentsline {section}{\numberline {4}The algorithm}{6}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Two architectures}{6}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}The boosting loop}{7}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}The arm-shared tree and its leaf rule}{7}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Cost}{8}{subsection.4.4}%
+\contentsline {section}{\numberline {5}The comparison roster}{8}{section.5}%
+\contentsline {section}{\numberline {6}Data generating processes}{9}{section.6}%
+\contentsline {subsection}{\numberline {6.1}One generative form}{9}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}The ten regimes}{9}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Oracle truth}{10}{subsection.6.3}%
+\contentsline {section}{\numberline {7}Evaluation protocol}{10}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Metrics}{10}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Design grids and budgets}{11}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}The six gate rules}{11}{subsection.7.3}%
+\contentsline {section}{\numberline {8}Results of the preregistered tournament}{12}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Execution}{12}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}The verdict, and the rule that failed}{12}{subsection.8.2}%
+\contentsline {subsection}{\numberline {8.3}What the tournament established}{13}{subsection.8.3}%
+\contentsline {subsection}{\numberline {8.4}The adversarial reading}{13}{subsection.8.4}%
+\contentsline {subsection}{\numberline {8.5}The recommended claimant placed in the same comparisons}{15}{subsection.8.5}%
+\contentsline {subsection}{\numberline {8.6}Finite-particle approximation}{17}{subsection.8.6}%
+\contentsline {subsection}{\numberline {8.7}Cost}{20}{subsection.8.7}%
+\contentsline {section}{\numberline {9}Diagnosis of the rule-1 failure}{20}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Defect one: confounded initialization}{20}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Defect two: contrast accumulation}{20}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Attribution}{20}{subsection.9.3}%
+\contentsline {section}{\numberline {10}The repair track}{20}{section.10}%
+\contentsline {subsection}{\numberline {10.1}Design}{20}{subsection.10.1}%
+\contentsline {subsection}{\numberline {10.2}Rule 1 across the roster}{20}{subsection.10.2}%
+\contentsline {subsection}{\numberline {10.3}All six rules}{21}{subsection.10.3}%
+\contentsline {subsection}{\numberline {10.4}What separates the two passing variants}{21}{subsection.10.4}%
+\contentsline {subsection}{\numberline {10.5}Improvement beyond the rule that failed}{22}{subsection.10.5}%
+\contentsline {subsection}{\numberline {10.6}Recommendation}{23}{subsection.10.6}%
+\contentsline {section}{\numberline {11}Complete results: every metric for the proposed model and comparators}{24}{section.11}%
+\contentsline {paragraph}{Conventions.}{24}{section*.26}%
+\contentsline {paragraph}{Reading the comparator.}{24}{section*.27}%
+\contentsline {paragraph}{Treatment-effect reading.}{24}{section*.28}%
+\contentsline {paragraph}{One caution about pooled means.}{24}{section*.29}%
+\contentsline {paragraph}{Column abbreviations.}{25}{section*.30}%
+\contentsline {subsection}{\numberline {11.1}Supporting figures}{33}{subsection.11.1}%
+\contentsline {section}{\numberline {12}Complete results: the Phase 5.5 orthogonalized variants}{35}{section.12}%
+\contentsline {paragraph}{Conventions, and where they differ from Section~\ref {sec:complete}.}{35}{section*.47}%
+\contentsline {subsection}{\numberline {12.1}The contrast surface}{35}{subsection.12.1}%
+\contentsline {paragraph}{The D0 result, stated rather than passed over.}{36}{section*.48}%
+\contentsline {subsection}{\numberline {12.2}The law surface}{36}{subsection.12.2}%
+\contentsline {subsection}{\numberline {12.3}The inherited correctness screen}{37}{subsection.12.3}%
+\contentsline {subsection}{\numberline {12.4}The negative finding, and why it is a mechanism result}{37}{subsection.12.4}%
+\contentsline {subsection}{\numberline {12.5}Diagnostics and cost}{37}{subsection.12.5}%
+\contentsline {subsection}{\numberline {12.6}Stage 2: the $\mu /\tau $ claimant on the whole grid}{38}{subsection.12.6}%
+\contentsline {paragraph}{Two measurement caveats, both settled before the tables were read.}{38}{section*.49}%
+\contentsline {paragraph}{The gate.}{39}{section*.50}%
+\contentsline {paragraph}{The law surface.}{39}{section*.51}%
+\contentsline {paragraph}{The contrast surface and the accuracy clause.}{39}{section*.52}%
+\contentsline {paragraph}{The degradation clause, which fails.}{39}{section*.53}%
+\contentsline {paragraph}{Diagnostics and cost.}{39}{section*.54}%
+\contentsline {subsection}{\numberline {12.7}What this section supports}{40}{subsection.12.7}%
+\contentsline {section}{\numberline {13}Complete results: the Phase 6 reference-effect mechanisms and the income realism track}{51}{section.13}%
+\contentsline {subsection}{\numberline {13.1}Conventions, and four disclosed repairs}{51}{subsection.13.1}%
+\contentsline {subsection}{\numberline {13.2}The opening diagnostic: why D5 was lost}{51}{subsection.13.2}%
+\contentsline {subsection}{\numberline {13.3}Track A reference surface: the layer works where it was aimed and pays where it was not}{52}{subsection.13.3}%
+\contentsline {subsection}{\numberline {13.4}Track A law surface: smoothing is a D6 tool, and the smooth weak learner is a negative finding with a mechanism}{53}{subsection.13.4}%
+\contentsline {subsection}{\numberline {13.5}Functionals: orthogonalisation owns the scale contrast, the law owns pure shape, and jitter destroys skewness}{54}{subsection.13.5}%
+\contentsline {subsection}{\numberline {13.6}The functional R-learner after the column repair}{54}{subsection.13.6}%
+\contentsline {subsection}{\numberline {13.7}Track B: on income-like panels the incumbent forests collapse}{55}{subsection.13.7}%
+\contentsline {subsection}{\numberline {13.8}Gates, cost, and what this phase supports}{55}{subsection.13.8}%
+\contentsline {subsection}{\numberline {13.9}Scope limits}{57}{subsection.13.9}%
+\contentsline {section}{\numberline {14}Limitations, stated as constraints on what may be written}{57}{section.14}%
+\contentsline {section}{\numberline {15}What this means for the applied study}{62}{section.15}%
+\contentsline {section}{\numberline {16}Reproducibility}{63}{section.16}%

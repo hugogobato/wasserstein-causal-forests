@@ -1,0 +1,22 @@
+{
+  "manifest_contract_id": "G3-PHASE55-v1",
+  "manifest_checksum": "4f4c789b312512ade0817ba82d1d1fd4bc9342f878b357f2f1ea5f960a0b15b7",
+  "n_manifest_cells": 300,
+  "n_observed_cells": 300,
+  "n_duplicate_keys": 0,
+  "n_rows": 6780,
+  "n_failed_cells": 0,
+  "failed_cells": [],
+  "failure_reasons": {},
+  "missing_cells": [],
+  "unknown_cells": [],
+  "shard_files": {
+    "shard_000.parquet": "8aceccc4d8cc0ef5e215aaf997d0f86e031b3eed3737694f62a12ae2a104cd24",
+    "shard_001.parquet": "1640a8faa5dcafc0fabbc8f5c57815cac8248bd107a606cec398db6cf76529b4",
+    "shard_002.parquet": "d4948c9ce9aa7fb2a863de97613cf8cbfd8112ec2fed2f64e81c69e5eceb30c4",
+    "shard_003.parquet": "fb404040743646fbfcd03ec8432cf1ec55746344ff2936b656b73d025a531302"
+  },
+  "merged_checksum": "f8c9d79c4fe74b8480f117a44f0d55280e61c275fca2eba9c2c728c33d6ca0ea",
+  "problems": [],
+  "status": "PASS"
+}

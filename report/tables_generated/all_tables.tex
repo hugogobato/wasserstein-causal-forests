@@ -1,0 +1,442 @@
+\begin{table}[htbp]
+\centering
+\caption{Grid causal mean error \texttt{mean\_quantile\_rmse} against \texttt{MEANQ-A-K}, main grid, mean over 40 cells ($n\in\{500,1000\}$, 20 seeds) with the standard error in parentheses. Best in each regime is bold.}
+\label{tab:all-meanq}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Regime & R3 & C-DRF & DRF \\
+\midrule
+D0 & \textbf{0.0952\,(0.0016)} & 0.1621\,(0.0038) & 0.1935\,(0.0048) \\
+D1 & 0.2043\,(0.0042) & 0.2119\,(0.0062) & \textbf{0.2017\,(0.0049)} \\
+D2 & \textbf{0.0506\,(0.0063)} & 0.0960\,(0.0046) & 0.0754\,(0.0042) \\
+D3 & \textbf{0.2861\,(0.0049)} & 0.4301\,(0.0060) & 0.4088\,(0.0072) \\
+D4 & 0.2002\,(0.0048) & \textbf{0.1603\,(0.0062)} & 0.1697\,(0.0078) \\
+D5 & 0.1644\,(0.0133) & \textbf{0.0885\,(0.0038)} & 0.1004\,(0.0041) \\
+D6 & 0.2477\,(0.0108) & 0.2567\,(0.0128) & \textbf{0.2247\,(0.0129)} \\
+D7 & \textbf{0.0683\,(0.0042)} & 0.0870\,(0.0042) & 0.0794\,(0.0043) \\
+D8 & \textbf{0.0735\,(0.0022)} & 0.2638\,(0.0104) & 0.1790\,(0.0053) \\
+D9 & \textbf{0.2819\,(0.0087)} & 0.2891\,(0.0095) & 0.3034\,(0.0101) \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}\parbox{\textwidth}{\scriptsize \texttt{cwdb\_r2\_threshold} at $c=1$ is omitted: the preregistered stage-1 screen stopped it after D2, where it scored 0.0790.}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Declared primary law metric \texttt{kernel\_law\_error} (squared MMD to the true conditional law, Gaussian kernel on the rescaled coordinates, median bandwidth), main grid, for the two forest comparators and the proposed law estimator.}
+\label{tab:all-kernel}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Regime & R3 & C-DRF & DRF \\
+\midrule
+D0 & \textbf{0.0280\,(0.0012)} & 0.1166\,(0.0035) & 0.1365\,(0.0044) \\
+D1 & \textbf{0.0137\,(0.0005)} & 0.0191\,(0.0009) & 0.0171\,(0.0006) \\
+D2 & \textbf{0.0115\,(0.0004)} & 0.0184\,(0.0006) & 0.0158\,(0.0005) \\
+D3 & \textbf{0.0162\,(0.0005)} & 0.0259\,(0.0007) & 0.0238\,(0.0008) \\
+D4 & \textbf{0.0115\,(0.0004)} & 0.0128\,(0.0007) & 0.0141\,(0.0010) \\
+D5 & \textbf{0.0234\,(0.0006)} & 0.0431\,(0.0013) & 0.0478\,(0.0012) \\
+D6 & 0.0246\,(0.0013) & \textbf{0.0077\,(0.0004)} & 0.0082\,(0.0005) \\
+D7 & \textbf{0.0114\,(0.0004)} & 0.0155\,(0.0005) & 0.0165\,(0.0005) \\
+D8 & \textbf{0.0151\,(0.0005)} & 0.0489\,(0.0014) & 0.0466\,(0.0011) \\
+D9 & \textbf{0.0197\,(0.0009)} & 0.0200\,(0.0008) & 0.0260\,(0.0013) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Excess energy risk over the true conditional law \texttt{arm\_energy\_risk}, main grid. Zero is attainable only at the truth, and the finite-$M$ floor of Table~\ref{tab:particles} is included in these values.}
+\label{tab:all-energy}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Regime & R3 & C-DRF & DRF \\
+\midrule
+D0 & \textbf{0.0586\,(0.0012)} & 0.1318\,(0.0019) & 0.1464\,(0.0026) \\
+D1 & 0.0624\,(0.0021) & 0.0507\,(0.0019) & \textbf{0.0477\,(0.0015)} \\
+D2 & 0.0534\,(0.0018) & 0.0451\,(0.0012) & \textbf{0.0400\,(0.0010)} \\
+D3 & 0.0692\,(0.0019) & 0.0643\,(0.0014) & \textbf{0.0597\,(0.0018)} \\
+D4 & 0.0607\,(0.0020) & \textbf{0.0405\,(0.0018)} & 0.0443\,(0.0027) \\
+D5 & 0.0592\,(0.0020) & \textbf{0.0511\,(0.0013)} & 0.0568\,(0.0013) \\
+D6 & 0.0841\,(0.0034) & \textbf{0.0344\,(0.0012)} & 0.0400\,(0.0017) \\
+D7 & 0.0540\,(0.0018) & \textbf{0.0398\,(0.0011)} & 0.0422\,(0.0011) \\
+D8 & \textbf{0.0642\,(0.0018)} & 0.1211\,(0.0030) & 0.1168\,(0.0023) \\
+D9 & 0.0737\,(0.0028) & \textbf{0.0528\,(0.0018)} & 0.0658\,(0.0027) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Arm-level barycenter error \texttt{barycenter\_rmse} against \texttt{BARY-A}/\texttt{MEANQ-A-K}, main grid. Reported separately from Table~\ref{tab:all-meanq} and never pooled with it, since one is an arm-level quantity and the other the arm contrast.}
+\label{tab:all-bary}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Regime & R3 & C-DRF & DRF \\
+\midrule
+D0 & \textbf{0.1062\,(0.0019)} & 0.2098\,(0.0035) & 0.2313\,(0.0040) \\
+D1 & \textbf{0.2174\,(0.0041)} & 0.2632\,(0.0064) & 0.2448\,(0.0043) \\
+D2 & \textbf{0.1886\,(0.0035)} & 0.2506\,(0.0041) & 0.2302\,(0.0033) \\
+D3 & \textbf{0.2340\,(0.0037)} & 0.3028\,(0.0042) & 0.2881\,(0.0051) \\
+D4 & \textbf{0.2206\,(0.0040)} & 0.2236\,(0.0065) & 0.2289\,(0.0085) \\
+D5 & \textbf{0.1846\,(0.0049)} & 0.2167\,(0.0037) & 0.2346\,(0.0034) \\
+D6 & 0.3731\,(0.0086) & \textbf{0.2764\,(0.0070)} & 0.2977\,(0.0090) \\
+D7 & \textbf{0.1884\,(0.0035)} & 0.2285\,(0.0039) & 0.2352\,(0.0035) \\
+D8 & \textbf{0.2500\,(0.0042)} & 0.4517\,(0.0075) & 0.4384\,(0.0051) \\
+D9 & \textbf{0.2596\,(0.0059)} & 0.2692\,(0.0058) & 0.3070\,(0.0079) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{\texttt{mode\_coverage}, the fraction of true outer modes carrying predicted mass, main grid. Higher is better and D6 is the only multimodal regime, so every other row is a degenerate single-mode check that a method should pass trivially.}
+\label{tab:all-mode}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Regime & R3 & C-DRF & DRF \\
+\midrule
+D0 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D1 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D2 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D3 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D4 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D5 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D6 & 0.9931\,(0.0012) & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D7 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D8 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D9 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{\texttt{tail\_calibration}, absolute error of a predeclared threshold event under the grid law, main grid.}
+\label{tab:all-tail}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Regime & R3 & C-DRF & DRF \\
+\midrule
+D0 & \textbf{0.0708\,(0.0022)} & 0.1783\,(0.0029) & 0.1792\,(0.0041) \\
+D1 & 0.1058\,(0.0022) & 0.1085\,(0.0025) & \textbf{0.1032\,(0.0024)} \\
+D2 & 0.1139\,(0.0024) & 0.1019\,(0.0017) & \textbf{0.0938\,(0.0018)} \\
+D3 & 0.1150\,(0.0021) & 0.1259\,(0.0023) & \textbf{0.1135\,(0.0029)} \\
+D4 & 0.0771\,(0.0026) & 0.0858\,(0.0032) & \textbf{0.0689\,(0.0035)} \\
+D5 & 0.0944\,(0.0025) & \textbf{0.0722\,(0.0016)} & 0.0805\,(0.0020) \\
+D6 & 0.0955\,(0.0034) & 0.0555\,(0.0013) & \textbf{0.0546\,(0.0015)} \\
+D7 & 0.0521\,(0.0011) & \textbf{0.0426\,(0.0010)} & 0.0430\,(0.0012) \\
+D8 & \textbf{0.0992\,(0.0022)} & 0.1452\,(0.0031) & 0.1320\,(0.0026) \\
+D9 & 0.1187\,(0.0031) & \textbf{0.1124\,(0.0025)} & 0.1324\,(0.0031) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Conditional Wasserstein reference effect \texttt{REF-TCATE-K} with $\nu_\star$ the standard normal, main grid.}
+\label{tab:all-reftcate}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Regime & R3 & C-DRF & DRF \\
+\midrule
+D0 & \textbf{0.0508\,(0.0012)} & 0.1037\,(0.0026) & 0.1140\,(0.0055) \\
+D1 & \textbf{0.0734\,(0.0054)} & 0.1047\,(0.0027) & 0.1138\,(0.0039) \\
+D2 & \textbf{0.0170\,(0.0018)} & 0.0270\,(0.0027) & 0.0291\,(0.0026) \\
+D3 & 0.0375\,(0.0030) & 0.0355\,(0.0028) & \textbf{0.0337\,(0.0026)} \\
+D4 & \textbf{0.0936\,(0.0057)} & 0.1098\,(0.0044) & 0.1193\,(0.0074) \\
+D5 & 0.1180\,(0.0035) & 0.0330\,(0.0027) & \textbf{0.0311\,(0.0024)} \\
+D6 & \textbf{0.0389\,(0.0032)} & 0.0646\,(0.0058) & 0.0610\,(0.0062) \\
+D7 & \textbf{0.0215\,(0.0017)} & 0.0278\,(0.0022) & 0.0285\,(0.0020) \\
+D8 & \textbf{0.0406\,(0.0026)} & 0.0642\,(0.0050) & 0.0830\,(0.0056) \\
+D9 & 0.1708\,(0.0096) & \textbf{0.1044\,(0.0031)} & 0.1277\,(0.0036) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Marginal Wasserstein reference effect \texttt{REF-ATE-K}, main grid.}
+\label{tab:all-refate}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Regime & R3 & C-DRF & DRF \\
+\midrule
+D0 & 0.0393\,(0.0010) & 0.0126\,(0.0015) & \textbf{0.0114\,(0.0018)} \\
+D1 & 0.0381\,(0.0049) & \textbf{0.0206\,(0.0030)} & 0.0211\,(0.0028) \\
+D2 & \textbf{0.0099\,(0.0016)} & 0.0178\,(0.0029) & 0.0175\,(0.0026) \\
+D3 & \textbf{0.0209\,(0.0028)} & 0.0238\,(0.0032) & 0.0241\,(0.0031) \\
+D4 & 0.0562\,(0.0049) & \textbf{0.0240\,(0.0033)} & 0.0251\,(0.0029) \\
+D5 & 0.1152\,(0.0036) & 0.0229\,(0.0026) & \textbf{0.0214\,(0.0026)} \\
+D6 & \textbf{0.0262\,(0.0030)} & 0.0422\,(0.0061) & 0.0417\,(0.0067) \\
+D7 & \textbf{0.0143\,(0.0019)} & 0.0164\,(0.0025) & 0.0167\,(0.0022) \\
+D8 & \textbf{0.0233\,(0.0021)} & 0.0458\,(0.0057) & 0.0645\,(0.0066) \\
+D9 & 0.1340\,(0.0102) & \textbf{0.0250\,(0.0028)} & 0.0267\,(0.0034) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begingroup
+\tiny
+\setlength{\tabcolsep}{2.6pt}
+\begin{longtable}{@{}llrrr@{}}
+\caption{Moderator-conditional functional error \texttt{tcate\_functional\_rmse} for all four grid functionals, main grid. \texttt{grid\_skewness} and \texttt{grid\_upper\_tail\_mean} are excluded from every training manifest; the law-producing methods still estimate them at evaluation time, which is the transfer test.}\label{tab:all-tcate}\\
+\toprule
+Functional & Regime & R3 & C-DRF & DRF \\
+\midrule
+\endfirsthead
+\toprule
+Functional & Regime & R3 & C-DRF & DRF \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\texttt{grid\_mean} & D0 & \textbf{0.0569\,(0.0013)} & 0.1153\,(0.0038) & 0.1123\,(0.0061) \\
+ & D1 & \textbf{0.1185\,(0.0075)} & 0.1696\,(0.0071) & 0.1314\,(0.0051) \\
+ & D2 & \textbf{0.0240\,(0.0026)} & 0.0756\,(0.0056) & 0.0491\,(0.0051) \\
+ & D3 & 0.1016\,(0.0044) & 0.1381\,(0.0086) & \textbf{0.0993\,(0.0060)} \\
+ & D4 & \textbf{0.1165\,(0.0064)} & 0.1250\,(0.0064) & 0.1183\,(0.0081) \\
+ & D5 & \textbf{0.0369\,(0.0034)} & 0.0544\,(0.0047) & 0.0608\,(0.0057) \\
+ & D6 & 0.2239\,(0.0122) & 0.1980\,(0.0157) & \textbf{0.1957\,(0.0141)} \\
+ & D7 & \textbf{0.0265\,(0.0025)} & 0.0606\,(0.0053) & 0.0504\,(0.0053) \\
+ & D8 & \textbf{0.0531\,(0.0030)} & 0.2248\,(0.0125) & 0.1250\,(0.0076) \\
+ & D9 & \textbf{0.2380\,(0.0104)} & 0.2430\,(0.0105) & 0.2523\,(0.0114) \\
+\midrule
+\texttt{grid\_sd} & D0 & \textbf{0.0104\,(0.0006)} & 0.0180\,(0.0012) & 0.0173\,(0.0013) \\
+ & D1 & 0.0294\,(0.0023) & 0.0276\,(0.0017) & \textbf{0.0272\,(0.0020)} \\
+ & D2 & \textbf{0.0181\,(0.0014)} & 0.0194\,(0.0015) & 0.0205\,(0.0016) \\
+ & D3 & 0.0296\,(0.0017) & 0.0284\,(0.0019) & \textbf{0.0254\,(0.0016)} \\
+ & D4 & \textbf{0.0402\,(0.0025)} & 0.0503\,(0.0024) & 0.0474\,(0.0027) \\
+ & D5 & 0.0471\,(0.0030) & 0.0354\,(0.0024) & \textbf{0.0314\,(0.0028)} \\
+ & D6 & \textbf{0.0139\,(0.0011)} & 0.0174\,(0.0012) & 0.0155\,(0.0013) \\
+ & D7 & \textbf{0.0191\,(0.0015)} & 0.0210\,(0.0016) & 0.0203\,(0.0016) \\
+ & D8 & \textbf{0.0178\,(0.0015)} & 0.0258\,(0.0017) & 0.0252\,(0.0019) \\
+ & D9 & \textbf{0.0407\,(0.0025)} & 0.0572\,(0.0031) & 0.0642\,(0.0032) \\
+\midrule
+\texttt{grid\_skewness} & D0 & 0.0101\,(0.0015) & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+ & D1 & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} & 0.0000\,(0.0000) \\
+ & D2 & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} & 0.0000\,(0.0000) \\
+ & D3 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+ & D4 & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} & 0.0000\,(0.0000) \\
+ & D5 & 0.0034\,(0.0011) & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+ & D6 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+ & D7 & 0.0904\,(0.0067) & \textbf{0.0500\,(0.0021)} & 0.0567\,(0.0016) \\
+ & D8 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+ & D9 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+\midrule
+\texttt{grid\_upper\_tail\_mean} & D0 & \textbf{0.0570\,(0.0014)} & 0.1208\,(0.0042) & 0.1158\,(0.0063) \\
+ & D1 & \textbf{0.1209\,(0.0073)} & 0.1760\,(0.0078) & 0.1362\,(0.0054) \\
+ & D2 & \textbf{0.0291\,(0.0030)} & 0.0782\,(0.0059) & 0.0532\,(0.0054) \\
+ & D3 & \textbf{0.1049\,(0.0044)} & 0.1453\,(0.0088) & 0.1057\,(0.0061) \\
+ & D4 & \textbf{0.1383\,(0.0076)} & 0.1576\,(0.0074) & 0.1469\,(0.0100) \\
+ & D5 & \textbf{0.0552\,(0.0040)} & 0.0611\,(0.0046) & 0.0683\,(0.0057) \\
+ & D6 & 0.2224\,(0.0123) & \textbf{0.1969\,(0.0159)} & 0.1969\,(0.0141) \\
+ & D7 & \textbf{0.0314\,(0.0024)} & 0.0635\,(0.0054) & 0.0536\,(0.0055) \\
+ & D8 & \textbf{0.0566\,(0.0031)} & 0.2319\,(0.0130) & 0.1300\,(0.0075) \\
+ & D9 & \textbf{0.2622\,(0.0099)} & 0.2798\,(0.0115) & 0.2935\,(0.0119) \\
+\end{longtable}
+\endgroup
+
+\begingroup
+\tiny
+\setlength{\tabcolsep}{2.6pt}
+\begin{longtable}{@{}llrrr@{}}
+\caption{Marginal functional error \texttt{tate\_functional\_rmse} for all four grid functionals, main grid.}\label{tab:all-tate}\\
+\toprule
+Functional & Regime & R3 & C-DRF & DRF \\
+\midrule
+\endfirsthead
+\toprule
+Functional & Regime & R3 & C-DRF & DRF \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\texttt{grid\_mean} & D0 & \textbf{0.0065\,(0.0009)} & 0.0547\,(0.0039) & 0.0286\,(0.0032) \\
+ & D1 & \textbf{0.0181\,(0.0024)} & 0.0925\,(0.0068) & 0.0319\,(0.0042) \\
+ & D2 & \textbf{0.0156\,(0.0019)} & 0.0686\,(0.0058) & 0.0226\,(0.0042) \\
+ & D3 & \textbf{0.0177\,(0.0021)} & 0.0289\,(0.0043) & 0.0234\,(0.0025) \\
+ & D4 & \textbf{0.0196\,(0.0023)} & 0.0613\,(0.0062) & 0.0312\,(0.0048) \\
+ & D5 & \textbf{0.0155\,(0.0023)} & 0.0384\,(0.0053) & 0.0207\,(0.0036) \\
+ & D6 & \textbf{0.0476\,(0.0057)} & 0.1205\,(0.0147) & 0.1158\,(0.0146) \\
+ & D7 & \textbf{0.0152\,(0.0018)} & 0.0478\,(0.0057) & 0.0234\,(0.0042) \\
+ & D8 & \textbf{0.0313\,(0.0033)} & 0.2001\,(0.0144) & 0.0751\,(0.0086) \\
+ & D9 & \textbf{0.0247\,(0.0033)} & 0.1872\,(0.0106) & 0.2076\,(0.0117) \\
+\midrule
+\texttt{grid\_sd} & D0 & \textbf{0.0055\,(0.0007)} & 0.0134\,(0.0012) & 0.0122\,(0.0012) \\
+ & D1 & \textbf{0.0170\,(0.0020)} & 0.0192\,(0.0021) & 0.0181\,(0.0023) \\
+ & D2 & \textbf{0.0130\,(0.0012)} & 0.0140\,(0.0017) & 0.0142\,(0.0016) \\
+ & D3 & \textbf{0.0145\,(0.0016)} & 0.0199\,(0.0020) & 0.0181\,(0.0021) \\
+ & D4 & \textbf{0.0151\,(0.0018)} & 0.0305\,(0.0026) & 0.0223\,(0.0025) \\
+ & D5 & 0.0260\,(0.0032) & 0.0247\,(0.0026) & \textbf{0.0242\,(0.0027)} \\
+ & D6 & \textbf{0.0098\,(0.0010)} & 0.0110\,(0.0014) & 0.0113\,(0.0014) \\
+ & D7 & \textbf{0.0136\,(0.0013)} & 0.0141\,(0.0017) & 0.0141\,(0.0016) \\
+ & D8 & \textbf{0.0126\,(0.0015)} & 0.0186\,(0.0020) & 0.0194\,(0.0022) \\
+ & D9 & \textbf{0.0162\,(0.0022)} & 0.0470\,(0.0037) & 0.0519\,(0.0036) \\
+\midrule
+\texttt{grid\_skewness} & D0 & 0.0085\,(0.0015) & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+ & D1 & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} & 0.0000\,(0.0000) \\
+ & D2 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+ & D3 & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} & 0.0000\,(0.0000) \\
+ & D4 & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} & 0.0000\,(0.0000) \\
+ & D5 & 0.0029\,(0.0011) & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+ & D6 & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} & 0.0000\,(0.0000) \\
+ & D7 & 0.0746\,(0.0060) & 0.0167\,(0.0016) & \textbf{0.0130\,(0.0014)} \\
+ & D8 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+ & D9 & 0.0000\,(0.0000) & 0.0000\,(0.0000) & \textbf{0.0000\,(0.0000)} \\
+\midrule
+\texttt{grid\_upper\_tail\_mean} & D0 & \textbf{0.0078\,(0.0010)} & 0.0644\,(0.0041) & 0.0364\,(0.0035) \\
+ & D1 & \textbf{0.0234\,(0.0031)} & 0.1037\,(0.0077) & 0.0410\,(0.0052) \\
+ & D2 & \textbf{0.0197\,(0.0024)} & 0.0707\,(0.0062) & 0.0261\,(0.0046) \\
+ & D3 & \textbf{0.0223\,(0.0023)} & 0.0389\,(0.0054) & 0.0288\,(0.0033) \\
+ & D4 & \textbf{0.0244\,(0.0029)} & 0.0837\,(0.0071) & 0.0440\,(0.0058) \\
+ & D5 & 0.0307\,(0.0029) & 0.0426\,(0.0057) & \textbf{0.0299\,(0.0039)} \\
+ & D6 & \textbf{0.0477\,(0.0056)} & 0.1189\,(0.0149) & 0.1145\,(0.0148) \\
+ & D7 & \textbf{0.0195\,(0.0023)} & 0.0503\,(0.0058) & 0.0260\,(0.0046) \\
+ & D8 & \textbf{0.0339\,(0.0034)} & 0.2076\,(0.0149) & 0.0833\,(0.0088) \\
+ & D9 & \textbf{0.0282\,(0.0042)} & 0.2233\,(0.0109) & 0.2479\,(0.0121) \\
+\end{longtable}
+\endgroup
+
+\begin{table}[htbp]
+\centering
+\caption{\texttt{mean\_quantile\_rmse} on the \texttt{smallk} grid ($n=500$, $K=5$, 20 seeds), with the proposed C-WDB R3, the two forest comparators, and the squared-$W_2$ mechanism ablation.}
+\label{tab:smallk-meanq}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Regime & R3 & C-DRF & DRF & sq-$W_2$ \\
+\midrule
+D0 & 0.1044\,(0.0013) & 0.1817\,(0.0027) & 0.2175\,(0.0055) & \textbf{0.0841\,(0.0011)} \\
+D1 & 0.2209\,(0.0034) & 0.2642\,(0.0078) & 0.2167\,(0.0047) & \textbf{0.1628\,(0.0038)} \\
+D2 & 0.0831\,(0.0160) & 0.1191\,(0.0084) & \textbf{0.0821\,(0.0082)} & 0.1369\,(0.0031) \\
+D3 & 0.3115\,(0.0044) & 0.5385\,(0.0041) & 0.4402\,(0.0024) & \textbf{0.2990\,(0.0040)} \\
+D4 & 0.2194\,(0.0045) & 0.2409\,(0.0082) & 0.2111\,(0.0059) & \textbf{0.1529\,(0.0044)} \\
+D5 & 0.2149\,(0.0128) & 0.1056\,(0.0069) & \textbf{0.0910\,(0.0067)} & 0.2027\,(0.0051) \\
+D6 & 0.3368\,(0.0116) & 0.3374\,(0.0219) & \textbf{0.2453\,(0.0211)} & 0.4439\,(0.0175) \\
+D7 & 0.0872\,(0.0133) & 0.1162\,(0.0088) & \textbf{0.0839\,(0.0081)} & 0.1341\,(0.0034) \\
+D8 & \textbf{0.0784\,(0.0025)} & 0.3171\,(0.0157) & 0.1966\,(0.0106) & 0.1743\,(0.0048) \\
+D9 & 0.2941\,(0.0064) & 0.3311\,(0.0089) & 0.3584\,(0.0103) & \textbf{0.2200\,(0.0057)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{\texttt{kernel\_law\_error} on the \texttt{smallk} grid, with the squared-$W_2$ comparator retained as a mechanism check.}
+\label{tab:smallk-kernel}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Regime & R3 & C-DRF & DRF & sq-$W_2$ \\
+\midrule
+D0 & 0.0334\,(0.0013) & 0.1445\,(0.0042) & 0.1556\,(0.0040) & \textbf{0.0244\,(0.0010)} \\
+D1 & 0.0170\,(0.0003) & 0.0298\,(0.0008) & 0.0211\,(0.0005) & \textbf{0.0139\,(0.0003)} \\
+D2 & 0.0150\,(0.0004) & 0.0262\,(0.0006) & 0.0196\,(0.0005) & \textbf{0.0140\,(0.0003)} \\
+D3 & 0.0204\,(0.0005) & 0.0405\,(0.0006) & 0.0292\,(0.0003) & \textbf{0.0201\,(0.0004)} \\
+D4 & 0.0145\,(0.0004) & 0.0283\,(0.0009) & 0.0210\,(0.0004) & \textbf{0.0105\,(0.0002)} \\
+D5 & 0.0285\,(0.0010) & 0.0563\,(0.0014) & 0.0536\,(0.0009) & \textbf{0.0221\,(0.0008)} \\
+D6 & 0.0324\,(0.0013) & 0.0127\,(0.0005) & \textbf{0.0076\,(0.0006)} & 0.1970\,(0.0017) \\
+D7 & 0.0157\,(0.0004) & 0.0250\,(0.0008) & 0.0206\,(0.0005) & \textbf{0.0144\,(0.0003)} \\
+D8 & \textbf{0.0185\,(0.0005)} & 0.0612\,(0.0011) & 0.0570\,(0.0012) & 0.0201\,(0.0005) \\
+D9 & 0.0242\,(0.0006) & 0.0255\,(0.0009) & 0.0358\,(0.0012) & \textbf{0.0191\,(0.0007)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{\texttt{mode\_coverage} on the \texttt{smallk} grid. The D6 row is the collapse result: every method that keeps the repulsion term covers both modes and the ablation does not.}
+\label{tab:smallk-mode}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Regime & R3 & C-DRF & DRF & sq-$W_2$ \\
+\midrule
+D0 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D1 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D2 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D3 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & 0.9999\,(0.0001) \\
+D4 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D5 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & 0.9989\,(0.0005) \\
+D6 & 0.9887\,(0.0031) & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & 0.2303\,(0.0038) \\
+D7 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} \\
+D8 & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & 0.9994\,(0.0003) \\
+D9 & 0.9999\,(0.0001) & \textbf{1.0000\,(0.0000)} & \textbf{1.0000\,(0.0000)} & 0.9999\,(0.0001) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Seed-paired comparisons for the proposed claimant \texttt{cwdb\_r3\_cvridge}, main grid.}
+\label{tab:paired-r3}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+Target & Regime & \multicolumn{2}{c}{vs Causal-DRF} & \multicolumn{2}{c}{vs DRF (separate, paper benchmark)} \\
+  &   & diff. & SE & diff. & SE \\
+\midrule
+\texttt{kernel\_law\_error} & D1 & -0.0054$^{\ast}$ & 0.0007 & -0.0034$^{\ast}$ & 0.0003 \\
+ & D5 & -0.0196$^{\ast}$ & 0.0012 & -0.0244$^{\ast}$ & 0.0010 \\
+ & D6 & +0.0168$^{\dagger}$ & 0.0011 & +0.0164$^{\dagger}$ & 0.0010 \\
+ & D7 & -0.0041$^{\ast}$ & 0.0003 & -0.0051$^{\ast}$ & 0.0003 \\
+\texttt{mean\_quantile\_rmse} & D0 & -0.0669$^{\ast}$ & 0.0028 & -0.0983$^{\ast}$ & 0.0037 \\
+ & D1 & -0.0076 & 0.0040 & +0.0027 & 0.0028 \\
+ & D2 & -0.0453$^{\ast}$ & 0.0075 & -0.0247$^{\ast}$ & 0.0078 \\
+ & D3 & -0.1440$^{\ast}$ & 0.0033 & -0.1227$^{\ast}$ & 0.0041 \\
+ & D4 & +0.0399$^{\dagger}$ & 0.0031 & +0.0305$^{\dagger}$ & 0.0057 \\
+ & D5 & +0.0759$^{\dagger}$ & 0.0120 & +0.0641$^{\dagger}$ & 0.0127 \\
+ & D6 & -0.0089 & 0.0125 & +0.0230 & 0.0141 \\
+ & D7 & -0.0187$^{\ast}$ & 0.0046 & -0.0110$^{\ast}$ & 0.0053 \\
+ & D8 & -0.1903$^{\ast}$ & 0.0100 & -0.1056$^{\ast}$ & 0.0059 \\
+ & D9 & -0.0071 & 0.0072 & -0.0215$^{\ast}$ & 0.0072 \\
+\texttt{TCATE-K-grid\_skewness} & D5 & +0.0034$^{\dagger}$ & 0.0011 & +0.0034$^{\dagger}$ & 0.0011 \\
+ & D6 & +0.0000$^{\dagger}$ & 0.0000 & +0.0000$^{\dagger}$ & 0.0000 \\
+ & D7 & +0.0404$^{\dagger}$ & 0.0076 & +0.0337$^{\dagger}$ & 0.0071 \\
+\texttt{TCATE-K-grid\_upper\_tail\_mean} & D5 & -0.0059 & 0.0042 & -0.0131$^{\ast}$ & 0.0050 \\
+ & D6 & +0.0256 & 0.0143 & +0.0255 & 0.0153 \\
+ & D7 & -0.0321$^{\ast}$ & 0.0042 & -0.0222$^{\ast}$ & 0.0047 \\
+\texttt{TCATE-K-grid\_mean} & D5 & -0.0175$^{\ast}$ & 0.0045 & -0.0239$^{\ast}$ & 0.0050 \\
+ & D6 & +0.0260 & 0.0142 & +0.0282 & 0.0153 \\
+ & D7 & -0.0340$^{\ast}$ & 0.0048 & -0.0239$^{\ast}$ & 0.0047 \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}\parbox{0.96\textwidth}{\scriptsize Negative favours the claimant. $\ast$ marks a claimant win and $\dagger$ a comparator win, both at more than two paired standard errors, which is the preregistered definition. \emph{n/a} means the comparator does not estimate that target.}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Operational cost over every cell each method ran, both tracks pooled. Runtime is fit plus predict; peak memory is a process high-water mark, so a zero means the worker never exceeded its own baseline.}
+\label{tab:cost-all}
+\small
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Method & Cells & Median (s) & Mean (s) & Max (s) & Median RAM (MB) \\
+\midrule
+squared-$W_2$ booster & 360 & 1.00 & 1.31 & 2.3 & 0 \\
+DRF (separate, paper benchmark) & 600 & 8.06 & 10.59 & 41.1 & 382 \\
+Causal-DRF & 670 & 8.77 & 12.50 & 58.1 & 304 \\
+C-WDB R3 (cv-ridge) & 640 & 55.35 & 64.78 & 135.7 & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}

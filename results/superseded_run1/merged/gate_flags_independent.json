@@ -1,0 +1,46 @@
+{
+  "check": "g3_gate_flags",
+  "independent": {
+    "rule_1_correctness": {
+      "passed": false
+    },
+    "rule_2_law_advantage": {
+      "passed": true,
+      "winning_dgps": [
+        "D1",
+        "D5",
+        "D7"
+      ]
+    },
+    "rule_3_transfer": {
+      "passed": true,
+      "winning_targets": [
+        "tcate_functional_rmse@D6",
+        "tcate_functional_rmse@D7"
+      ]
+    },
+    "rule_4_beats_direct_learner": {
+      "passed": false,
+      "winning_targets": []
+    },
+    "rule_5_no_collapse": {
+      "passed": true
+    },
+    "rule_6_cost": {
+      "passed": true,
+      "runtime_ratio": 10.686832136437847
+    },
+    "summary": {
+      "n_rules": 6,
+      "n_passed": 4,
+      "rules_failed": [
+        "rule_1_correctness",
+        "rule_4_beats_direct_learner"
+      ],
+      "verdict": "NOT-GO"
+    }
+  },
+  "primary_verdict": "NOT-GO",
+  "disagreements": [],
+  "status": "PASS"
+}

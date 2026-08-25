@@ -1,0 +1,34 @@
+{
+  "R1_reference_repair": {
+    "statement": "DR repairs D5 references without losing D2/D8",
+    "result": "PARTIAL: D5 ATE diff -0.0883 (0.0081), D5 TCATE diff -0.0602 (0.0080); significant losses: D2/effect +0.0087, D2/tcate +0.0306, D8/effect +0.0173, D8/tcate +0.0579"
+  },
+  "R2_D0": {
+    "statement": "cwdb_dr mean_quantile <= 0.15 on D0",
+    "result": "PASS (0.0943)"
+  },
+  "R2_D2": {
+    "statement": "cwdb_dr mean_quantile <= 0.15 on D2",
+    "result": "PASS (0.0595)"
+  },
+  "R2_null_ratio": {
+    "statement": "D2 false-effect ratio <= 1.25 vs best baseline",
+    "result": "PASS (ratio 1.08)"
+  },
+  "R3_smoothing": {
+    "statement": "smooth improves law metric in >=3/6 regimes, no collapse",
+    "result": "FAIL (1/6 significant wins; D6 coverage 0.9944; D0:+0.0001 D2:+0.0006 D5:+0.0021 D6:-0.0072 D7:+0.0006 D8:+0.0007)"
+  },
+  "R4_krr_probe": {
+    "statement": "descriptive: KRR weak learner vs tree weak learner",
+    "result": "negative: loses law metric in 0/6 regimes"
+  },
+  "R5_frl": {
+    "statement": "descriptive: functional R-learner vs R3 on null reference TCATE",
+    "result": "FRL wins D2 REF-TCATE by 0.0072 (0.0037)"
+  },
+  "R6_realism": {
+    "statement": "does the R3-vs-CausalDRF ordering reproduce on income?",
+    "result": "REVERSED: see income tables; forests lose every law and reference comparison there"
+  }
+}

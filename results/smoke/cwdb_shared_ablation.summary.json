@@ -1,0 +1,13 @@
+{
+  "allowed_separate_relative_loss": 0.05,
+  "decision": "v1",
+  "mean_risks": {
+    "separate_v0": 0.3388249661121531,
+    "separate_v1": 0.341050817482669,
+    "shared_v0": 0.3353720693316452,
+    "shared_v1": 0.31711628432076766
+  },
+  "required_shared_improvement": 0.02,
+  "separate_relative_loss": 0.006569325147601804,
+  "shared_improvement": 0.054434422780820876
+}

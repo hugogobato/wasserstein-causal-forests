@@ -1,0 +1,33 @@
+{
+  "bcf_univariate": {
+    "pehe_tau": 0.5197830472002934,
+    "rmse_mu": 1.8214451181999536,
+    "rmse_y": 4.600579537007276
+  },
+  "decision": "REPRODUCED",
+  "evaluation_manifest_id": "PTA-F-PUBLISHED-CELL-v1",
+  "failed_replicates": 0,
+  "observed_mvbcf": {
+    "pehe_tau": 0.4262288717087615,
+    "rmse_mu": 1.6974858582886025,
+    "rmse_y": 4.545708825671693
+  },
+  "published_bcf_univariate": {
+    "pehe_tau": 0.405,
+    "rmse_mu": 1.8,
+    "rmse_y": 4.07
+  },
+  "published_mvbcf": {
+    "pehe_tau": 0.34,
+    "rmse_mu": 1.58,
+    "rmse_y": 3.97
+  },
+  "published_ordering_reproduced": true,
+  "replicates": 30,
+  "reproduction_band": 0.3,
+  "within_band": {
+    "pehe_tau": true,
+    "rmse_mu": true,
+    "rmse_y": true
+  }
+}

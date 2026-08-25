@@ -1,0 +1,1 @@
+{"cell_key": "3e8a61cfa6801891", "grid": "main", "dgp": "D0", "n_train": 500, "n_grid": 25, "n_particles": 10, "method": "cwdb_mutau", "seed": 12, "status": "ok", "wall_seconds": 34.6, "n_rows": 27, "finished_at": 1786999182.8737488}

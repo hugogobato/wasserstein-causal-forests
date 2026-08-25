@@ -1,0 +1,26 @@
+{
+  "allowed_null_loss": 0.1,
+  "decision": "RETAIN-STRONGEST-ENDPOINT",
+  "inference": "point-prediction-only",
+  "mean_residual_weight": {
+    "D2": 0.88125,
+    "D3": 0.93125,
+    "D4": 0.84375
+  },
+  "mean_scaled_contrast_rmse": {
+    "D2:PTA-DIAGNOSTIC": 0.09122038648885662,
+    "D2:PTA-F": 0.09114097758699932,
+    "D2:PTA-S": 0.10449070407100722,
+    "D3:PTA-DIAGNOSTIC": 0.30509201388434337,
+    "D3:PTA-F": 0.7279607484605256,
+    "D3:PTA-S": 0.31455805346301235,
+    "D4:PTA-DIAGNOSTIC": 0.22232220926629317,
+    "D4:PTA-F": 0.2868477667412006,
+    "D4:PTA-S": 0.2096226513522398
+  },
+  "null_relative_loss": 0.0008712755114075864,
+  "required_win_margin": 0.02,
+  "retained_endpoint": "PTA-DIAGNOSTIC",
+  "separate_gain_over_pta_f": 0.5808949664806174,
+  "shared_gain_over_pta_s": -0.060582946700324075
+}
