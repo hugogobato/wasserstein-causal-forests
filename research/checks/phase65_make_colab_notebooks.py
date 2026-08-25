@@ -451,8 +451,8 @@ def make_clone_cell(group: str) -> str:
         "    'the cloned manifest does not match the frozen grid: '\n"
         "    f'{checksum} != {EXPECTED_CHECKSUM}'\n"
         ")\n"
-        "print(f'repo ready at commit {{COMMIT[:12]}}; '\n"
-        "      f'{{manifest[\"n_cells\"]}} frozen cells verified')"
+        "print('repo ready at commit ' + COMMIT[:12] + '; '\n"
+        "      + str(manifest['n_cells']) + ' frozen cells verified')"
     )
 
 
