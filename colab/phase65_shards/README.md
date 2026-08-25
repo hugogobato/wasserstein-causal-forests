@@ -1,6 +1,6 @@
 # Phase 6.5 Colab shards
 
-17 notebooks covering all 900 cells of the frozen manifest `G3-PHASE65-v1` exactly once. Every notebook clones `https://github.com/hugogobato/wasserstein-causal-forests.git` at the generating commit `5f3b2ad66b0b` and verifies the frozen manifest checksum before running anything.
+17 notebooks covering all 900 cells of the frozen manifest `G3-PHASE65-v1` exactly once. Every notebook clones `https://github.com/hugogobato/wasserstein-causal-forests.git` at the generating commit `bfe99cb3f305` and verifies the frozen manifest checksum before running anything.
 
 ## How to run
 
@@ -33,11 +33,11 @@ The merge reconciles every cell key against the manifest and fails loudly on a d
 | `p65_shard_09_core65.ipynb` | core65 | 29 | 83 | 14 kB |
 | `p65_shard_10_core65.ipynb` | core65 | 31 | 84 | 15 kB |
 | `p65_shard_11_core65.ipynb` | core65 | 31 | 84 | 15 kB |
-| `p65_shard_12_forest65.ipynb` | forest65 | 108 | 87 | 33 kB |
-| `p65_shard_13_forest65.ipynb` | forest65 | 108 | 87 | 33 kB |
-| `p65_shard_14_forest65.ipynb` | forest65 | 108 | 87 | 33 kB |
-| `p65_shard_15_forest65.ipynb` | forest65 | 108 | 87 | 33 kB |
-| `p65_shard_16_forest65.ipynb` | forest65 | 108 | 87 | 33 kB |
+| `p65_shard_12_forest65.ipynb` | forest65 | 108 | 87 | 35 kB |
+| `p65_shard_13_forest65.ipynb` | forest65 | 108 | 87 | 35 kB |
+| `p65_shard_14_forest65.ipynb` | forest65 | 108 | 87 | 35 kB |
+| `p65_shard_15_forest65.ipynb` | forest65 | 108 | 87 | 35 kB |
+| `p65_shard_16_forest65.ipynb` | forest65 | 108 | 87 | 35 kB |
 
 Reference minutes are single-threaded estimates on the reference machine, from the audited Phase 6 cost medians. Colab cores are slower; allow two to three times that, plus install time for the `forest65` group.
 
