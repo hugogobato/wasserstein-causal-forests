@@ -6,8 +6,15 @@ Run from the repository root:
     python research/checks/phase65_make_colab_notebooks.py
 
 Writes `colab/phase65_shards/p65_shard_XX_<group>.ipynb`, one per shard, plus
-a README. Each notebook carries the source tree and the frozen Phase 6.5
-manifest as an embedded base64 archive, so it needs no upload beyond itself.
+a README. Each notebook is tiny: it clones this repository from GitHub at the
+exact commit that generated it, verifies the frozen manifest's checksum, and
+runs. Nothing is embedded, so the browser renders kilobytes instead of the
+megabytes an embedded-archive notebook costs.
+
+Generation refuses to run unless the working tree is clean apart from this
+output directory and the Phase 6.5 manifest is committed: a pinned commit that
+does not contain today's code and manifest would produce shards that fail
+loudly on Colab rather than quietly run something else.
 
 Two dependency groups:
 
@@ -24,11 +31,9 @@ decisive cell executes.
 
 from __future__ import annotations
 
-import base64
-import io
 import json
+import subprocess
 import sys
-import tarfile
 from collections import defaultdict
 from pathlib import Path
 
@@ -44,6 +49,54 @@ OUTPUT = ROOT / "colab" / "phase65_shards"
 MANIFEST = ROOT / "results" / "manifests" / "phase65_manifest.json"
 
 TOTAL_NOTEBOOKS = 17
+
+#: Resolved by `_resolve_pinned_context` before anything is written.
+REMOTE_URL: str = ""
+PINNED_COMMIT: str = ""
+PINNED_MANIFEST_CHECKSUM: str = ""
+
+
+def _git(*arguments: str) -> str:
+    completed = subprocess.run(
+        ["git", *arguments], cwd=ROOT, capture_output=True, text=True
+    )
+    if completed.returncode != 0:
+        raise SystemExit(f"git {' '.join(arguments)} failed:\n{completed.stderr}")
+    return completed.stdout.strip()
+
+
+def _resolve_pinned_context() -> None:
+    """Pin remote, commit, and manifest checksum, refusing unsafe states."""
+
+    global REMOTE_URL, PINNED_COMMIT, PINNED_MANIFEST_CHECKSUM
+
+    REMOTE_URL = _git("remote", "get-url", "origin")
+    PINNED_COMMIT = _git("rev-parse", "HEAD")
+
+    tracked = _git(
+        "ls-files", "--error-unmatch", "results/manifests/phase65_manifest.json"
+    )
+    if not tracked:
+        raise SystemExit(
+            "results/manifests/phase65_manifest.json is not committed, so a "
+            "pinned clone could not reconstruct the frozen grid. Commit and "
+            "push, then regenerate."
+        )
+
+    dirty = [
+        line for line in _git("status", "--porcelain").splitlines()
+        if line.strip() and "colab/phase65_shards/" not in line
+    ]
+    if dirty:
+        preview = "\n".join(dirty[:8])
+        raise SystemExit(
+            "the working tree is dirty outside colab/phase65_shards/, so "
+            f"HEAD does not contain what the shards would run:\n{preview}\n"
+            "Commit and push, then regenerate the notebooks."
+        )
+
+    document = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    PINNED_MANIFEST_CHECKSUM = document["manifest_checksum"]
 
 #: Method to dependency group.
 GROUPS: dict[str, str] = {
@@ -131,19 +184,6 @@ GROUP_NOTE: dict[str, str] = {
 }
 
 
-def build_archive() -> str:
-    """Base64 tar.gz of everything a shard needs to run."""
-
-    buffer = io.BytesIO()
-    with tarfile.open(fileobj=buffer, mode="w:gz") as archive:
-        archive.add(ROOT / "src" / "wasserstein_causal_forests",
-                    arcname="src/wasserstein_causal_forests")
-        archive.add(ROOT / "research" / "baselines", arcname="research/baselines")
-        archive.add(MANIFEST,
-                    arcname="results/manifests/phase65_manifest.json")
-    return base64.b64encode(buffer.getvalue()).decode("ascii")
-
-
 def cell_cost(cell) -> float:
     return BASE_COSTS.get((cell.method, cell.n_train), 60.0)
 
@@ -191,8 +231,7 @@ def code(text: str) -> dict:
     }
 
 
-def build_notebook(index: int, group: str, cells: list, load: float,
-                   archive: str) -> dict:
+def build_notebook(index: int, group: str, cells: list, load: float) -> dict:
     shard_name = f"p65_shard_{index:02d}_{group}"
     methods = sorted({c.method for c in cells})
     estimate_minutes = load / 60.0
@@ -229,24 +268,14 @@ def build_notebook(index: int, group: str, cells: list, load: float,
             "    os.environ[_v] = '1'\n"
             "print('threads pinned to 1')"
         ),
-        markdown("## 1. Unpack the source tree"),
-        code(
-            "import base64, io, tarfile, pathlib\n"
-            "\n"
-            "ARCHIVE = '''" + archive + "'''\n"
-            "\n"
-            "workdir = pathlib.Path('/content/wcf')\n"
-            "workdir.mkdir(parents=True, exist_ok=True)\n"
-            "with tarfile.open(fileobj=io.BytesIO(base64.b64decode(ARCHIVE))) as tar:\n"
-            "    tar.extractall(workdir)\n"
-            "os.chdir(workdir)\n"
-            "import sys\n"
-            "sys.path.insert(0, str(workdir / 'src'))\n"
-            + ("os.environ['WCF_CAUSAL_DRF_R_LIB'] = "
-               "'/content/wcf/results/Rlib/causal_drf'\n"
-               if group == "forest65" else "") +
-            "print('source ready at', workdir)"
-        ),
+        markdown("## 1. Clone the repository at the pinned commit\n"
+                 "\n"
+                 f"Remote `{REMOTE_URL}`, commit `{PINNED_COMMIT[:12]}`. After "
+                 "checkout the notebook asserts the frozen manifest checksum, "
+                 "so a clone of anything but the generating commit fails here "
+                 "rather than mid-run."
+                 ),
+        code(make_clone_cell(group)),
         markdown("## 2. Dependencies"),
         code(SETUP[group]),
         markdown("## 3. This shard's cells"),
@@ -376,6 +405,57 @@ def build_notebook(index: int, group: str, cells: list, load: float,
     }
 
 
+def make_clone_cell(group: str) -> str:
+    """Shallow-fetch exactly the pinned commit, verify, and wire the paths."""
+
+    library_line = (
+        "os.environ['WCF_CAUSAL_DRF_R_LIB'] = "
+        "'/content/wcf/results/Rlib/causal_drf'\n"
+        if group == "forest65"
+        else ""
+    )
+    return (
+        "import subprocess, pathlib, os, sys, json, hashlib\n"
+        "\n"
+        f"REPO = {REMOTE_URL!r}\n"
+        f"COMMIT = {PINNED_COMMIT!r}\n"
+        f"EXPECTED_CHECKSUM = {PINNED_MANIFEST_CHECKSUM!r}\n"
+        "\n"
+        "workdir = pathlib.Path('/content/wcf')\n"
+        "if not workdir.exists():\n"
+        "    subprocess.run(['git', 'init', '-q', str(workdir)], check=True)\n"
+        "    subprocess.run(\n"
+        "        ['git', '-C', str(workdir), 'remote', 'add', 'origin', REPO],\n"
+        "        check=True,\n"
+        "    )\n"
+        "# A shallow fetch of the exact commit: nothing else is downloaded.\n"
+        "    subprocess.run(\n"
+        "        ['git', '-C', str(workdir), 'fetch', '-q', '--depth', '1',\n"
+        "         'origin', COMMIT], check=True,\n"
+        "    )\n"
+        "    subprocess.run(\n"
+        "        ['git', '-C', str(workdir), 'checkout', '-q', 'FETCH_HEAD'],\n"
+        "        check=True,\n"
+        "    )\n"
+        "os.chdir(workdir)\n"
+        "sys.path.insert(0, str(workdir / 'src'))\n"
+        + library_line +
+        "\n"
+        "manifest = json.load(open(\n"
+        "    'results/manifests/phase65_manifest.json', encoding='utf-8'\n"
+        "))\n"
+        "checksum = hashlib.sha256(\n"
+        "    json.dumps(manifest['cells'], sort_keys=True).encode('utf-8')\n"
+        ").hexdigest()\n"
+        "assert checksum == EXPECTED_CHECKSUM, (\n"
+        "    'the cloned manifest does not match the frozen grid: '\n"
+        "    f'{checksum} != {EXPECTED_CHECKSUM}'\n"
+        ")\n"
+        "print(f'repo ready at commit {{COMMIT[:12]}}; '\n"
+        "      f'{{manifest[\"n_cells\"]}} frozen cells verified')"
+    )
+
+
 RETUNE_CELL = (
     "from pathlib import Path\n"
     "import json, numpy as np\n"
@@ -416,25 +496,25 @@ RETUNE_CELL = (
 def main() -> int:
     if not MANIFEST.exists():
         raise SystemExit("freeze the manifest first")
+    _resolve_pinned_context()
     OUTPUT.mkdir(parents=True, exist_ok=True)
     for stale in OUTPUT.glob("*.ipynb"):
         stale.unlink()
 
-    archive = build_archive()
-    print(f"embedded archive: {len(archive) / 1e6:.2f} MB base64")
+    print(f"pinned: {REMOTE_URL} @ {PINNED_COMMIT[:12]}")
 
     shards = allocate()
     total_cells = 0
     rows = []
     for index, (group, cells, load) in enumerate(shards):
-        notebook = build_notebook(index, group, cells, load, archive)
+        notebook = build_notebook(index, group, cells, load)
         path = OUTPUT / f"p65_shard_{index:02d}_{group}.ipynb"
         path.write_text(json.dumps(notebook, indent=1), encoding="utf-8")
         total_cells += len(cells)
         rows.append((index, group, len(cells), load / 60.0,
-                     path.stat().st_size / 1e6))
+                     path.stat().st_size / 1e3))
         print(f"  {path.name:34s} {len(cells):4d} cells  "
-              f"{load / 60:6.0f} min  {path.stat().st_size / 1e6:.2f} MB")
+              f"{load / 60:6.0f} min  {path.stat().st_size / 1e3:6.0f} kB")
 
     expected = len(enumerate_phase65_cells())
     if total_cells != expected:
@@ -451,7 +531,9 @@ def _readme(rows, expected: int) -> str:
         "# Phase 6.5 Colab shards",
         "",
         f"{len(rows)} notebooks covering all {expected} cells of the frozen "
-        f"manifest `G3-PHASE65-v1` exactly once.",
+        f"manifest `G3-PHASE65-v1` exactly once. Every notebook clones "
+        f"`{REMOTE_URL}` at the generating commit `{PINNED_COMMIT[:12]}` and "
+        "verifies the frozen manifest checksum before running anything.",
         "",
         "## How to run",
         "",
@@ -479,7 +561,7 @@ def _readme(rows, expected: int) -> str:
     for index, group, count, minutes, size in rows:
         lines.append(
             f"| `p65_shard_{index:02d}_{group}.ipynb` | {group} | {count} | "
-            f"{minutes:.0f} | {size:.2f} MB |"
+            f"{minutes:.0f} | {size:.0f} kB |"
         )
     lines += [
         "",
