@@ -59,7 +59,13 @@ from . import phase55 as _phase55  # noqa: E402,F401  (side-effecting import)
 from . import phase6 as _phase6  # noqa: E402,F401  (side-effecting import)
 from . import phase6_dgps as _phase6_dgps  # noqa: E402,F401
 
+# Phase 6.5 adds the control adapters, the two-part claimant, and the ablation
+# and zero-inflated regimes.
+from . import phase65 as _phase65  # noqa: E402,F401  (side-effecting import)
+from . import phase65_dgps as _phase65_dgps  # noqa: E402,F401
+
 _phase6_dgps.register_phase6_dgps()
+_phase65_dgps.register_phase65_dgps()
 
 SINGLE_THREAD_VARIABLES = (
     "OMP_NUM_THREADS",
@@ -132,6 +138,22 @@ def build_adapter(cell: Cell, cache_directory: Path | None):
         from .phase6_methods import FRLAdapter
 
         return FRLAdapter()
+    if kind == "forest_log":
+        from .phase65_methods import LogForestAdapter
+
+        return LogForestAdapter(
+            parameters["method"], cache_directory=cache_directory
+        )
+    if kind == "forest_retn":
+        from .phase65_methods import RetunedCausalDRFAdapter
+
+        return RetunedCausalDRFAdapter(cache_directory=cache_directory)
+    if kind == "zipt":
+        from .phase65_methods import ZIPTAdapter
+
+        return ZIPTAdapter(
+            n_particles=cell.n_particles, **BOOSTING_BUDGET, **parameters
+        )
     raise ValueError(f"unknown adapter kind {kind!r}")
 
 
@@ -150,6 +172,7 @@ def evaluation_manifest(n_grid: int) -> EvaluationManifest:
         mode_mass_floor=float(settings["mode_mass_floor"]),
         collision_epsilon=float(settings["collision_epsilon"]),
         n_law_rows=int(settings["n_law_rows"]),
+        zero_mass_tolerance=float(settings.get("zero_mass_tolerance", 0.05)),
     )
 
 

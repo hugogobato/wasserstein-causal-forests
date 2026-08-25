@@ -372,6 +372,33 @@ class DistributionalDGP:
         assert total is not None  # the rule always has at least one node
         return total
 
+    def law_node_weights(
+        self, X: NDArray[np.float64], arm: int
+    ) -> NDArray[np.float64] | None:
+        """Per-row truth node weights, or None when weights are shared.
+
+        Every frozen regime has covariate-independent outer weights, so the
+        default is None and every downstream metric keeps its `(J,)` weight
+        vector. A regime whose conditional law is a mixture with
+        covariate-dependent component weights (the Phase 6.5 zero-inflated
+        track) overrides this with an `(n, J)` array matching the block order
+        of `iter_law_nodes`.
+        """
+
+        return None
+
+    def zero_type_probability(
+        self, X: NDArray[np.float64], arm: int
+    ) -> NDArray[np.float64] | None:
+        """P(the unit's outcome law is degenerate at zero | X, arm), or None.
+
+        Only the zero-inflated regimes define a degenerate component; the
+        frozen suite returns None, which the metric layer records as
+        `not_applicable` rather than as a zero.
+        """
+
+        return None
+
     def mean_quantiles(self, X: NDArray[np.float64], arm: int) -> NDArray[np.float64]:
         """`MEANQ-A-K`: the conditional mean quantile vector, shape (n, K).
 

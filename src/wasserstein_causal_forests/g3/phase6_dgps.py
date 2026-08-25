@@ -193,13 +193,20 @@ def build_income_specs() -> dict[str, DGPSpec]:
 INCOME_DGPS: tuple[str, ...] = ("IC0", "IC1", "IC2", "IC3")
 
 
+_INCOME_REGISTERED = False
+
+
 def register_phase6_dgps() -> None:
     """Register the IC regimes exactly once per process."""
 
+    global _INCOME_REGISTERED
+    if _INCOME_REGISTERED:
+        return
     specs = build_income_specs()
     try:
         register_specs(specs)
     except ValueError:
+        _INCOME_REGISTERED = True
         return
     register_builders(
         {
@@ -211,3 +218,4 @@ def register_phase6_dgps() -> None:
             for name in INCOME_DGPS
         }
     )
+    _INCOME_REGISTERED = True

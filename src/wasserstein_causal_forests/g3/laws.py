@@ -229,14 +229,26 @@ def energy_risk_against_truth(
     true conditional law rather than against a single observed draw, so the
     metric carries quadrature error rather than one draw's worth of sampling
     noise. Lower is better, and the minimiser over all laws is the truth.
+
+    `truth_weights` is normally a shared `(J,)` node-weight vector. A regime
+    whose conditional law is a mixture with covariate-dependent component
+    weights may instead supply `(n, J)` row weights; the contraction gains an
+    `n` index and nothing else changes. The shared-weight path is byte-for-byte
+    the frozen G3 formula.
     """
 
     truth_nodes = np.asarray(truth_nodes, dtype=float)
     truth_weights = np.asarray(truth_weights, dtype=float)
     if truth_nodes.ndim != 3 or truth_nodes.shape[0] != prediction.n_rows:
         raise ValueError("truth_nodes must have shape (n, J, K)")
-    if truth_weights.shape != (truth_nodes.shape[1],):
-        raise ValueError("truth_weights must have shape (J,)")
+    if truth_weights.ndim == 1:
+        if truth_weights.shape != (truth_nodes.shape[1],):
+            raise ValueError("truth_weights must have shape (J,)")
+    elif truth_weights.ndim == 2:
+        if truth_weights.shape != (prediction.n_rows, truth_nodes.shape[1]):
+            raise ValueError("row truth_weights must have shape (n, J)")
+    else:
+        raise ValueError("truth_weights must be one- or two-dimensional")
 
     attraction = np.empty(prediction.n_rows)
     step = chunk_rows(prediction.n_atoms, truth_nodes.shape[1])
@@ -245,9 +257,17 @@ def energy_risk_against_truth(
         atoms = prediction.row_atoms(rows)
         squared = _squared_distances(atoms, truth_nodes[rows], grid_weights)
         distances = np.sqrt(squared + epsilon * epsilon) - epsilon
-        attraction[rows] = np.einsum(
-            "na,naj,j->n", prediction.weights[rows], distances, truth_weights
-        )
+        if truth_weights.ndim == 1:
+            attraction[rows] = np.einsum(
+                "na,naj,j->n", prediction.weights[rows], distances, truth_weights
+            )
+        else:
+            attraction[rows] = np.einsum(
+                "na,naj,nj->n",
+                prediction.weights[rows],
+                distances,
+                truth_weights[rows],
+            )
     return attraction - _self_repulsion(prediction, grid_weights, epsilon)
 
 
@@ -283,13 +303,27 @@ def kernel_law_error(
         raise ValueError("bandwidth must be positive")
     truth_nodes = np.asarray(truth_nodes, dtype=float)
     truth_weights = np.asarray(truth_weights, dtype=float)
+    row_weights = truth_weights.ndim == 2
+    if not row_weights and truth_weights.shape != (truth_nodes.shape[1],):
+        raise ValueError("truth_weights must have shape (J,)")
+    if row_weights and truth_weights.shape != (
+        prediction.n_rows, truth_nodes.shape[1]
+    ):
+        raise ValueError("row truth_weights must have shape (n, J)")
 
-    truth_term = np.einsum(
-        "i,nij,j->n",
-        truth_weights,
-        _gaussian_kernel_gram(truth_nodes, truth_nodes, grid_weights, bandwidth),
-        truth_weights,
+    gram_truth = _gaussian_kernel_gram(
+        truth_nodes, truth_nodes, grid_weights, bandwidth
     )
+    if row_weights:
+        # Row-dependent mixture weights: the truth term is a per-row double
+        # sum over the batched (n, J, J) gram matrix.
+        truth_term = np.einsum(
+            "nij,nj,ni->n", gram_truth, truth_weights, truth_weights
+        )
+    else:
+        truth_term = np.einsum(
+            "i,nij,j->n", truth_weights, gram_truth, truth_weights
+        )
 
     result = np.empty(prediction.n_rows)
     if prediction.shared_atoms:
@@ -311,7 +345,14 @@ def kernel_law_error(
         cross = _gaussian_kernel_gram(
             atoms, truth_nodes[rows], grid_weights, bandwidth
         )
-        cross_term = np.einsum("na,naj,j->n", block_weights, cross, truth_weights)
+        if row_weights:
+            cross_term = np.einsum(
+                "na,naj,nj->n", block_weights, cross, truth_weights[rows]
+            )
+        else:
+            cross_term = np.einsum(
+                "na,naj,j->n", block_weights, cross, truth_weights
+            )
         result[rows] = own_term[rows] - 2.0 * cross_term + truth_term[rows]
     return np.maximum(result, 0.0)
 

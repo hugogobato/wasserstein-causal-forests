@@ -62,6 +62,13 @@ class EvaluationManifest:
     #: Test rows scored by the law-level metrics, whose cost is quadratic in
     #: the atom count and linear in the truth's node count.
     n_law_rows: int = 200
+    #: A fitted atom counts as representing a degenerate-at-zero outcome law
+    #: when its largest grid coordinate is at most this absolute tolerance.
+    #: Frozen before any Phase 6.5 decisive run; the loose value is the primary
+    #: definition because a boosted particle is an average, not a training row,
+    #: and demanding exact zeros would rig the comparison toward empirical-law
+    #: methods by construction.
+    zero_mass_tolerance: float = 0.05
 
 
 def _rmse(estimate: NDArray[np.float64], truth: NDArray[np.float64]) -> float:
@@ -86,6 +93,16 @@ def _truth_nodes(
     pairs = list(dgp.iter_law_nodes(X, arm))
     nodes = np.stack([block for _, block in pairs], axis=1)
     weights = np.array([weight for weight, _ in pairs])
+    # A mixture regime with covariate-dependent component weights supplies an
+    # (n, J) matrix aligned with the block order; it replaces the shared vector.
+    row_weights = dgp.law_node_weights(X, arm)
+    if row_weights is not None:
+        if row_weights.shape != (X.shape[0], weights.shape[0]):
+            raise ValueError(
+                f"{dgp.spec.dgp_id}: law_node_weights must have shape "
+                f"({X.shape[0]}, {weights.shape[0]})"
+            )
+        weights = row_weights
     return nodes, weights
 
 
@@ -105,6 +122,10 @@ def _oracle_energy_risk(
     so the oracle floor costs one pairwise pass rather than two. It is also the
     only irreducible part of the risk, which is why every method is scored on
     its excess over this number rather than on the raw risk.
+
+    `node_weights` may be a shared `(J,)` vector or per-row `(n, J)` weights
+    for mixture regimes; the contraction gains an `n` index and nothing else
+    changes.
     """
 
     from .laws import _squared_distances
@@ -116,9 +137,14 @@ def _oracle_energy_risk(
         block = nodes[rows]
         squared = _squared_distances(block, block, grid_weights)
         distances = np.sqrt(squared + epsilon * epsilon) - epsilon
-        total[rows] = 0.5 * np.einsum(
-            "j,njl,l->n", node_weights, distances, node_weights
-        )
+        if node_weights.ndim == 1:
+            total[rows] = 0.5 * np.einsum(
+                "j,njl,l->n", node_weights, distances, node_weights
+            )
+        else:
+            total[rows] = 0.5 * np.einsum(
+                "nj,njl,nl->n", node_weights[rows], distances, node_weights[rows]
+            )
     return total
 
 
@@ -175,6 +201,30 @@ def _row(
         "status": status,
         "failure_reason": failure_reason,
     }
+
+
+def implied_zero_mass(
+    law: "LawPrediction", tolerance: float
+) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+    """Mass a fitted law puts on degenerate-at-zero atoms.
+
+    Returns the loose-tolerance mass, the primary definition, and the exact
+    fraction under a strict tolerance, as a diagnostic. Both work for shared
+    atom banks (forests: weight on all-zero training rows) and row-specific
+    particles (boosters: particle mass near the origin).
+    """
+
+    if law.shared_atoms:
+        indicator = np.max(np.abs(law.atoms), axis=-1) <= tolerance
+        exact = np.max(np.abs(law.atoms), axis=-1) <= 1e-9
+        loose = law.weights @ indicator.astype(float)
+        exact_mass = law.weights @ exact.astype(float)
+    else:
+        indicator = np.max(np.abs(law.atoms), axis=-1) <= tolerance
+        exact = np.max(np.abs(law.atoms), axis=-1) <= 1e-9
+        loose = np.einsum("na,na->n", law.weights, indicator.astype(float))
+        exact_mass = np.einsum("na,na->n", law.weights, exact.astype(float))
+    return loose, exact_mass
 
 
 def evaluate(
@@ -286,6 +336,7 @@ def evaluate(
         )
 
     rows.extend(_law_rows(output, dgp, X_test, manifest, cache_key))
+    rows.extend(_zero_mass_rows(output, dgp, X_test, bins, manifest))
 
     # ------------------------------------------------------- operational rows
     rows.append(
@@ -387,3 +438,68 @@ def _restrict(law: LawPrediction, rows: slice) -> LawPrediction:
     return LawPrediction(
         atoms=law.atoms[rows], weights=law.weights[rows], shared_atoms=False
     )
+
+
+def _zero_mass_rows(
+    output: MethodOutput,
+    dgp: DistributionalDGP,
+    X_test: NDArray[np.float64],
+    bins: NDArray[np.int64],
+    manifest: EvaluationManifest,
+) -> list[dict[str, object]]:
+    """Zero-inflation metrics, or an explicit inapplicability record.
+
+    Three cases, each recorded rather than silently dropped: the method holds
+    no law (PTA endpoints), the regime has no degenerate component (every
+    frozen suite member), or both quantities exist and are compared. The
+    contrast metric is the moderator-binned RMSE of the arm difference in
+    degenerate-component probability.
+    """
+
+    if output.law is None:
+        reasons = (
+            ("zero_mass_abs_error", "method produces no conditional law"),
+            ("mass_contrast_rmse", "method produces no conditional law"),
+        )
+        return [
+            _row(metric, "LAW-A-K", None, status="not_applicable",
+                 failure_reason=reason)
+            for metric, reason in reasons
+        ]
+    truth_zero = dgp.zero_type_probability(X_test, 0)
+    if truth_zero is None:
+        return [
+            _row("zero_mass_abs_error", "LAW-A-K", None,
+                 status="not_applicable",
+                 failure_reason="regime has no degenerate component"),
+            _row("mass_contrast_rmse", "LAW-A-K", None,
+                 status="not_applicable",
+                 failure_reason="regime has no degenerate component"),
+        ]
+
+    rows: list[dict[str, object]] = []
+    implied = {}
+    exact = {}
+    for arm in (0, 1):
+        loose, strict = implied_zero_mass(output.law[arm],
+                                          manifest.zero_mass_tolerance)
+        implied[arm] = loose
+        exact[arm] = float(np.mean(strict))
+        rows.append(
+            _row("zero_mass_abs_error", "LAW-A-K",
+                 _rmse(implied[arm], dgp.zero_type_probability(X_test, arm)),
+                 arm=arm,
+                 detail=(f"loose tolerance {manifest.zero_mass_tolerance}; "
+                         f"exact-atom fraction {exact[arm]:.4f}"))
+        )
+    contrast = implied[1] - implied[0]
+    truth_contrast = (
+        dgp.zero_type_probability(X_test, 1)
+        - dgp.zero_type_probability(X_test, 0)
+    )
+    rows.append(
+        _row("mass_contrast_rmse", "LAW-A-K",
+             _rmse(_bin_means(contrast, bins), _bin_means(truth_contrast, bins)),
+             detail="degenerate-probability contrast across moderator bins")
+    )
+    return rows
