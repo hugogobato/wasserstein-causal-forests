@@ -1,6 +1,6 @@
 # Phase 6.5 Colab shards
 
-17 notebooks covering all 900 cells of the frozen manifest `G3-PHASE65-v1` exactly once.
+17 notebooks covering all 900 cells of the frozen manifest `G3-PHASE65-v1` exactly once. Every notebook clones `https://github.com/hugogobato/wasserstein-causal-forests.git` at the generating commit `5f3b2ad66b0b` and verifies the frozen manifest checksum before running anything.
 
 ## How to run
 
@@ -21,23 +21,23 @@ The merge reconciles every cell key against the manifest and fails loudly on a d
 
 | Notebook | Group | Cells | Reference minutes | Size |
 |---|---|---|---|---|
-| `p65_shard_00_core65.ipynb` | core65 | 30 | 84 | 2.17 MB |
-| `p65_shard_01_core65.ipynb` | core65 | 30 | 84 | 2.17 MB |
-| `p65_shard_02_core65.ipynb` | core65 | 30 | 84 | 2.17 MB |
-| `p65_shard_03_core65.ipynb` | core65 | 30 | 84 | 2.17 MB |
-| `p65_shard_04_core65.ipynb` | core65 | 30 | 84 | 2.17 MB |
-| `p65_shard_05_core65.ipynb` | core65 | 30 | 84 | 2.17 MB |
-| `p65_shard_06_core65.ipynb` | core65 | 30 | 85 | 2.17 MB |
-| `p65_shard_07_core65.ipynb` | core65 | 30 | 85 | 2.17 MB |
-| `p65_shard_08_core65.ipynb` | core65 | 29 | 83 | 2.17 MB |
-| `p65_shard_09_core65.ipynb` | core65 | 29 | 83 | 2.17 MB |
-| `p65_shard_10_core65.ipynb` | core65 | 31 | 84 | 2.17 MB |
-| `p65_shard_11_core65.ipynb` | core65 | 31 | 84 | 2.17 MB |
-| `p65_shard_12_forest65.ipynb` | forest65 | 108 | 87 | 2.19 MB |
-| `p65_shard_13_forest65.ipynb` | forest65 | 108 | 87 | 2.19 MB |
-| `p65_shard_14_forest65.ipynb` | forest65 | 108 | 87 | 2.19 MB |
-| `p65_shard_15_forest65.ipynb` | forest65 | 108 | 87 | 2.19 MB |
-| `p65_shard_16_forest65.ipynb` | forest65 | 108 | 87 | 2.19 MB |
+| `p65_shard_00_core65.ipynb` | core65 | 30 | 84 | 15 kB |
+| `p65_shard_01_core65.ipynb` | core65 | 30 | 84 | 15 kB |
+| `p65_shard_02_core65.ipynb` | core65 | 30 | 84 | 14 kB |
+| `p65_shard_03_core65.ipynb` | core65 | 30 | 84 | 14 kB |
+| `p65_shard_04_core65.ipynb` | core65 | 30 | 84 | 14 kB |
+| `p65_shard_05_core65.ipynb` | core65 | 30 | 84 | 14 kB |
+| `p65_shard_06_core65.ipynb` | core65 | 30 | 85 | 14 kB |
+| `p65_shard_07_core65.ipynb` | core65 | 30 | 85 | 14 kB |
+| `p65_shard_08_core65.ipynb` | core65 | 29 | 83 | 14 kB |
+| `p65_shard_09_core65.ipynb` | core65 | 29 | 83 | 14 kB |
+| `p65_shard_10_core65.ipynb` | core65 | 31 | 84 | 15 kB |
+| `p65_shard_11_core65.ipynb` | core65 | 31 | 84 | 15 kB |
+| `p65_shard_12_forest65.ipynb` | forest65 | 108 | 87 | 33 kB |
+| `p65_shard_13_forest65.ipynb` | forest65 | 108 | 87 | 33 kB |
+| `p65_shard_14_forest65.ipynb` | forest65 | 108 | 87 | 33 kB |
+| `p65_shard_15_forest65.ipynb` | forest65 | 108 | 87 | 33 kB |
+| `p65_shard_16_forest65.ipynb` | forest65 | 108 | 87 | 33 kB |
 
 Reference minutes are single-threaded estimates on the reference machine, from the audited Phase 6 cost medians. Colab cores are slower; allow two to three times that, plus install time for the `forest65` group.
 
