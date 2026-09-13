@@ -1,0 +1,45 @@
+{
+  "bundles": [
+    {
+      "bundle": "stage_zip_flex_rf_shard0.zip",
+      "target": "shard_colab_00",
+      "cells": 10,
+      "rows": 500,
+      "methods": [
+        "cwdb_dr_flex_rf"
+      ]
+    },
+    {
+      "bundle": "stage_zip_flex_rf_shard1.zip",
+      "target": "shard_colab_01",
+      "cells": 10,
+      "rows": 500,
+      "methods": [
+        "cwdb_dr_flex_rf"
+      ]
+    },
+    {
+      "bundle": "stage_zip_flex_rf_shard2.zip",
+      "target": "shard_colab_02",
+      "cells": 10,
+      "rows": 500,
+      "methods": [
+        "cwdb_dr_flex_rf"
+      ]
+    },
+    {
+      "bundle": "stage_zip_flex_rf_shard3.zip",
+      "target": "shard_colab_03",
+      "cells": 10,
+      "rows": 500,
+      "methods": [
+        "cwdb_dr_flex_rf"
+      ]
+    }
+  ],
+  "duplicate_cells": [],
+  "missing_from_bundles": [],
+  "sidecar_mismatches": [],
+  "n_declared": 40,
+  "n_present": 40
+}

@@ -1,0 +1,61 @@
+{
+  "decision": "retain_primary",
+  "primary": {
+    "n_grid": 25,
+    "n_particles": 10,
+    "method": "cwdb_dr"
+  },
+  "prefixed_rule": {
+    "retain_primary": false,
+    "rule_failed": true,
+    "recommended_pair": null,
+    "source": "decision.json"
+  },
+  "robustness_alternative": {
+    "n_grid": 49,
+    "n_particles": 10,
+    "rationale": "full-range law fidelity through extreme-tail coverage",
+    "full_range_law_gain_pct_range": [
+      -46.5,
+      -42.8
+    ],
+    "interior_law_parity_all_t_below": 1.4,
+    "ic1_reference_tcate_gain_pct": -15.0,
+    "ic3_marginal_reference_ate_regression_pct": 20.8,
+    "relative_cost": 1.6
+  },
+  "m_resolution": {
+    "retained": 10,
+    "m25_vs_m10_common_law_error_pct_max": 1.5,
+    "m25_relative_cost_range": [
+      4.0,
+      8.0
+    ],
+    "m5": "no interior improvement; worse native reference-TCATE in IC0/IC1",
+    "m25_vs_m10_common_law_error_pct_max_at_k25": 1.2
+  },
+  "confirmation": {
+    "seeds": [
+      20,
+      39
+    ],
+    "n_cells": 160,
+    "full_range_law_gain_replicated": true,
+    "interior_gain_replicated": false,
+    "source": "confirm_verdict.json"
+  },
+  "placebo": {
+    "null_companion_cells": 360,
+    "wcf_best_calibrated_on_all_targets": true,
+    "source": "null_companions.csv"
+  },
+  "propensity": {
+    "logistic_vs_random_forest_all_abs_t_below": 1.4,
+    "gradient_boosting_factory": "negative finding: overconfident OOF propensities",
+    "oracle_upper_bound_gain_pct": 18.7,
+    "source": "flex_rf_paired.csv",
+    "calibration_diagnostic": "analysis/propensity_calibration_diagnostic.json"
+  },
+  "decided_by": "author",
+  "date": "2026-09-12"
+}

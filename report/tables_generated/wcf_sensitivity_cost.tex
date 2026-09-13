@@ -1,0 +1,22 @@
+\begin{table}[t]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{Wall-clock cost of WCF at $n=1000$. Medians are wall seconds per cell under seven concurrent single-threaded workers; the final column is the ratio to the $(K,M)=(25,10)$ median. Pairs absent from the runtime summary are omitted.}
+\label{tab:sensitivity-cost}
+\begin{tabular}{llrr}
+\toprule
+$K$ & $M$ & Median wall seconds & Relative to $(25,10)$ \\
+\midrule
+5 & 5 & 92.0065 & 0.2786 \\
+5 & 10 & 116.7002 & 0.3534 \\
+5 & 25 & 489.3951 & 1.4818 \\
+25 & 5 & 177.7401 & 0.5382 \\
+25 & 10 & 330.2631 & 1.0000 \\
+25 & 25 & 1345.5619 & 4.0742 \\
+49 & 5 & 327.3245 & 0.9911 \\
+49 & 10 & 524.4402 & 1.5879 \\
+49 & 25 & 4036.8469 & 12.2231 \\
+\bottomrule
+\end{tabular}
+\end{table}

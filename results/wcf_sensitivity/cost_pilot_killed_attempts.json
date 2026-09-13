@@ -1,0 +1,185 @@
+{
+  "contract_id": "WCF-SENSITIVITY-v1",
+  "dgp": "IC1",
+  "seed": 9999,
+  "pairs": [
+    [
+      5,
+      10
+    ],
+    [
+      25,
+      10
+    ],
+    [
+      49,
+      10
+    ],
+    [
+      25,
+      5
+    ],
+    [
+      25,
+      25
+    ]
+  ],
+  "runs": [
+    {
+      "dgp": "IC1",
+      "seed": 9999,
+      "method": "cwdb_dr",
+      "n_train": 1000,
+      "n_grid": 5,
+      "n_particles": 10,
+      "wall_seconds": 220.317,
+      "peak_rss_mb": 589.367,
+      "status": "ok",
+      "failure_reason": "",
+      "returncode": 0,
+      "mem_available_before_mb": 17353.97265625,
+      "mem_available_after_mb": 16389.4296875
+    },
+    {
+      "dgp": "IC1",
+      "seed": 9999,
+      "method": "causal_drf",
+      "n_train": 1000,
+      "n_grid": 5,
+      "n_particles": 10,
+      "wall_seconds": 83.84,
+      "peak_rss_mb": 572.457,
+      "status": "ok",
+      "failure_reason": "",
+      "returncode": 0,
+      "mem_available_before_mb": 17353.97265625,
+      "mem_available_after_mb": 16942.0859375
+    },
+    {
+      "dgp": "IC1",
+      "seed": 9999,
+      "method": "cwdb_dr",
+      "n_train": 1000,
+      "n_grid": 25,
+      "n_particles": 10,
+      "wall_seconds": 582.955,
+      "peak_rss_mb": 668.039,
+      "status": "ok",
+      "failure_reason": "",
+      "returncode": 0,
+      "mem_available_before_mb": 17353.97265625,
+      "mem_available_after_mb": 16771.3125
+    },
+    {
+      "dgp": "IC1",
+      "seed": 9999,
+      "method": "causal_drf",
+      "n_train": 1000,
+      "n_grid": 25,
+      "n_particles": 10,
+      "wall_seconds": 115.465,
+      "peak_rss_mb": 582.164,
+      "status": "ok",
+      "failure_reason": "",
+      "returncode": 0,
+      "mem_available_before_mb": 17353.97265625,
+      "mem_available_after_mb": 17290.31640625
+    },
+    {
+      "dgp": "IC1",
+      "seed": 9999,
+      "method": "cwdb_dr",
+      "n_train": 1000,
+      "n_grid": 49,
+      "n_particles": 10,
+      "wall_seconds": 887.652,
+      "peak_rss_mb": 737.902,
+      "status": "ok",
+      "failure_reason": "",
+      "returncode": 0,
+      "mem_available_before_mb": 16942.0859375,
+      "mem_available_after_mb": 17855.51171875
+    },
+    {
+      "dgp": "IC1",
+      "seed": 9999,
+      "method": "causal_drf",
+      "n_train": 1000,
+      "n_grid": 49,
+      "n_particles": 10,
+      "wall_seconds": 153.124,
+      "peak_rss_mb": 594.48,
+      "status": "ok",
+      "failure_reason": "",
+      "returncode": 0,
+      "mem_available_before_mb": 17288.60546875,
+      "mem_available_after_mb": 16689.0625
+    },
+    {
+      "dgp": "IC1",
+      "seed": 9999,
+      "method": "cwdb_dr",
+      "n_train": 1000,
+      "n_grid": 25,
+      "n_particles": 5,
+      "wall_seconds": 292.955,
+      "peak_rss_mb": 619.504,
+      "status": "ok",
+      "failure_reason": "",
+      "returncode": 0,
+      "mem_available_before_mb": 16389.4296875,
+      "mem_available_after_mb": 16628.5625
+    },
+    {
+      "dgp": "IC1",
+      "seed": 9999,
+      "method": "causal_drf",
+      "n_train": 1000,
+      "n_grid": 25,
+      "n_particles": 5,
+      "wall_seconds": 120.7,
+      "peak_rss_mb": 581.078,
+      "status": "ok",
+      "failure_reason": "",
+      "returncode": 0,
+      "mem_available_before_mb": 16689.0625,
+      "mem_available_after_mb": 17339.14453125
+    },
+    {
+      "dgp": "IC1",
+      "seed": 9999,
+      "method": "cwdb_dr",
+      "n_train": 1000,
+      "n_grid": 25,
+      "n_particles": 25,
+      "wall_seconds": 1544.394,
+      "peak_rss_mb": null,
+      "status": "failed",
+      "failure_reason": "",
+      "returncode": -15,
+      "mem_available_before_mb": 17339.14453125,
+      "mem_available_after_mb": 18398.57421875
+    },
+    {
+      "dgp": "IC1",
+      "seed": 9999,
+      "method": "causal_drf",
+      "n_train": 1000,
+      "n_grid": 25,
+      "n_particles": 25,
+      "wall_seconds": 108.796,
+      "peak_rss_mb": 580.504,
+      "status": "ok",
+      "failure_reason": "",
+      "returncode": 0,
+      "mem_available_before_mb": 16628.5625,
+      "mem_available_after_mb": 16532.26953125
+    }
+  ],
+  "cpu_count": 8,
+  "available_ram_mb": 18398.57421875,
+  "max_peak_worker_mb": 737.902,
+  "safety_fraction": 0.7,
+  "max_workers_cap": 6,
+  "recommended_workers": 6
+}

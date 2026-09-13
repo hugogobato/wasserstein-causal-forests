@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "summary_rows_recomputed": {
+    "evidence": 348,
+    "functional_detail": 336
+  },
+  "tolerance": 5e-10,
+  "replications_per_summary": 10,
+  "source_files": {
+    "merged_phase6": "results/merged_phase6/phase6_results.parquet",
+    "merged_phase65": "results/merged_phase65/phase65_results.parquet",
+    "merged_original_drf": "results/merged_original_drf/main_results.parquet",
+    "merged_original_causal_drf": "results/merged_original_causal_drf/main_results.parquet"
+  }
+}

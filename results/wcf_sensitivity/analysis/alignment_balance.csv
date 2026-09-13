@@ -1,0 +1,3 @@
+dgp,description,propensity_mean,propensity_min,propensity_max,treated_fraction,largest_abs_smd_feature,largest_abs_smd_value,alignment_marginal_max_abs_diff,checks_passed,seed,n_rows
+SYM-ALIGN,"Symmetric inner law, nonlinear index aligned with prognosis through x1",0.4997663262499607,0.16798161486613788,0.8320183851288011,0.49902,sin_pi_x1,1.123249671026016,0.0018035627127873655,True,20260911,200000
+SYM-IRREL,"Symmetric inner law, nonlinear index through x6, absent from every outcome surface",0.4994194088258468,0.1679816148665475,0.832018385115351,0.501385,x6,0.842559583647791,0.0018035627127873655,True,20260911,200000

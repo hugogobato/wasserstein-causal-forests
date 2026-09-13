@@ -1,0 +1,72 @@
+{
+  "stages": {
+    "primary": {
+      "path": "results/wcf_sensitivity/merged/wcf_sensitivity_results.parquet",
+      "n_cells": 880,
+      "n_rows": 41120,
+      "methods": [
+        "causal_drf",
+        "cwdb_dr",
+        "cwdb_dr_flex",
+        "cwdb_dr_oracle",
+        "drf"
+      ],
+      "grids": [
+        "wcf_sensitivity_v1_align",
+        "wcf_sensitivity_v1_flex",
+        "wcf_sensitivity_v1_logit_f3",
+        "wcf_sensitivity_v1_sym"
+      ]
+    },
+    "nulls": {
+      "path": "results/wcf_sensitivity/nulls/merged/wcf_sensitivity_results.parquet",
+      "n_cells": 360,
+      "n_rows": 16560,
+      "methods": [
+        "causal_drf",
+        "cwdb_dr",
+        "drf"
+      ],
+      "grids": [
+        "wcf_sensitivity_v1_align_null",
+        "wcf_sensitivity_v1_sym_null"
+      ]
+    },
+    "factorial": {
+      "path": "results/wcf_sensitivity/factorial/merged/wcf_sensitivity_results.parquet",
+      "n_cells": 80,
+      "n_rows": 4000,
+      "methods": [
+        "cwdb_dr"
+      ],
+      "grids": [
+        "wcf_sensitivity_v1_logit_f3"
+      ]
+    },
+    "confirm": {
+      "path": "results/wcf_sensitivity/confirm/merged/wcf_sensitivity_results.parquet",
+      "n_cells": 160,
+      "n_rows": 8000,
+      "methods": [
+        "cwdb_dr"
+      ],
+      "grids": [
+        "wcf_sensitivity_v1_confirm"
+      ]
+    },
+    "flex_rf": {
+      "path": "results/wcf_sensitivity/flex_rf/merged/wcf_sensitivity_results.parquet",
+      "n_cells": 40,
+      "n_rows": 2000,
+      "methods": [
+        "cwdb_dr_flex_rf"
+      ],
+      "grids": [
+        "wcf_sensitivity_v1_flex_rf"
+      ]
+    }
+  },
+  "duplicate_cells": [],
+  "n_rows": 71680,
+  "n_cells": 1520
+}

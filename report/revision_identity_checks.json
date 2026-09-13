@@ -1,0 +1,13 @@
+{
+  "arithmetic": "exact rational, Python standard library",
+  "aipw_correct_propensity_expectation": "1",
+  "aipw_correct_outcomes_expectation": "1",
+  "clipped_propensity_expectation_true_effect_1": "1/2",
+  "weighted_leaf_mean": "9/5",
+  "incorrect_symmetric_leaf_formula_weighted_mean": "159/115",
+  "finite_particle_zero_mass": "1/2",
+  "expected_reference_distance": "1",
+  "distance_of_mean_to_reference": "0",
+  "nonconstant_propensity_unconfounded_raw_difference": "1",
+  "status": "all exact checks passed"
+}

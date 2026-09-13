@@ -1,0 +1,436 @@
+{
+  "rule": "retain (K, M) = (25, 10) when every one-factor alternative stays within relative_tolerance of the primary on REF-TCATE-K and LAW-A-K in IC1 and IC3, and no larger-resolution pair improves both targets by more than se_multiple paired Monte Carlo standard errors in both regimes",
+  "retain_primary": false,
+  "rule_failed": true,
+  "evaluable": true,
+  "primary_pair": {
+    "n_grid": 25,
+    "n_particles": 10
+  },
+  "source_targets": [
+    {
+      "metric": "reference_tcate_rmse",
+      "target_id": "REF-TCATE-K"
+    },
+    {
+      "metric": "kernel_law_error",
+      "target_id": "LAW-A-K"
+    }
+  ],
+  "tolerance": {
+    "relative_tolerance": 0.1,
+    "se_multiple": 2.0
+  },
+  "condition_a": {
+    "passed": false,
+    "n_records": 16,
+    "n_evaluated": 16,
+    "n_within": 12,
+    "records": [
+      {
+        "dgp": "IC1",
+        "n_grid": 5,
+        "n_particles": 10,
+        "metric": "reference_tcate_rmse",
+        "target_id": "REF-TCATE-K",
+        "primary_mean": 0.030854929704266947,
+        "alternative_mean": 0.026080990992539195,
+        "absolute_delta": 0.0047739387117277515,
+        "relative_delta": 0.15472207383015235,
+        "within_tolerance": false,
+        "evaluated": true
+      },
+      {
+        "dgp": "IC1",
+        "n_grid": 49,
+        "n_particles": 10,
+        "metric": "reference_tcate_rmse",
+        "target_id": "REF-TCATE-K",
+        "primary_mean": 0.030854929704266947,
+        "alternative_mean": 0.026510617471535953,
+        "absolute_delta": 0.004344312232730994,
+        "relative_delta": 0.14079799482188468,
+        "within_tolerance": false,
+        "evaluated": true
+      },
+      {
+        "dgp": "IC1",
+        "n_grid": 25,
+        "n_particles": 5,
+        "metric": "reference_tcate_rmse",
+        "target_id": "REF-TCATE-K",
+        "primary_mean": 0.030854929704266947,
+        "alternative_mean": 0.030026983831248473,
+        "absolute_delta": 0.0008279458730184736,
+        "relative_delta": 0.026833503785425136,
+        "within_tolerance": true,
+        "evaluated": true
+      },
+      {
+        "dgp": "IC1",
+        "n_grid": 25,
+        "n_particles": 25,
+        "metric": "reference_tcate_rmse",
+        "target_id": "REF-TCATE-K",
+        "primary_mean": 0.030854929704266947,
+        "alternative_mean": 0.02805222488235957,
+        "absolute_delta": 0.002802704821907375,
+        "relative_delta": 0.09083491191748809,
+        "within_tolerance": true,
+        "evaluated": true
+      },
+      {
+        "dgp": "IC1",
+        "n_grid": 5,
+        "n_particles": 10,
+        "metric": "kernel_law_error",
+        "target_id": "LAW-A-K",
+        "primary_mean": 0.016942015582137426,
+        "alternative_mean": 0.020176184596326772,
+        "absolute_delta": 0.003234169014189346,
+        "relative_delta": 0.19089635459899154,
+        "within_tolerance": false,
+        "evaluated": true
+      },
+      {
+        "dgp": "IC1",
+        "n_grid": 49,
+        "n_particles": 10,
+        "metric": "kernel_law_error",
+        "target_id": "LAW-A-K",
+        "primary_mean": 0.016942015582137426,
+        "alternative_mean": 0.01679361499064177,
+        "absolute_delta": 0.00014840059149565793,
+        "relative_delta": 0.008759323279818133,
+        "within_tolerance": true,
+        "evaluated": true
+      },
+      {
+        "dgp": "IC1",
+        "n_grid": 25,
+        "n_particles": 5,
+        "metric": "kernel_law_error",
+        "target_id": "LAW-A-K",
+        "primary_mean": 0.016942015582137426,
+        "alternative_mean": 0.01742099562642164,
+        "absolute_delta": 0.0004789800442842121,
+        "relative_delta": 0.028271727290182517,
+        "within_tolerance": true,
+        "evaluated": true
+      },
+      {
+        "dgp": "IC1",
+        "n_grid": 25,
+        "n_particles": 25,
+        "metric": "kernel_law_error",
+        "target_id": "LAW-A-K",
+        "primary_mean": 0.016942015582137426,
+        "alternative_mean": 0.017166389356229078,
+        "absolute_delta": 0.00022437377409165182,
+        "relative_delta": 0.013243629307496159,
+        "within_tolerance": true,
+        "evaluated": true
+      },
+      {
+        "dgp": "IC3",
+        "n_grid": 5,
+        "n_particles": 10,
+        "metric": "reference_tcate_rmse",
+        "target_id": "REF-TCATE-K",
+        "primary_mean": 0.04736192997244222,
+        "alternative_mean": 0.05312211142155965,
+        "absolute_delta": 0.005760181449117427,
+        "relative_delta": 0.12162049672530274,
+        "within_tolerance": false,
+        "evaluated": true
+      },
+      {
+        "dgp": "IC3",
+        "n_grid": 49,
+        "n_particles": 10,
+        "metric": "reference_tcate_rmse",
+        "target_id": "REF-TCATE-K",
+        "primary_mean": 0.04736192997244222,
+        "alternative_mean": 0.05119979140810067,
+        "absolute_delta": 0.0038378614356584517,
+        "relative_delta": 0.08103262341487205,
+        "within_tolerance": true,
+        "evaluated": true
+      },
+      {
+        "dgp": "IC3",
+        "n_grid": 25,
+        "n_particles": 5,
+        "metric": "reference_tcate_rmse",
+        "target_id": "REF-TCATE-K",
+        "primary_mean": 0.04736192997244222,
+        "alternative_mean": 0.04625532636329866,
+        "absolute_delta": 0.0011066036091435597,
+        "relative_delta": 0.023364833523199804,
+        "within_tolerance": true,
+        "evaluated": true
+      },
+      {
+        "dgp": "IC3",
+        "n_grid": 25,
+        "n_particles": 25,
+        "metric": "reference_tcate_rmse",
+        "target_id": "REF-TCATE-K",
+        "primary_mean": 0.04736192997244222,
+        "alternative_mean": 0.04872993627622975,
+        "absolute_delta": 0.0013680063037875279,
+        "relative_delta": 0.02888409118005768,
+        "within_tolerance": true,
+        "evaluated": true
+      },
+      {
+        "dgp": "IC3",
+        "n_grid": 5,
+        "n_particles": 10,
+        "metric": "kernel_law_error",
+        "target_id": "LAW-A-K",
+        "primary_mean": 0.01878640647932004,
+        "alternative_mean": 0.020361540833644526,
+        "absolute_delta": 0.0015751343543244853,
+        "relative_delta": 0.08384436672646167,
+        "within_tolerance": true,
+        "evaluated": true
+      },
+      {
+        "dgp": "IC3",
+        "n_grid": 49,
+        "n_particles": 10,
+        "metric": "kernel_law_error",
+        "target_id": "LAW-A-K",
+        "primary_mean": 0.01878640647932004,
+        "alternative_mean": 0.01878133401236646,
+        "absolute_delta": 5.072466953581767e-06,
+        "relative_delta": 0.00027000730337467716,
+        "within_tolerance": true,
+        "evaluated": true
+      },
+      {
+        "dgp": "IC3",
+        "n_grid": 25,
+        "n_particles": 5,
+        "metric": "kernel_law_error",
+        "target_id": "LAW-A-K",
+        "primary_mean": 0.01878640647932004,
+        "alternative_mean": 0.01801951431351551,
+        "absolute_delta": 0.0007668921658045315,
+        "relative_delta": 0.04082165296746462,
+        "within_tolerance": true,
+        "evaluated": true
+      },
+      {
+        "dgp": "IC3",
+        "n_grid": 25,
+        "n_particles": 25,
+        "metric": "kernel_law_error",
+        "target_id": "LAW-A-K",
+        "primary_mean": 0.01878640647932004,
+        "alternative_mean": 0.019257063076363316,
+        "absolute_delta": 0.0004706565970432758,
+        "relative_delta": 0.025053040216146266,
+        "within_tolerance": true,
+        "evaluated": true
+      }
+    ]
+  },
+  "condition_b": {
+    "any_improves": false,
+    "se_multiple": 2.0,
+    "combinations": [
+      {
+        "n_grid": 49,
+        "n_particles": 10,
+        "evaluated": true,
+        "improves_both_targets_both_regimes": false,
+        "mean_paired_improvement": 0.00016498096388044566,
+        "records": [
+          {
+            "dgp": "IC1",
+            "n_grid": 49,
+            "n_particles": 10,
+            "metric": "reference_tcate_rmse",
+            "target_id": "REF-TCATE-K",
+            "n_pairs": 10,
+            "paired_delta": 0.004344312232730995,
+            "paired_mc_se": 0.001526867749984472,
+            "p_value": 0.004437733012947551,
+            "evaluated": true,
+            "improves": true
+          },
+          {
+            "dgp": "IC1",
+            "n_grid": 49,
+            "n_particles": 10,
+            "metric": "kernel_law_error",
+            "target_id": "LAW-A-K",
+            "n_pairs": 10,
+            "paired_delta": 0.0001484005914956588,
+            "paired_mc_se": 0.0005737390896701187,
+            "p_value": 0.7959012987200624,
+            "evaluated": true,
+            "improves": false
+          },
+          {
+            "dgp": "IC3",
+            "n_grid": 49,
+            "n_particles": 10,
+            "metric": "reference_tcate_rmse",
+            "target_id": "REF-TCATE-K",
+            "n_pairs": 10,
+            "paired_delta": -0.0038378614356584565,
+            "paired_mc_se": 0.0046183234927309955,
+            "p_value": 0.40596939543738,
+            "evaluated": true,
+            "improves": false
+          },
+          {
+            "dgp": "IC3",
+            "n_grid": 49,
+            "n_particles": 10,
+            "metric": "kernel_law_error",
+            "target_id": "LAW-A-K",
+            "n_pairs": 10,
+            "paired_delta": 5.072466953584889e-06,
+            "paired_mc_se": 0.0004892403940212124,
+            "p_value": 0.9917276443085791,
+            "evaluated": true,
+            "improves": false
+          }
+        ]
+      },
+      {
+        "n_grid": 25,
+        "n_particles": 25,
+        "evaluated": true,
+        "improves_both_targets_both_regimes": false,
+        "mean_paired_improvement": 0.0001849170367462274,
+        "records": [
+          {
+            "dgp": "IC1",
+            "n_grid": 25,
+            "n_particles": 25,
+            "metric": "reference_tcate_rmse",
+            "target_id": "REF-TCATE-K",
+            "n_pairs": 10,
+            "paired_delta": 0.002802704821907378,
+            "paired_mc_se": 0.0013643497927910777,
+            "p_value": 0.03995226283630175,
+            "evaluated": true,
+            "improves": true
+          },
+          {
+            "dgp": "IC1",
+            "n_grid": 25,
+            "n_particles": 25,
+            "metric": "kernel_law_error",
+            "target_id": "LAW-A-K",
+            "n_pairs": 10,
+            "paired_delta": -0.0002243737740916532,
+            "paired_mc_se": 0.00041605498675732706,
+            "p_value": 0.5896876296204918,
+            "evaluated": true,
+            "improves": false
+          },
+          {
+            "dgp": "IC3",
+            "n_grid": 25,
+            "n_particles": 25,
+            "metric": "reference_tcate_rmse",
+            "target_id": "REF-TCATE-K",
+            "n_pairs": 10,
+            "paired_delta": -0.0013680063037875376,
+            "paired_mc_se": 0.0038466669691673,
+            "p_value": 0.7221145331719807,
+            "evaluated": true,
+            "improves": false
+          },
+          {
+            "dgp": "IC3",
+            "n_grid": 25,
+            "n_particles": 25,
+            "metric": "kernel_law_error",
+            "target_id": "LAW-A-K",
+            "n_pairs": 10,
+            "paired_delta": -0.00047065659704327784,
+            "paired_mc_se": 0.0006897996542868643,
+            "p_value": 0.49504350568412714,
+            "evaluated": true,
+            "improves": false
+          }
+        ]
+      },
+      {
+        "n_grid": 49,
+        "n_particles": 25,
+        "evaluated": true,
+        "improves_both_targets_both_regimes": false,
+        "mean_paired_improvement": -0.0001304238591573563,
+        "records": [
+          {
+            "dgp": "IC1",
+            "n_grid": 49,
+            "n_particles": 25,
+            "metric": "reference_tcate_rmse",
+            "target_id": "REF-TCATE-K",
+            "n_pairs": 10,
+            "paired_delta": 0.0010880089937024089,
+            "paired_mc_se": 0.0011620962443745868,
+            "p_value": 0.34914608638932165,
+            "evaluated": true,
+            "improves": false
+          },
+          {
+            "dgp": "IC1",
+            "n_grid": 49,
+            "n_particles": 25,
+            "metric": "kernel_law_error",
+            "target_id": "LAW-A-K",
+            "n_pairs": 10,
+            "paired_delta": -0.00012551300876907716,
+            "paired_mc_se": 0.00042942287613785904,
+            "p_value": 0.7700702516057714,
+            "evaluated": true,
+            "improves": false
+          },
+          {
+            "dgp": "IC3",
+            "n_grid": 49,
+            "n_particles": 25,
+            "metric": "reference_tcate_rmse",
+            "target_id": "REF-TCATE-K",
+            "n_pairs": 10,
+            "paired_delta": -0.001598507710354372,
+            "paired_mc_se": 0.0040483910903395546,
+            "p_value": 0.6929535030666782,
+            "evaluated": true,
+            "improves": false
+          },
+          {
+            "dgp": "IC3",
+            "n_grid": 49,
+            "n_particles": 25,
+            "metric": "kernel_law_error",
+            "target_id": "LAW-A-K",
+            "n_pairs": 10,
+            "paired_delta": 0.00011431628879161499,
+            "paired_mc_se": 0.000749893530090509,
+            "p_value": 0.8788372609622035,
+            "evaluated": true,
+            "improves": false
+          }
+        ]
+      }
+    ],
+    "improving_pairs": []
+  },
+  "recommended_pair": null,
+  "missing": [],
+  "reason": "at least one one-factor alternative leaves the relative-tolerance band and no larger pair proves an improvement",
+  "manifest_checksum": "1a779680cca9e037ec3f70be86a98943a59ff37489763d24841c0a9c59d48805",
+  "manifest_contract_id": "WCF-SENSITIVITY-v1",
+  "results_path": "results/wcf_sensitivity/merged/wcf_sensitivity_combined.parquet"
+}

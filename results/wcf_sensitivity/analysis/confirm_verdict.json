@@ -1,0 +1,19 @@
+{
+  "regimes": {
+    "IC1": {
+      "law_gain_pct": -43.75,
+      "law_significant_gain": true,
+      "ref_delta_pct": -7.92,
+      "ref_no_material_loss": true,
+      "passes": true
+    },
+    "IC3": {
+      "law_gain_pct": -42.78,
+      "law_significant_gain": true,
+      "ref_delta_pct": 0.32,
+      "ref_no_material_loss": true,
+      "passes": true
+    }
+  },
+  "replicated": true
+}

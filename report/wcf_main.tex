@@ -1,0 +1,385 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+\usepackage[round]{natbib}
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{tikz}
+
+\bibliographystyle{apalike}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\dw}{d_{W,K}}
+
+\title{Wasserstein Causal Forests: Distribution-Valued Outcomes\\ under Covariate-Dependent Treatment Assignment}
+\author{Hugo Gobato Souto\\ Dell Technologies\\ \texttt{hugo.souto@dell.com}}
+\date{September 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We propose Wasserstein Causal Forests (WCF) for observational studies in which each outcome is a probability distribution. WCF estimates the conditional law of potential quantile functions using particle boosting with shared treatment-arm partitions and monotone projection. An augmented inverse-propensity calibration step provides doubly robust scores for population and moderator-specific effects on distributional functionals. We introduce reference-distance effects that measure whether treatment moves the outcome distribution closer to a prespecified benchmark, and an optional two-part representation for a structural zero component. In simulations with covariate-dependent assignment and 1,000 training observations, reference-distance conditional-effect errors range from 0.030 to 0.046 for WCF, compared with 0.133 to 0.248 for Causal-DRF across three location and shape-effect regimes. Additional symmetric and nonlinear designs reveal variation in the ranking across estimands, with WCF at parity or better across the assignment mechanisms studied. A dedicated resolution study retained $K=25$ and $M=10$ after a pre-fixed stability rule failed; the larger $K=49$ grid improves full-range law error through extreme-tail coverage but ties on interior levels and costs more. The functional calibration is stable under a competent flexible (random-forest) propensity, while the default gradient-boosting factory is miscalibrated. The results support WCF as a conditional-law learner with functional calibration under observed confounding, while delimiting its performance under finite particle budgets and limited overlap.
+\end{abstract}
+
+\section{Introduction}\label{sec:intro}
+
+Average treatment effects reduce an intervention to a difference in means, although many policy and scientific questions concern changes in dispersion, tail behavior, participation, or other features of an outcome law. Conditional distributional treatment effects formalize these questions by comparing potential-outcome distributions or functionals of those distributions. Recent work studies conditional distributional effects through kernel conditional mean embeddings and U-statistic regression \citep{CATEGeneralization}, counterfactual mean embeddings \citep{Counterfactualmeanembeddings}, robust regression of distributional effect pseudo-outcomes \citep{GRFDistributionalCausalEffects}, kernel treatment-effect tests \citep{martineztaboada2023efficient}, and distributional random forests \citep{DRF-paper,naf2026causaldrf}. These approaches establish a methodological basis for asking causal questions about outcomes whose distributional structure is scientifically relevant.
+
+We study the related problem in which the observed outcome for each unit is itself a distribution-valued object, represented here by a quantile function on a common grid. The separation of outcomes, representations, and causal queries is also central to the TCDA framework \citep{souto_diamantis_tcda_2026}; here the representations are quantile coordinates and scalar distributional summaries. The Wasserstein geometry of quantile functions gives a natural metric for comparing such objects, while particle representations allow the conditional law of the quantile function to retain heterogeneity across units. The proposed Wasserstein Causal Forest combines this representation with a shared treatment-arm partition and a calibration step for scalar functionals of the law. The shared partition is intended for settings in which the treatment probability varies across covariates that also predict the potential-outcome law. The propensity score is the assignment probability $e(x)=\Pr(A=1\mid X=x)$ \citep{rosenbaum1983propensity}; covariate-dependent assignment becomes a source of confounding when those same covariates are prognostic and are not adequately adjusted for.
+
+We study transformed average and conditional average treatment effects (TATE and TCATE), including two reference-distance estimands. Let $Q^a$ denote the potential-outcome quantile vector for a unit, let $q_\star$ be a prespecified reference quantile vector, and let $d_W$ denote the grid Wasserstein distance. The reference-adjusted marginal effect is
+\[
+\mathrm{TATE}_{\mathrm{ref}}
+=\E\left[d_W(Q^1,q_\star)-d_W(Q^0,q_\star)\right],
+\]
+so a negative value indicates that treatment moves the unit-level outcome distribution closer to the reference on average. Its conditional analogue replaces the outer expectation by conditioning on $X=x$ or on a moderator stratum, giving a reference-adjusted TCATE. These contrasts express improvement or deterioration relative to a substantively chosen benchmark.
+
+The contribution is threefold. First, WCF provides a concrete Wasserstein and quantile representation for conditional laws of distribution-valued outcomes. Second, it combines a common treatment-arm partition with a standard augmented inverse-propensity score for calibration of arbitrary reported functionals. The calibration is doubly robust in the usual nuisance-model sense for each functional when either the propensity nuisance or the corresponding conditional functional regression is consistently estimated \citep{bang2005doubly,chernozhukov2018double}. Third, the paper introduces the reference-adjusted TATE and TCATE contrasts and gives an optional two-part assembly for laws with an exact-zero component. The extension applies when some units have an entirely degenerate outcome distribution, as distinguished from individual zeros within a nondegenerate distribution.
+
+We evaluate WCF in simulation studies designed to vary the treatment effect on location and distributional shape, the degree of overlap, the relationship between treatment assignment and prognostic covariates, and the presence of a point mass. The simulation programme now includes a resolution sensitivity study with common and interior 199-level targets and a family of assignment mechanisms separating linear, nonlinear, and prognosis-dependent assignment, with an alignment pair and a propensity-model check. The simulation design is stated directly in terms of the data-generating process. Income and wage distributions provide one interpretation of the quantile-valued outcome, but the same mathematical object can arise for regional expenditure distributions, health-care costs, benefit amounts, or any setting in which a unit is summarized by a distribution and an intervention acts on that distribution. For example, a regional income distribution may respond to a policy through changes in location, dispersion, or participation.
+
+\section{The Wasserstein Causal Forest Model}\label{sec:model}
+
+\subsection{Observed data, representation, and estimands}\label{sec:setup}
+
+We observe independent units $O_i=(X_i,A_i,Q_i)$, where $X_i\in
+\mathbb{R}^{d}$ is a vector of pre-treatment covariates, $A_i\in\{0,1\}$ is
+the treatment indicator, and $Y_i$ is a probability distribution on $\mathbb{R}$ with finite second moment. We observe its quantile representation $Q_i=q_K(Y_i)$ on a
+fixed grid $0<u_1<\cdots<u_K<1$. Writing $Q_Y$ for the quantile function of $Y$, the grid representation is
+$q_K(Y)=(Q_Y(u_1),\ldots,Q_Y(u_K))\in\mathcal{Q}_K$, where
+$\mathcal{Q}_K=\{q\in\mathbb{R}^K:q_1\leq\cdots\leq q_K\}$. Let
+$w_k>0$ and $\sum_k w_k=1$. We use the weighted finite-grid geometry
+\[
+ d_{W,K}(q,q')=\left\{\sum_{k=1}^{K}w_k(q_k-q'_k)^2\right\}^{1/2}.
+\]
+This is a quadrature approximation to one-dimensional $W_2$
+\citep{peyre2019optimaltransport}; all
+estimands below refer to this finite-grid representation. It is also exactly the Wasserstein distance between the discrete distributions $\sum_k w_k\delta_{q_k}$ and $\sum_k w_k\delta_{q_k'}$. Sampling error in estimating each unit's quantile curve is outside the simulation design.
+
+Write $Y^a$ for the potential outcome under treatment level $a$ and
+$e(x)=\Pr(A=1\mid X=x)$ for the propensity score \citep{rosenbaum1983propensity}. The identification
+conditions are consistency, conditional exchangeability
+$Y^a\perp A\mid X$, and positivity $0<e(X)<1$ almost surely. Under these
+conditions the arm-specific conditional law
+\[
+ P_a^K(x)=\operatorname{Law}\{q_K(Y^a)\mid X=x\}
+ =\operatorname{Law}\{q_K(Y)\mid A=a,X=x\}
+\]
+is identified. The method estimates this law directly and subsequently
+integrates measurable grid functionals against it.
+
+For a measurable scalar functional $h:\mathcal{Q}_K\to\mathbb{R}$ satisfying $\mathbb{E}|h(q_K(Y^a))|<\infty$ for both arms, define
+\[
+ \mu_{a,h}(x)=\mathbb{E}\{h(q_K(Y^a))\mid X=x\},\qquad
+ \theta_h=\mathbb{E}\{\mu_{1,h}(X)-\mu_{0,h}(X)\},
+\]
+and, for a pre-treatment moderator $V=g(X)$,
+\[
+ \tau_h(v)=\mathbb{E}\{\mu_{1,h}(X)-\mu_{0,h}(X)\mid V=v\}.
+\]
+We call $\theta_h$ the transformed average treatment effect (TATE) and
+$\tau_h(v)$ the transformed conditional average treatment effect (TCATE).
+For discrete moderators, only strata with positive population probability are considered.
+The four functionals used in the experiments are
+\begin{align*}
+ h_{\mathrm{mean}}(q)&=\bar q=\sum_k w_kq_k,&
+ h_{\mathrm{sd}}(q)&=\left\{\sum_k w_k(q_k-\bar q)^2\right\}^{1/2},\\
+ h_{\mathrm{skew}}(q)&=\frac{\sum_k w_k(q_k-\bar q)^3}{h_{\mathrm{sd}}(q)^3},&
+ h_{\mathrm{tail}}(q)&=\frac{\sum_{k>\lfloor K/2\rfloor}w_kq_k}{\sum_{k>\lfloor K/2\rfloor}w_k}.
+\end{align*}
+Skewness is assigned the value zero for a constant quantile vector; the upper-half functional includes the middle grid point when $K$ is odd.
+Separately, the vector-valued identity
+functional $h(q)=q$ gives the mean-quantile contrast
+\[
+ \tau_q(x)=\mathbb{E}\{q_K(Y^1)-q_K(Y^0)\mid X=x\},
+\]
+which is a vector-valued barycenter contrast and is distinct from nonlinear
+outcome-level functionals of the barycenter.
+
+The reference-distribution estimands use the scalar functional
+\[
+ h_{\mathrm{ref}}(q)=d_{W,K}(q,q_\star),
+\]
+where $q_\star$ is a fixed benchmark quantile vector. Thus
+\[
+ \theta_{\mathrm{ref}}=\mathbb{E}\{h_{\mathrm{ref}}(q_K(Y^1))
+ -h_{\mathrm{ref}}(q_K(Y^0))\},\qquad
+ \tau_{\mathrm{ref}}(v)=\mathbb{E}\{h_{\mathrm{ref}}(q_K(Y^1))
+ -h_{\mathrm{ref}}(q_K(Y^0))\mid V=v\}.
+\]
+These are the reference-distance TATE and TCATE, respectively. A negative
+value means that treatment moves the outcome law closer to the benchmark on
+average within the relevant population. They are differences of expected
+distances, not the distance between an expected quantile vector and the
+benchmark.
+
+Covariate-dependent treatment assignment can induce differences in the distribution of prognostic covariates between arms. Assignment may depend on the untreated mean, on covariates governing dispersion, or on other features of the potential-outcome laws. These are selection-on-observables mechanisms covered by conditional exchangeability. Dependence on unobserved potential-outcome information beyond $X$ requires additional identifying assumptions.
+
+\subsection{Particle-law estimation}\label{sec:boosting}
+
+For each arm, the fitted conditional law is an empirical particle law
+\[
+ \widehat P_{a,M}^K(x)=\frac{1}{M}\sum_{m=1}^{M}\delta_{p_{am}(x)},
+ \qquad p_{am}(x)\in\mathcal{Q}_K.
+\]
+The particles are fitted by gradient boosting \citep{friedman2001greedy} on the collision-smoothed
+energy score
+\[
+ S_\varepsilon(P,q)=\frac{1}{M}\sum_{m=1}^{M}d_{\varepsilon}(p_m,q)
+ -\frac{1}{2M^2}\sum_{m,l=1}^{M}d_{\varepsilon}(p_m,p_l),
+ \qquad
+ d_{\varepsilon}(a,b)=\{d_{W,K}(a,b)^2+\varepsilon^2\}^{1/2}-\varepsilon.
+\]
+The unsmoothed energy score is strictly proper for probability laws on the weighted Euclidean space under a finite first-moment condition \citep{gneiting2007proper}. Finite particle count, smoothing, and the tree function class restrict the implemented optimization. The first term attracts the particle cloud to the observed quantile vector and
+the second term preserves dispersion. At iteration $t$, only the observed arm contributes a gradient for unit $i$. The tree response for particle $m$ and coordinate $k$ is the preconditioned descent direction
+\[
+ G_{imk}=-\frac{M}{w_k}\frac{\partial S_\varepsilon(P,Q_i)}{\partial p_{mk}}
+ \bigg|_{P=\widehat P_{A_i,M}^{K,(t)}(X_i)}.
+\]
+The shared tree maps $X_i$ to an arm-specific vector in $\mathbb{R}^{M K}$. For each arm, its update $g_a^{(t)}(x)$ produces
+\[
+ p_{am}^{(t+1)}(x)=\Pi_{\mathcal Q_K}^{w}\{p_{am}^{(t)}(x)+\eta_t g_{am}^{(t)}(x)\},
+\]
+where $\Pi_{\mathcal Q_K}^{w}$ is weighted isotonic projection, computed by the pool-adjacent-violators algorithm \citep{barlow1972isotonic}. A backtracking search halves $\eta_t$ until the observed-arm training score does not increase, up to numerical tolerance; fitting stops if no acceptable step is found. Prediction applies the fitted updates and projection in the same order.
+The particle representation
+estimates an arm-specific conditional law. It does not identify a coupling of
+$Y^0$ and $Y^1$, and differences between matched particles from the two arms
+are not individual treatment effects.
+
+The final learner uses a shared covariate partition. Candidate splits are
+scored with the pooled multi-output squared-error criterion and are retained
+only when each child contains the required number of observations from each
+arm. For the contrast-regularized update used in WCF, let $g_a$ be the
+mean descent target in a leaf for arm $a$, let $n_a$ be its arm count, let
+$\bar g=(n_0g_0+n_1g_1)/(n_0+n_1)$, and let $\delta=g_1-g_0$. With
+$n_{\mathrm{eff}}=n_0n_1/(n_0+n_1)$ and
+$c_\lambda=n_{\mathrm{eff}}/(n_{\mathrm{eff}}+\lambda)$, the leaf updates are
+\[
+ \widehat g_0=\bar g-\frac{n_1}{n_0+n_1}c_\lambda\delta,
+ \qquad
+ \widehat g_1=\bar g+\frac{n_0}{n_0+n_1}c_\lambda\delta.
+\]
+This shrinks the arm gap while preserving the count-weighted pooled gradient.
+The strength $\lambda$ is selected from a fixed candidate set by held-out
+energy risk computed only on each validation unit's observed arm. The method
+initializes both arms with the same $M$ quantile vectors, selected at equally spaced ranks from the lexicographically ordered pooled training vectors. The common initialization starts the arm contrast at zero.
+
+Figure~\ref{fig:pipeline} summarizes the two outputs of WCF.
+\input{figures_generated/wcf_pipeline.tex}
+
+\subsection{Doubly robust calibration of scalar functionals}\label{sec:dr}
+
+The particle law and the functional calibration layer target different
+objects. For a declared functional $h$, let $\widehat m_{a,h}^{(-k)}(X_i)$
+be the out-of-fold mean of $h$ over the fitted arm-$a$ particles, and let
+$\widetilde e_i$ be a cross-fitted propensity estimate bounded away from zero and one. With $H_i=h(q_K(Y_i))$, define
+\[
+ \widehat\phi_i(h)=\widehat m_{1,h}^{(-k)}(X_i)
+ -\widehat m_{0,h}^{(-k)}(X_i)
+ +\frac{A_i}{\widetilde e_i}
+   \{H_i-\widehat m_{1,h}^{(-k)}(X_i)\}
+ -\frac{1-A_i}{1-\widetilde e_i}
+   \{H_i-\widehat m_{0,h}^{(-k)}(X_i)\}.
+\]
+The marginal estimator is the sample mean of $\widehat\phi_i(h)$ and the
+moderator-specific estimator is its sample mean within the observed bin
+$V=v$. In the implementation, WCF applies this layer to the four grid
+functionals and $h_{\mathrm{ref}}$. It replaces their reported contrast
+columns, while the particle laws and all law-level scores remain those of the
+particle booster.
+
+The augmented score follows standard doubly robust estimation and cross-fitting \citep{bang2005doubly,chernozhukov2018double}. For fixed nuisance limits $m_a^\dagger(X)$ and $e^\dagger(X)$, let $\phi^\dagger(h)$ be the score with those limits substituted for the fitted nuisances. Writing $e^\dagger=e^\dagger(X)$ for brevity, its conditional bias is
+\[
+ \begin{aligned}
+ &\mathbb{E}\{\phi^\dagger(h)\mid X\}-\{\mu_{1,h}(X)-\mu_{0,h}(X)\}\\
+ &\qquad=(e^\dagger-e(X))\left[
+ \frac{m_1^\dagger(X)-\mu_{1,h}(X)}{e^\dagger}
+ +\frac{m_0^\dagger(X)-\mu_{0,h}(X)}{1-e^\dagger}
+ \right].
+ \end{aligned}
+\]
+Consequently, the score has the standard doubly robust property at the level
+of the scalar functional: the bias vanishes when the propensity is correct or
+when both arm-specific conditional means are correct, subject to positivity,
+integrability, and the usual conditions controlling nuisance estimation and
+cross-fitting. The robustness property applies to the calibrated averages; the conditional particle laws and pointwise mean-quantile contrasts remain outcome-model estimates. With fixed $M$, the functional means induced by a particle fit need not consistently approximate every chosen functional. The score identity therefore provides a robustness route, not a guarantee that the fixed-budget learner satisfies either nuisance-correctness condition.
+
+The propensity nuisance may be estimated with any binary probability model whose predictions satisfy the required overlap and convergence conditions. Logistic regression is a working choice for the experiments. An empirical sensitivity check of the calibration under flexible propensity factories is reported in Section~\ref{sec:results-assignment}. Flexible classifiers can accommodate nonlinear assignment, with tuning confined to the appropriate training samples. Fixed propensity clipping can introduce bias when it excludes part of the true propensity range. Valid asymptotic inference additionally requires moment, nuisance-rate, and sample-splitting conditions; score unbiasedness alone is insufficient to establish efficiency.
+
+\subsection{Optional two-part law for a degenerate component}\label{sec:zipt}
+
+Some distribution-valued outcomes have a structural component in which the
+entire unit-level outcome law is degenerate at a point. For example, a facility's expenditure distribution may be identically zero during an inactive period and nondegenerate during an active period. Participation and intensity are commonly separated in economic two-part models, including medical expenditure and count models \citep{duan1983medical,mullahy1986modified}. Here the mixture operates on distribution-valued observations: an atom at the all-zero quantile vector differs from a positive fraction of individuals with zero expenditure inside every unit's distribution. For such data, the optional two-part extension
+estimates
+\[
+ \pi_a(x)=\Pr\{q_K(Y^a)\neq\mathbf{0}\mid X=x\}
+\]
+with an arm-specific binary classifier, fits the particle booster on the
+nondegenerate rows, and assembles
+\[
+ \widehat P_a^{\mathrm{2p}}(x)=
+ \{1-\widehat\pi_a(x)\}\delta_{\mathbf{0}}
+ +\widehat\pi_a(x)\widehat P_{a,M}^{+,K}(x).
+\]
+The extension gives the degenerate component its own estimable probability
+and lets every downstream law functional integrate over both parts. The plain
+particle booster can place mass exactly at zero, but it has no
+separate component-probability parameter and its particle masses are tied to
+$1/M$; the two-part assembly makes that structural mass explicit. The extension can be enabled when the data contain this structural component. Its evaluation below concerns the assembled law and component probabilities; it does not assess an additional AIPW calibration of the mixture.
+\section{Simulation studies}\label{sec:simulations}
+
+The simulations examine conditional laws of quantile-valued outcomes under selection on observed covariates. We compare WCF with DRF and Causal-DRF in location and shape-effect designs, symmetric nonlinear designs, and a structural-zero mixture. Each replication uses the same training sample and independent test covariates across methods. The principal sample sizes are $n=500$ and $n=1000$, with ten replications per setting. Each test sample contains 1000 units. The moderator $V$ divides $X_1$ into four intervals with boundaries $-0.5$, $0$, and $0.5$.
+
+\subsection{Location and shape-effect designs}\label{sec:income-design}
+
+Covariates are independent $\mathrm{Unif}[-1,1]$ variables. For these designs $d=6$, and $A\mid X\sim\mathrm{Bernoulli}\{e(X)\}$. Potential quantile vectors follow
+\begin{equation}\label{eq:dgp}
+ Q_k^a=m_a(X)+\xi_a+\exp\{s_a(X)+\eta_a\}\psi\{z_k;\gamma_a(X)\},
+ \qquad z_k=\Phi^{-1}\{(k-1/2)/K\},
+\end{equation}
+where
+\[
+ \psi(z;\gamma)=z+\gamma\left\{\frac{z^2-1}{2}+\frac{z^3-3z}{6}\right\}.
+\]
+Within each arm, $\xi_a\sim N(0,0.20^2)$ and $\eta_a\sim N(0,0.12^2)$ are independent of one another and of $X$. Assignment depends only on $X$. The function $\psi$ is increasing for $0\leq\gamma<1$, since its derivative is $1-\gamma+\gamma(z+1)^2/2$.
+
+Define the baseline location, log-scale, and shape functions by
+\begin{align*}
+ b(x)&=0.55x_2+0.35x_3-0.45x_4+0.30x_5,\\
+ s(x)&=0.16+0.08x_6-0.04x_2,\qquad
+ g(x)=0.55+0.10x_4-0.08x_2,
+\end{align*}
+and let $C_{l,u}(t)=\min\{u,\max(l,t)\}$ and $\sigma(t)=(1+e^{-t})^{-1}$. The four designs are
+\begin{align*}
+\mathrm{IC0}:\quad &m_a=b,\quad s_a=s,\quad \gamma_a=C_{.05,.85}(g),\\
+\mathrm{IC1}:\quad &m_a=b+a(0.20+0.15x_4),\quad s_a=s,\quad
+ \gamma_a=C_{.05,.85}\{g-a(0.16+0.06x_4)\},\\
+\mathrm{IC2}:\quad &m_a=b+a(0.10+0.05x_3),\quad s_a=s-0.12a,\quad
+ \gamma_a=C_{.05,.85}(g-0.08a),\\
+\mathrm{IC3}:\quad &(m_a,s_a,\gamma_a)\text{ as in IC1}.
+\end{align*}
+IC0 and IC1 use $e(x)=C_{.10,.90}\{\sigma(1.4x_4-1.1x_5+0.4x_6)\}$. IC2 uses $C_{.05,.95}\{\sigma(1.8x_4-0.9x_5)\}$, and IC3 uses $C_{.01,.99}[\sigma\{3.5(x_4-0.9x_5)\}]$. Thus IC0 has no treatment effect, IC1 changes location and shape, IC2 additionally changes scale, and IC3 reduces overlap while keeping IC1's outcome surfaces. The moderator $X_1$ does not enter the IC outcome or assignment surfaces, so the population TCATE is constant across its four bins in this family. The nonlinear designs below include effect modification by $X_1$. The reference vector is
+\[
+ q_{\star,k}=1.10+0.60\left[z_k+0.30\left\{\frac{z_k^2-1}{2}+\frac{z_k^3-3z_k}{6}\right\}\right].
+\]
+These equations describe a general location, scale, and shape construction. A regional income distribution is one possible interpretation, with treatment changing its location or dispersion and adoption depending on regional characteristics. The simulated curves are not constrained to be nonnegative, so this interpretation is illustrative rather than a calibrated model of income or expenditure.
+
+\subsection{Symmetric and nonlinear designs}\label{sec:nonlinear-design}
+
+The additional designs use $d=5$ independent uniform covariates and equation~\eqref{eq:dgp}, with reference $q_{\star,k}=z_k$. Define
+\[
+ f(x)=0.6\sin(\pi x_1)+0.4x_2x_3,\qquad
+ e_m(x)=C_{.10,.90}[\sigma\{0.8(x_1+0.5x_2)\}].
+\]
+The conditional quantile contours are symmetric when $\gamma_a=0$, even though their locations and scales vary across units. D0 uses $m_a=f+0.8ax_1$, $s_a=0.20x_4+0.25ax_2$, $\gamma_a=0$, and zero latent shocks. D2 is a null-effect design with $m_a=f$, $s_a=0.20x_4$, $\gamma_a=0$, and independent normal shocks with standard deviations $(0.35,0.20)$.
+
+D5 has equal mean quantile curves but different conditional laws. Its location is $m_a=f$ and $\gamma_a=0$. The control arm has $s_0=0.20x_4$ and shock standard deviations $(0.40,0.45)$; the treated arm has $s_1=0.20x_4+0.45^2/2$ and shock standard deviations $(0.15,0)$. The log-scale adjustment equates the expected scales. D6 uses $m_a=f+0.7ax_1$, $s_a=0.20x_4$, and $\gamma_a=0$, with $\eta_a\sim N(0,0.15^2)$ and
+\[
+ \xi_a\sim\tfrac12 N(-1.5,0.25^2)+\tfrac12 N(1.5,0.25^2).
+\]
+This creates a multimodal law of quantile curves while every realized curve retains a symmetric inner distribution. D7 changes shape: $m_a=f$, $s_a=0.20x_4$, $\gamma_a=0.20+0.10x_3+a(0.30+0.10x_1)$, and shock standard deviations $(0.35,0.20)$. These five designs use $e_m$.
+
+D8 combines a smaller treatment effect with stronger confounding. It uses
+\begin{align*}
+ m_a(x)&=1.2\sin(\pi x_1)+0.9x_2x_3+a(0.12x_1+0.06),\\
+ s_a(x)&=0.20x_4+0.05ax_2,\qquad \gamma_a(x)=0,\\
+ e(x)&=C_{.05,.95}[\sigma\{2.5(x_1+0.7x_2-0.5x_3)\}],
+\end{align*}
+with shock standard deviations $(0.35,0.20)$. The nonlinear prognosis and covariate-dependent assignment in these designs allow the comparison to extend beyond the location and shape-effect family.
+
+\subsection{Structural-zero designs}\label{sec:zi-design}
+
+The four structural-zero designs use six independent uniform covariates. A unit's outcome vector is zero with probability $1-\pi_a(x)$ and otherwise follows equation~\eqref{eq:dgp} with
+\begin{align*}
+ m_a^+(x)&=4.80+0.35x_2-0.25x_4+a(\Delta+\beta x_2),\\
+ s_a^+(x)&=0.10+0.06x_6-0.03x_2,\qquad
+ \gamma_a^+(x)=C_{.05,.85}(0.50+0.06x_4-a\kappa).
+\end{align*}
+The normal shock standard deviations are $(0.15,0.10)$. The superscript $+$ denotes the nondegenerate branch; Gaussian shocks do not impose a strictly positive support. ZI0 and ZI1 use $(\Delta,\beta,\kappa)=(0,0,0)$, whereas ZI2 and ZI3 use $(0.28,0.08,0.10)$. ZI0 is a placebo and ZI2 changes only the nondegenerate component; both have $\pi_a(x)=C_{.05,.95}\{\sigma(1.2x_4-0.8x_2)\}$. ZI1 changes participation only, adding $a(0.90+0.20x_4)$ to this logistic index. These three designs use IC1's assignment mechanism. ZI3 changes both components and has
+\[
+ \pi_a(x)=C_{.01,.99}[\sigma\{3(x_4-0.9x_5)+a(0.90+0.60x_4)\}],
+ \qquad e(x)=\pi_0(x).
+\]
+The reference vector is the same as in the IC family.
+
+\input{sensitivity_methods_fragment.tex}
+
+\subsection{Comparators and implementation}\label{sec:implementation}
+
+DRF estimates the conditional outcome distribution with separate forests for the two arms \citep{DRF-paper}. Causal-DRF uses a shared treatment-aware splitting criterion designed for the conditional kernel treatment effect \citep{naf2026causaldrf}. Both return arm-specific weights on observed training quantile vectors. The comparisons use the authors' implementations, with 2500 trees per arm for DRF and 2500 trees for Causal-DRF, organized in groups of 50 trees. WCF is the particle estimator with functional calibration described in Section~\ref{sec:model}. The structural-zero comparison uses its optional two-part law estimator.
+
+All reported models use the uniform midpoint grid with $K=25$, and WCF uses $M=10$ particles. The boosting budget is 100 iterations, initial step size $0.12$, maximum tree depth 4, minimum total leaf size 10, minimum arm leaf size 5, and smoothing constant $\varepsilon=10^{-3}$. The backtracking search permits twelve halvings and accepts score changes within $10^{-12}$ numerical tolerance. Contrast shrinkage is selected from $\{0,50,500\}$ by observed-arm validation risk, with ties favoring larger penalties. The IC fits use three-fold outcome fitting and selection; the nonlinear and two-part fits use two folds. Propensity estimation uses five-fold logistic regression, with probabilities clipped to $[0.02,0.98]$. This interval excludes part of IC3's true propensity range, so the fitted propensity is not exactly specified in that design even if its untruncated logistic index were known. The mixture probability is fitted with separate logistic classifiers using an $\ell_2$ penalty with inverse strength $C=1$; these classifiers are fitted on the full training arm. Quantile vectors with maximum absolute coordinate at most $10^{-12}$ are classified as degenerate.
+
+The selected outcome penalty is reused for the out-of-fold calibration fits; its selection is not nested within each calibration training fold. Consequently, the out-of-fold predictions exclude each observation from tree fitting but not from penalty selection. The simulations evaluate point-estimation accuracy and do not invoke asymptotic confidence-interval guarantees for this tuning arrangement. The fixed $K$ and $M$ are computational choices; a dedicated sensitivity study retains $K=25$ and $M=10$. The sensitivity study uses three outcome folds and contrast candidates $\{0,50,500\}$ for every design and is reported in Sections~\ref{sec:resolution-design} and~\ref{sec:assignment-design}.
+
+\subsection{Evaluation}\label{sec:metrics}
+
+We evaluate the mean-quantile contrast $\tau_q(x)$ by the root mean squared error over all test units and all $K$ coordinates. For each scalar functional, TCATE error is the RMSE over the four moderator bins, using the bin average of the true conditional contrast on the test covariates. TATE error is the absolute error in the marginal contrast averaged over those test covariates. For WCF, the recorded marginal predictions average the training-bin AIPW estimates using the test sample's bin frequencies. They therefore evaluate a test-standardized bin estimator, rather than the direct training-sample AIPW mean. Training and test covariates are sampled from the same population. The reference-distance TATE and TCATE use $h_{\mathrm{ref}}$ with the same aggregation rules.
+
+For concise comparisons, functional TATE and TCATE errors are averaged over the four functionals within each replication. Since these functionals have different units, these averages are descriptive summaries whose values depend on the stated outcome scale. Appendix~\ref{app:functional-results} reports each functional separately. Each table gives the mean replication error and its between-replication standard error, after averaging arm-specific or functional-specific entries within the replication. Thus the marginal-effect columns report mean absolute error, not root mean squared error over replications.
+
+Conditional-law error is squared maximum mean discrepancy \citep{gretton2012kernel}, computed with a Gaussian kernel on $(\sqrt{w_k}q_k)_k$. The bandwidth is chosen by a median-distance rule on the quadrature truth nodes, identically across methods within each arm and replication. This bandwidth is used for evaluation only. Law scores average the first 200 test units in each arm and then average the two arms. Oracle expectations use a product Gauss--Hermite rule with twelve nodes per nondegenerate normal shock, separately weighted across mixture components. Accordingly, the law discrepancy is evaluated against the quadrature approximation to the true law.
+
+In the structural-zero designs, mass error is the RMSE between the true zero-component probability and the predicted mass on vectors with maximum absolute coordinate at most $0.05$. The mass-contrast metric is the RMSE of the corresponding treatment contrast over moderator bins. The explicit atom in the two-part model contributes its estimated mixture weight to this probability. All error criteria are oriented so that smaller values indicate greater accuracy.
+
+\section{Results}\label{sec:results}
+
+\subsection{Location and shape-effect designs}
+
+Tables~\ref{tab:revision-income-500} and~\ref{tab:revision-income-1000} report both sample sizes. WCF has the smallest mean error in every displayed column. At $n=1000$, its reference-distance TCATE error is $0.0300$ in IC1, $0.0330$ in IC2, and $0.0463$ in IC3, compared with $0.1333$, $0.1567$, and $0.2476$ for Causal-DRF. Its conditional-law errors also remain lower in these three designs. The IC0 placebo yields smaller false effects for WCF on the mean-quantile, functional, and reference-distance contrasts. The per-functional results in Appendix~\ref{app:functional-results} qualify the aggregate ranking: for example, the forests estimate the grid-standard-deviation effects more accurately in several IC settings. These comparisons establish performance differences under the stated assignment and outcome mechanisms; they do not isolate a single architectural cause of the differences.
+
+\input{tables_generated/wcf_revision_income_500.tex}
+\input{tables_generated/wcf_revision_income_1000.tex}
+
+\subsection{Symmetric and nonlinear designs}
+
+Table~\ref{tab:revision-abstract} shows a more varied ranking. WCF has the smallest mean conditional-law error in D0, D2, D5, D7, and D8. In contrast, both forest baselines have smaller reference-distance TCATE error in D2, D5, D6, D7, and D8. Thus improved law approximation under the kernel metric does not ensure improved estimation of every scalar functional. D5 illustrates the distinction: the two potential outcomes have identical mean quantile curves but different conditional laws, so the causal questions depend on the functional chosen.
+
+The multimodal D6 design is particularly challenging for WCF. Its law error is $0.0178$, compared with $0.0064$ for Causal-DRF and $0.0059$ for DRF. Its reference-distance TCATE error is also larger. This result limits claims of general superiority under covariate-dependent assignment and motivates further investigation of the particle representation in multimodal settings.
+
+\input{tables_generated/wcf_revision_abstract.tex}
+
+\subsection{Structural-zero outcomes}
+
+Table~\ref{tab:revision-zi} compares the two-part WCF law estimator with the two forest baselines. The two-part estimator has the smallest mean mass-placement and law errors across the four designs. In ZI3, its mass error is $0.0598$, compared with $0.1731$ for Causal-DRF and $0.3475$ for DRF; its law error is $0.0176$, compared with $0.0768$ and $0.2472$. Its mass-contrast errors are also lower in the reported comparison. These results concern estimation of the structural mixture and its participation contrast. The two-part fits do not include the functional AIPW calibration, and no double-robustness claim is attached to these mass or law scores.
+
+\input{tables_generated/wcf_revision_zi.tex}
+
+\input{sensitivity_results_fragment.tex}
+
+\section{Discussion}\label{sec:discussion}
+
+The results show that the relative accuracy of conditional-law learners depends on both the data-generating process and the causal estimand. WCF performs well in the location and shape-effect designs with assignment depending on prognostic covariates. The additional nonlinear designs provide a broader comparison, including settings in which a forest baseline is more accurate. Covariate-dependent assignment creates a need for adjustment, but does not alone determine which estimator will perform best. A constant treatment probability different from one half can describe a randomized experiment with unequal allocation; a nonconstant propensity can also depend on covariates unrelated to the outcome.
+
+WCF combines two distinct forms of adjustment. Shared tree partitions and contrast shrinkage pool outcome information across treatment arms. Functional calibration uses estimated treatment probabilities to correct the reported averages of selected outcome functionals. The latter has the augmented-score robustness property of Section~\ref{sec:dr}. Neither adjustment eliminates the need for overlap, and the comparison with DRF and Causal-DRF does not isolate the contribution of calibration from all other architectural differences. Doubly robust distributional procedures already exist \citep{martineztaboada2023efficient,GRFDistributionalCausalEffects}; the contribution here is the combination of a Wasserstein particle representation, shared arm updates, and functional calibration, together with the reference-distance estimands.
+
+The reference-distance effects express a directional causal question: does treatment reduce the expected distance from a unit's outcome distribution to a chosen benchmark? Their interpretation depends on the reference. A negative effect indicates average movement toward that benchmark, without implying improvement for every unit or every feature of the distribution. Substantive applications should justify the benchmark and consider alternative scientifically meaningful references.
+
+The optional two-part construction applies to an atom at an entirely degenerate outcome distribution. It estimates the probability of that component separately from the remaining conditional law. The experiments evaluate this specific mixture structure. A dataset containing individual zeros within otherwise nondegenerate unit-level distributions presents a different representation problem.
+
+Several limitations delimit these findings. The studies assume independently sampled units, observed quantile vectors, consistency, conditional exchangeability, and positivity. Applications based on estimated quantile curves or repeated observations within regions require additional treatment of measurement error and dependence. A dedicated sensitivity study retained $K=25$ and $M=10$. The alternative $K=49$ improves full-range law error through extreme-tail coverage but ties on interior levels and loses on the IC3 marginal reference effect at higher cost, while $M=25$ yields no material interior gain. A fixed number of equal-weight particles limits the laws and functional means that can be represented, and propensity clipping can introduce bias at the extremes of the assignment distribution. The simulations do not assess confidence-interval coverage or establish nuisance convergence rates for the fitted learner. All empirical comparisons are synthetic; an applied evaluation remains necessary to assess the method under substantive identification assumptions.
+
+\section{Conclusion}\label{sec:conclusion}
+
+Wasserstein Causal Forests estimate conditional laws of distribution-valued outcomes and calibrate population and moderator-specific effects on their functionals. The reference-distance TATE and TCATE measure whether treatment moves these outcomes toward a prespecified distribution. Simulations demonstrate substantial gains over the forest comparators in several designs with observed confounding, together with variation across nonlinear designs and estimands. An explicit two-part representation extends the law estimator to a structural zero component. These results motivate an applied evaluation of WCF with distribution-valued outcomes, now that the sensitivity study has examined alternative representation budgets and flexible propensity models.
+
+\clearpage
+\appendix
+\section{Functional treatment-effect results}\label{app:functional-results}
+The following tables separate the four functionals used in the aggregate TATE and TCATE summaries. Each entry is the mean replication error with its between-replication standard error. Marginal effects use absolute error; conditional effects use RMSE over moderator bins. The sample size is 1000 unless stated otherwise.
+\input{tables_generated/wcf_revision_functionals.tex}
+
+\input{sensitivity_appendix_fragment.tex}
+
+\bibliography{wcf_references}
+\end{document}

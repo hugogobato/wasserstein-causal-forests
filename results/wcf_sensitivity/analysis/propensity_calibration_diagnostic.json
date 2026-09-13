@@ -1,0 +1,116 @@
+{
+  "configuration": {
+    "n_rows": 1000,
+    "cell_seed": 0,
+    "aipw_random_state": 31,
+    "n_folds": 5,
+    "clip": [
+      0.02,
+      0.98
+    ],
+    "regimes": [
+      "SYM-NL",
+      "SYM-MU",
+      "SYM-LIN"
+    ],
+    "note": "out-of-fold predictions before clipping; the clip fractions count predictions below 0.02 or above 0.98"
+  },
+  "regimes": {
+    "SYM-NL": {
+      "logistic": {
+        "auc_against_treatment": 0.742619,
+        "correlation_with_true_propensity": 0.770839,
+        "rmse_against_true_propensity": 0.159536,
+        "min_raw": 0.095673,
+        "max_raw": 0.874326,
+        "clip_low_fraction": 0.0,
+        "clip_high_fraction": 0.0,
+        "clip_total_fraction": 0.0
+      },
+      "gradient_boosting": {
+        "auc_against_treatment": 0.731662,
+        "correlation_with_true_propensity": 0.785414,
+        "rmse_against_true_propensity": 0.219257,
+        "min_raw": 0.001406,
+        "max_raw": 0.997312,
+        "clip_low_fraction": 0.084,
+        "clip_high_fraction": 0.038,
+        "clip_total_fraction": 0.122
+      },
+      "random_forest": {
+        "auc_against_treatment": 0.765423,
+        "correlation_with_true_propensity": 0.915959,
+        "rmse_against_true_propensity": 0.100475,
+        "min_raw": 0.064805,
+        "max_raw": 0.929395,
+        "clip_low_fraction": 0.0,
+        "clip_high_fraction": 0.0,
+        "clip_total_fraction": 0.0
+      }
+    },
+    "SYM-MU": {
+      "logistic": {
+        "auc_against_treatment": 0.661334,
+        "correlation_with_true_propensity": 0.757671,
+        "rmse_against_true_propensity": 0.107772,
+        "min_raw": 0.179722,
+        "max_raw": 0.812559,
+        "clip_low_fraction": 0.0,
+        "clip_high_fraction": 0.0,
+        "clip_total_fraction": 0.0
+      },
+      "gradient_boosting": {
+        "auc_against_treatment": 0.594383,
+        "correlation_with_true_propensity": 0.642778,
+        "rmse_against_true_propensity": 0.23288,
+        "min_raw": 0.011887,
+        "max_raw": 0.989076,
+        "clip_low_fraction": 0.016,
+        "clip_high_fraction": 0.006,
+        "clip_total_fraction": 0.022
+      },
+      "random_forest": {
+        "auc_against_treatment": 0.642732,
+        "correlation_with_true_propensity": 0.845123,
+        "rmse_against_true_propensity": 0.093569,
+        "min_raw": 0.112893,
+        "max_raw": 0.910267,
+        "clip_low_fraction": 0.0,
+        "clip_high_fraction": 0.0,
+        "clip_total_fraction": 0.0
+      }
+    },
+    "SYM-LIN": {
+      "logistic": {
+        "auc_against_treatment": 0.767968,
+        "correlation_with_true_propensity": 0.982385,
+        "rmse_against_true_propensity": 0.047291,
+        "min_raw": 0.047315,
+        "max_raw": 0.938082,
+        "clip_low_fraction": 0.0,
+        "clip_high_fraction": 0.0,
+        "clip_total_fraction": 0.0
+      },
+      "gradient_boosting": {
+        "auc_against_treatment": 0.709244,
+        "correlation_with_true_propensity": 0.758952,
+        "rmse_against_true_propensity": 0.229748,
+        "min_raw": 0.001278,
+        "max_raw": 0.99825,
+        "clip_low_fraction": 0.043,
+        "clip_high_fraction": 0.045,
+        "clip_total_fraction": 0.088
+      },
+      "random_forest": {
+        "auc_against_treatment": 0.751605,
+        "correlation_with_true_propensity": 0.908318,
+        "rmse_against_true_propensity": 0.09753,
+        "min_raw": 0.055717,
+        "max_raw": 0.936063,
+        "clip_low_fraction": 0.0,
+        "clip_high_fraction": 0.0,
+        "clip_total_fraction": 0.0
+      }
+    }
+  }
+}

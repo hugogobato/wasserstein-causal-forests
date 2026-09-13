@@ -17,6 +17,7 @@ import json
 import os
 import time
 import traceback
+from collections.abc import Callable
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
@@ -42,6 +43,7 @@ from .methods import (
     PTAForcedAdapter,
     PTASeparateAdapter,
     SquaredW2BoosterAdapter,
+    peak_ram_mb,
 )
 
 # Imported for its side effect: the repair variants add themselves to
@@ -181,8 +183,16 @@ def run_cell(
     *,
     cache_directory: Path | None = None,
     manifest_contract_id: str = MANIFEST_CONTRACT_ID,
+    extra_evaluators: tuple[Callable[..., list[dict[str, object]]], ...] = (),
 ) -> list[dict[str, Any]]:
-    """Execute one cell and return its result rows, successful or failed."""
+    """Execute one cell and return its result rows, successful or failed.
+
+    `extra_evaluators` are callbacks with the shared signature
+    ``evaluator(cell, output, dgp, X_test) -> list[dict]``, run after the
+    native evaluation and appended to the same rows. They are inside the
+    protected section on purpose: an extra evaluator that raises marks the
+    whole cell failed rather than silently dropping one metric family.
+    """
 
     started = time.perf_counter()
     common = {
@@ -212,6 +222,19 @@ def run_cell(
             # they share one oracle truth.
             cache_key=(cell.test_seed,),
         )
+        for evaluator in extra_evaluators:
+            rows.extend(evaluator(cell, output, dgp, test.X))
+        rows.append(
+            {
+                "metric": "process_peak_ram",
+                "target_id": "NONE_OPERATIONAL",
+                "arm": None,
+                "detail": "absolute process high-water mark, megabytes",
+                "value": peak_ram_mb(),
+                "status": "ok",
+                "failure_reason": "",
+            }
+        )
     except Exception as error:  # noqa: BLE001 - a failed cell is a result
         reason = f"{type(error).__name__}: {error}"
         return [
@@ -238,8 +261,13 @@ def run_shard(
     cache_directory: Path | None = None,
     log_path: Path | None = None,
     manifest_contract_id: str = MANIFEST_CONTRACT_ID,
+    extra_evaluators: tuple[Callable[..., list[dict[str, object]]], ...] = (),
 ) -> dict[str, Any]:
-    """Run a shard of cells, checkpointing each one as it completes."""
+    """Run a shard of cells, checkpointing each one as it completes.
+
+    `extra_evaluators` is forwarded unchanged to `run_cell`; see there for the
+    callback contract.
+    """
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     rows: list[dict[str, Any]] = []
@@ -250,6 +278,7 @@ def run_shard(
             cell,
             cache_directory=cache_directory,
             manifest_contract_id=manifest_contract_id,
+            extra_evaluators=extra_evaluators,
         )
         rows.extend(cell_rows)
         failed = cell_rows[0]["status"] == "failed"

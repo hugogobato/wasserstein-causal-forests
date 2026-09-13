@@ -16,11 +16,17 @@ from functools import partial
 import numpy as np
 from numpy.typing import NDArray
 
-from ..cwdb.dr_calibration import DRCalibratedCWDB
+from ..cwdb.dr_calibration import DRCalibratedCWDB, FunctionalAIPW
 from ..cwdb.krr_booster import KRRArmParticleBooster
 from ..cwdb.smoothing import SmoothedCWDB
 from ..meta_learners.functional_r_learner import FunctionalRLearner
 from ..pta_bcf.targets import GRID_FUNCTIONALS
+from .common_grid import (
+    COMMON_LEVELS,
+    INTERIOR_LEVELS,
+    build_dgp_at_levels,
+    interpolate_quantile_curves,
+)
 from .dgps import DGPSample, DistributionalDGP, moderator_bins
 from .laws import LawPrediction
 from .methods import MethodOutput, _output_from_laws, peak_ram_mb
@@ -45,8 +51,45 @@ def _declared_functionals(
     return functions
 
 
+#: Dense level sets a DR payload can declare, in registry order.
+_COMMON_GRID_LEVEL_SETS: dict[str, NDArray[np.float64]] = {
+    "COMMON199": COMMON_LEVELS,
+    "INTERIOR": INTERIOR_LEVELS,
+}
+
+
+def _parse_common_grid_levels(value: str | None) -> tuple[str, ...]:
+    """Parse ``"COMMON199+INTERIOR"`` into the requested level-set names."""
+
+    if value is None:
+        return ()
+    text = value.strip()
+    if not text:
+        return ()
+    names: list[str] = []
+    for token in text.split("+"):
+        name = token.strip()
+        if not name:
+            continue
+        if name not in _COMMON_GRID_LEVEL_SETS:
+            raise ValueError(
+                f"unknown common-grid level set {name!r}; expected any of "
+                f"{sorted(_COMMON_GRID_LEVEL_SETS)} joined by '+'"
+            )
+        if name not in names:
+            names.append(name)
+    return tuple(names)
+
+
 class DRAdapter:
-    """`cwdb_dr`: R3 law plus a doubly-robust functional calibration layer."""
+    """`cwdb_dr`: R3 law plus a doubly-robust functional calibration layer.
+
+    `propensity_factory` selects the AIPW propensity model by registry name or
+    as a callable factory, `oracle_propensity` substitutes the sampled true
+    propensity for the fitted one, and `common_grid_levels` requests a
+    dense-grid calibration payload under `output.common_grid`. All three
+    default to the frozen behaviour, so a phase 6 cell is unaffected.
+    """
 
     produces_law = True
 
@@ -56,6 +99,9 @@ class DRAdapter:
         contrast_candidates: tuple[float, ...] | None = None,
         n_folds: int = PHASE6_SELECTION_FOLDS,
         n_particles: int = 10,
+        propensity_factory: str | None = None,
+        oracle_propensity: bool = False,
+        common_grid_levels: str | None = None,
         **budget: object,
     ) -> None:
         self.contrast_candidates = (
@@ -65,6 +111,10 @@ class DRAdapter:
         )
         self.n_folds = n_folds
         self.n_particles = n_particles
+        self.propensity_factory = propensity_factory
+        self.oracle_propensity = bool(oracle_propensity)
+        self.common_grid_levels = common_grid_levels
+        self.common_grid_level_sets = _parse_common_grid_levels(common_grid_levels)
         self.budget = dict(budget)
 
     def fit_predict(
@@ -77,6 +127,8 @@ class DRAdapter:
         seed: int,
     ) -> MethodOutput:
         weights = dgp.grid.weights
+        budget = dict(self.budget)
+        arm_shrinkage = float(budget.pop("arm_shrinkage", 5.0))
         model = DRCalibratedCWDB(
             functionals=_declared_functionals(weights, dgp.grid.reference_quantiles()),
             contrast_candidates=self.contrast_candidates,
@@ -85,13 +137,21 @@ class DRAdapter:
             architecture="v1",
             sharing="partial",
             init_sharing="pooled",
-            arm_shrinkage=5.0,
+            arm_shrinkage=arm_shrinkage,
             random_state=seed,
-            **self.budget,
+            propensity_factory=self.propensity_factory,
+            oracle_propensity=self.oracle_propensity,
+            **budget,
         )
         before = peak_ram_mb()
         started = time.perf_counter()
-        model.fit(train.X, train.treatment, train.quantiles, weights)
+        model.fit(
+            train.X,
+            train.treatment,
+            train.quantiles,
+            weights,
+            true_propensity=(train.propensity if self.oracle_propensity else None),
+        )
         fit_seconds = time.perf_counter() - started
 
         started = time.perf_counter()
@@ -140,7 +200,99 @@ class DRAdapter:
             "dr_if_se_reference": float(model.dr_if_se("reference")),
         }
         object.__setattr__(output, "diagnostics", diagnostics)
+
+        if self.common_grid_level_sets:
+            dense_payload, n_dense_levels = self._dense_calibration_payload(
+                model, train, dgp
+            )
+            object.__setattr__(output, "common_grid", dense_payload)
+            object.__setattr__(
+                output,
+                "diagnostics",
+                {
+                    **output.diagnostics,
+                    "dense_dr_n_levels": float(n_dense_levels),
+                },
+            )
         return output
+
+    def _dense_calibration_payload(
+        self,
+        model: DRCalibratedCWDB,
+        train: DGPSample,
+        dgp: DistributionalDGP,
+    ) -> tuple[dict[str, dict[str, object]], int]:
+        """Calibrate the declared functionals on each requested dense level set.
+
+        The functional targets, the reference, and the observation curves are
+        all rebuilt on the dense levels, and the existing cross-fitted
+        propensity is reused as the oracle, so the payload's contrast targets
+        match the evaluator's dense truth exactly.
+        """
+
+        native_levels = np.asarray(dgp.grid.levels, dtype=float)
+        payload: dict[str, dict[str, object]] = {}
+        n_levels = 0
+        for level_set_name in self.common_grid_level_sets:
+            levels = _COMMON_GRID_LEVEL_SETS[level_set_name]
+            dense = build_dgp_at_levels(dgp.spec.dgp_id, levels)
+            dense_functionals = _declared_functionals(
+                dense.grid.weights, dense.grid.reference_quantiles()
+            )
+            observed = {
+                name: np.asarray(
+                    h(
+                        interpolate_quantile_curves(
+                            train.quantiles, native_levels, levels
+                        )
+                    ),
+                    dtype=float,
+                )
+                for name, h in dense_functionals.items()
+            }
+            oof: dict[str, dict[int, NDArray[np.float64]]] = {
+                name: {} for name in dense_functionals
+            }
+            for arm in (0, 1):
+                particles = interpolate_quantile_curves(
+                    model.oof_particles_[arm], native_levels, levels
+                )
+                flat = particles.reshape(-1, levels.size)
+                for name, h in dense_functionals.items():
+                    values = np.asarray(h(flat), dtype=float).reshape(
+                        particles.shape[:2]
+                    )
+                    means = np.nanmean(values, axis=1)
+                    finite = np.isfinite(means)
+                    if not np.all(finite):
+                        fallback = (
+                            float(np.mean(means[finite]))
+                            if np.any(finite)
+                            else np.nan
+                        )
+                        means = np.where(finite, means, fallback)
+                    oof[name][arm] = means
+            aipw = FunctionalAIPW(n_bins=4)
+            aipw.fit(
+                observed=observed,
+                oof_arm_means=oof,
+                X=train.X,
+                treatment=train.treatment,
+                random_state=model.random_state + 31,
+                oracle_propensity=model.ehat_train_,
+            )
+            payload[level_set_name] = {
+                "levels": levels,
+                "marginal": {
+                    name: float(value) for name, value in aipw.marginal_.items()
+                },
+                "bin_contrasts": {
+                    name: np.asarray(value, dtype=float)
+                    for name, value in aipw.bin_contrasts_.items()
+                },
+            }
+            n_levels = int(levels.size)
+        return payload, n_levels
 
 
 class SmoothAdapter:

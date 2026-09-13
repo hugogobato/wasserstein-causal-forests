@@ -1,0 +1,25 @@
+\begin{table}[t]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{Symmetric and nonlinear assignment designs at $n=500$ and $n=1000$. Entries are native reference-TCATE errors, mean(SE) over ten replications; lower is better. SYM-RANDOM is a constant-propensity calibration control, SYM-LIN uses a linear assignment index, and SYM-NL and SYM-MU use nonlinear assignment with the same symmetric outcome laws.}
+\label{tab:sensitivity-assignment}
+\begin{tabular}{lrrr}
+\toprule
+DGP & WCF & Causal-DRF & DRF \\
+\midrule
+\multicolumn{4}{l}{\textit{Panel A: $n=500$}} \\
+\midrule
+SYM-RANDOM & 0.0444(0.0040) & 0.0422(0.0045) & 0.0417(0.0043) \\
+SYM-LIN & 0.0452(0.0041) & 0.0548(0.0054) & 0.0428(0.0053) \\
+SYM-NL & 0.0597(0.0085) & 0.0889(0.0096) & 0.0746(0.0080) \\
+SYM-MU & 0.0461(0.0034) & 0.0571(0.0044) & 0.0501(0.0051) \\
+\multicolumn{4}{l}{\textit{Panel B: $n=1000$}} \\
+\midrule
+SYM-RANDOM & 0.0286(0.0028) & 0.0313(0.0032) & 0.0275(0.0037) \\
+SYM-LIN & 0.0350(0.0028) & 0.0392(0.0030) & 0.0340(0.0022) \\
+SYM-NL & 0.0417(0.0058) & 0.0814(0.0072) & 0.0736(0.0066) \\
+SYM-MU & 0.0287(0.0022) & 0.0461(0.0040) & 0.0406(0.0034) \\
+\bottomrule
+\end{tabular}
+\end{table}

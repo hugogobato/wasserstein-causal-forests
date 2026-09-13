@@ -786,3 +786,22 @@ def build_dgp(
     return DistributionalDGP(
         spec, GridSpec(n_grid), n_quadrature_nodes=n_quadrature_nodes
     )
+
+
+def resolve_dgp_spec(dgp_id: str) -> DGPSpec:
+    """Return the registered specification behind one regime identifier.
+
+    The frozen suite is consulted first, then the extra specs registered by
+    later phases, so a variant can never shadow a frozen regime. Identifiers
+    that exist only as builders in ``_EXTRA_BUILDERS`` have no standalone
+    specification; callers that need those must keep using ``build_dgp``.
+    """
+
+    spec = _SPECS.get(dgp_id)
+    if spec is None:
+        spec = _EXTRA_SPECS.get(dgp_id)
+    if spec is None:
+        raise ValueError(
+            f"unknown DGP spec {dgp_id!r}; no specification is registered"
+        )
+    return spec

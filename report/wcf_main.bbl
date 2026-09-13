@@ -1,0 +1,104 @@
+\begin{thebibliography}{}
+
+\bibitem[Bang and Robins, 2005]{bang2005doubly}
+Bang, H. and Robins, J.~M. (2005).
+\newblock Doubly robust estimation in missing data and causal inference models.
+\newblock {\em Biometrics}, 61(4):962--973.
+
+\bibitem[Barlow and Brunk, 1972]{barlow1972isotonic}
+Barlow, R.~E. and Brunk, H.~D. (1972).
+\newblock The isotonic regression problem and its dual.
+\newblock {\em Journal of the American Statistical Association},
+  67(337):140--147.
+
+\bibitem[{\'C}evid et~al., 2022]{DRF-paper}
+{\'C}evid, D., Michel, L., N{\"a}f, J., Meinshausen, N., and B{\"u}hlmann, P.
+  (2022).
+\newblock Distributional random forests: Heterogeneity adjustment and
+  multivariate distributional regression.
+\newblock {\em Journal of Machine Learning Research}, 23(333):1--79.
+
+\bibitem[Chernozhukov et~al., 2018]{chernozhukov2018double}
+Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey,
+  W., and Robins, J. (2018).
+\newblock Double/debiased machine learning for treatment and structural
+  parameters.
+\newblock {\em The Econometrics Journal}, 21(1):C1--C68.
+
+\bibitem[Duan et~al., 1983]{duan1983medical}
+Duan, N., Manning, W.~G., Morris, C.~N., and Newhouse, J.~P. (1983).
+\newblock A comparison of alternative models for the demand for medical care.
+\newblock {\em Journal of Business and Economic Statistics}, 1(2):115--126.
+
+\bibitem[Friedman, 2001]{friedman2001greedy}
+Friedman, J.~H. (2001).
+\newblock Greedy function approximation: A gradient boosting machine.
+\newblock {\em The Annals of Statistics}, 29(5):1189--1232.
+
+\bibitem[Gneiting and Raftery, 2007]{gneiting2007proper}
+Gneiting, T. and Raftery, A.~E. (2007).
+\newblock Strictly proper scoring rules, prediction, and estimation.
+\newblock {\em Journal of the American Statistical Association},
+  102(477):359--378.
+
+\bibitem[Gretton et~al., 2012]{gretton2012kernel}
+Gretton, A., Borgwardt, K.~M., Rasch, M.~J., Sch{\"o}lkopf, B., and Smola, A.
+  (2012).
+\newblock A kernel two-sample test.
+\newblock {\em The Journal of Machine Learning Research}, 13(1):723--773.
+
+\bibitem[Kallus and Oprescu, 2023]{GRFDistributionalCausalEffects}
+Kallus, N. and Oprescu, M. (2023).
+\newblock Robust and agnostic learning of conditional distributional treatment
+  effects.
+\newblock In {\em Proceedings of The 26th International Conference on
+  Artificial Intelligence and Statistics}, volume 206, pages 6037--6060.
+
+\bibitem[Martinez~Taboada et~al., 2023]{martineztaboada2023efficient}
+Martinez~Taboada, D., Ramdas, A., and Kennedy, E. (2023).
+\newblock An efficient doubly-robust test for the kernel treatment effect.
+\newblock In {\em Advances in Neural Information Processing Systems},
+  volume~36, pages 59924--59952.
+
+\bibitem[Muandet et~al., 2021]{Counterfactualmeanembeddings}
+Muandet, K., Kanagawa, M., Saengkyongam, S., and Marukatat, S. (2021).
+\newblock Counterfactual mean embeddings.
+\newblock {\em Journal of Machine Learning Research}, 22(162):1--71.
+
+\bibitem[Mullahy, 1986]{mullahy1986modified}
+Mullahy, J. (1986).
+\newblock Specification and testing of some modified count data models.
+\newblock {\em Journal of Econometrics}, 33(3):341--365.
+
+\bibitem[N{\"a}f et~al., 2026]{naf2026causaldrf}
+N{\"a}f, J., Park, J., and Susmann, H. (2026).
+\newblock Causal-{DRF}: Conditional kernel treatment effect estimation using
+  distributional random forest.
+\newblock In {\em Proceedings of the 29th International Conference on
+  Artificial Intelligence and Statistics (AISTATS)}, volume 300 of {\em
+  Proceedings of Machine Learning Research}, pages 1000--1008. PMLR.
+
+\bibitem[Park et~al., 2021]{CATEGeneralization}
+Park, J., Shalit, U., Sch{\"o}lkopf, B., and Muandet, K. (2021).
+\newblock Conditional distributional treatment effect with kernel conditional
+  mean embeddings and {U}-statistic regression.
+\newblock In {\em Proceedings of the 38th International Conference on Machine
+  Learning (ICML)}, volume 139, pages 8401--8412.
+
+\bibitem[Peyr{\'e} and Cuturi, 2019]{peyre2019optimaltransport}
+Peyr{\'e}, G. and Cuturi, M. (2019).
+\newblock Computational optimal transport.
+\newblock {\em Foundations and Trends in Machine Learning}, 11(5--6):355--607.
+
+\bibitem[Rosenbaum and Rubin, 1983]{rosenbaum1983propensity}
+Rosenbaum, P.~R. and Rubin, D.~B. (1983).
+\newblock The central role of the propensity score in observational studies for
+  causal effects.
+\newblock {\em Biometrika}, 70(1):41--55.
+
+\bibitem[Souto and Diamantis, 2026]{souto_diamantis_tcda_2026}
+Souto, H.~G. and Diamantis, I. (2026).
+\newblock A mathematical framework for topological causal data analysis.
+\newblock {\em arXiv preprint arXiv:2607.28161}.
+
+\end{thebibliography}

@@ -16,6 +16,7 @@ writes.
 from __future__ import annotations
 
 import os
+import time
 import sys
 
 for _variable in (
@@ -86,9 +87,14 @@ def _worker(payload: tuple[list[dict], int]) -> dict:
         for item in cell_dicts
     ]
     # A per-launch tag keeps successive invocations from overwriting one
-    # another's shard files wholesale.
+    # another's shard files wholesale. Without an explicit tag the launch
+    # timestamp is used: two launches share worker indices, so an untagged
+    # relaunch would silently replace the previous launch's parquet files
+    # while the execution logs still claim those cells are done.
     tag = os.environ.get("PHASE65_SHARD_TAG", "")
-    suffix = f"{tag}_{index:03d}" if tag else f"{index:03d}"
+    if not tag:
+        tag = time.strftime("%Y%m%d_%H%M%S")
+    suffix = f"{tag}_{index:03d}"
     return run_shard(
         cells,
         RESULTS_DIRECTORY / f"shard_{suffix}.parquet",

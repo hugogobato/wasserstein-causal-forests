@@ -1,0 +1,21 @@
+\begin{table}[t]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{Propensity-model sensitivity on the SYM-NL and SYM-MU designs at $n=500$ and $n=1000$. Entries are native reference-TCATE errors, mean(SE) over ten replications; lower is better. The columns replace the default logistic propensity with a random-forest factory, a gradient-boosting factory, and the oracle propensity, which is a diagnostic and not a feasible competitor. The outcome learner, grid, and particle budget are held fixed.}
+\label{tab:sensitivity-propensity}
+\begin{tabular}{lrrrr}
+\toprule
+DGP & Logistic & Random forest & Gradient boosting & Oracle \\
+\midrule
+\multicolumn{5}{l}{\textit{Panel A: $n=500$}} \\
+\midrule
+SYM-NL & 0.0597(0.0085) & 0.0565(0.0063) & 0.1737(0.0187) & 0.0578(0.0049) \\
+SYM-MU & 0.0461(0.0034) & 0.0470(0.0033) & 0.1524(0.0165) & 0.0426(0.0042) \\
+\multicolumn{5}{l}{\textit{Panel B: $n=1000$}} \\
+\midrule
+SYM-NL & 0.0417(0.0058) & 0.0383(0.0055) & 0.1471(0.0147) & 0.0339(0.0053) \\
+SYM-MU & 0.0287(0.0022) & 0.0291(0.0023) & 0.1057(0.0117) & 0.0261(0.0025) \\
+\bottomrule
+\end{tabular}
+\end{table}

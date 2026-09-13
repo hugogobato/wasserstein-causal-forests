@@ -1,0 +1,25 @@
+\begin{table}[t]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{Null companion designs with exactly zero treatment effects, so every entry is an absolute false-effect error. Entries are mean(SE) pooled over the six null companion designs and ten replications; lower is better. The first two rows use the grid-mean functional, and the last two rows use the reference-distance marginal and conditional targets.}
+\label{tab:sensitivity-placebo}
+\begin{tabular}{lrrr}
+\toprule
+Target & WCF & Causal-DRF & DRF \\
+\midrule
+\multicolumn{4}{l}{\textit{Panel A: $n=500$}} \\
+\midrule
+TATE grid mean & 0.0329(0.0031) & 0.1466(0.0126) & 0.1064(0.0108) \\
+TCATE grid mean & 0.0615(0.0028) & 0.1542(0.0123) & 0.1183(0.0099) \\
+Ref. TATE & 0.0179(0.0015) & 0.0215(0.0020) & 0.0197(0.0018) \\
+Ref. TCATE & 0.0449(0.0022) & 0.0504(0.0038) & 0.0556(0.0043) \\
+\multicolumn{4}{l}{\textit{Panel B: $n=1000$}} \\
+\midrule
+TATE grid mean & 0.0295(0.0028) & 0.1026(0.0100) & 0.0736(0.0083) \\
+TCATE grid mean & 0.0466(0.0025) & 0.1098(0.0097) & 0.0851(0.0075) \\
+Ref. TATE & 0.0135(0.0014) & 0.0140(0.0015) & 0.0138(0.0014) \\
+Ref. TCATE & 0.0352(0.0016) & 0.0476(0.0040) & 0.0519(0.0042) \\
+\bottomrule
+\end{tabular}
+\end{table}

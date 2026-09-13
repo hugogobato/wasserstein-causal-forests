@@ -1,0 +1,210 @@
+% Proposed replacement for the manuscript's current Section 2.
+% This file is a standalone section for integration into report/wcf_main.tex.
+% It deliberately leaves K, M, and d generic until the implementation paragraph.
+
+\section{The Wasserstein Causal Forest Model}\label{sec:model}
+
+\subsection{Observed data, representation, and estimands}\label{sec:setup}
+
+Let $O_i=(X_i,A_i,Q_i)$ denote one observational unit, where $X_i\in
+\mathbb{R}^{d}$ is a vector of pre-treatment covariates, $A_i\in\{0,1\}$ is
+the treatment indicator, and $Q_i=q_K(Y_i)$ is the outcome represented on a
+fixed grid $0<u_1<\cdots<u_K<1$. The grid representation is
+$q_K(Y)=(Q_Y(u_1),\ldots,Q_Y(u_K))\in\mathcal{Q}_K$, where
+$\mathcal{Q}_K=\{q\in\mathbb{R}^K:q_1\leq\cdots\leq q_K\}$. Let
+$w_k>0$ and $\sum_k w_k=1$. We use the weighted finite-grid geometry
+\[
+ d_{W,K}(q,q')=\left\{\sum_{k=1}^{K}w_k(q_k-q'_k)^2\right\}^{1/2}.
+\]
+This is the declared quadrature approximation to one-dimensional $W_2$
+\citep{peyre2019optimaltransport}; all
+targets in this paper carry the finite-grid label $K$.
+
+Write $Y^a$ for the potential outcome under treatment level $a$ and
+$e(x)=\Pr(A=1\mid X=x)$ for the propensity score. The identification
+conditions are consistency, conditional exchangeability
+$Y^a\perp A\mid X$, and positivity $0<e(X)<1$ almost surely. Under these
+conditions the arm-specific conditional law
+\[
+ P_a^K(x)=\operatorname{Law}\{q_K(Y^a)\mid X=x\}
+ =\operatorname{Law}\{q_K(Y)\mid A=a,X=x\}
+\]
+is identified. The method estimates this law directly and subsequently
+integrates measurable grid functionals against it.
+
+For a measurable scalar functional $h:\mathcal{Q}_K\to\mathbb{R}$, define
+\[
+ \mu_{a,h}(x)=\mathbb{E}\{h(q_K(Y^a))\mid X=x\},\qquad
+ \theta_h=\mathbb{E}\{\mu_{1,h}(X)-\mu_{0,h}(X)\},
+\]
+and, for a pre-treatment moderator $V=g(X)$,
+\[
+ \tau_h(v)=\mathbb{E}\{\mu_{1,h}(X)-\mu_{0,h}(X)\mid V=v\}.
+\]
+We refer to $\theta_h$ as a TATE and to $\tau_h(v)$ as a TCATE. The grid
+mean, grid standard deviation, grid skewness, and upper-tail mean are obtained
+by taking $h$ to be the corresponding functional of $q_K(Y)$. The identity
+functional $h(q)=q$ gives the mean-quantile contrast
+\[
+ \tau_q(x)=\mathbb{E}\{q_K(Y^1)-q_K(Y^0)\mid X=x\},
+\]
+which is a vector-valued barycenter contrast and is distinct from nonlinear
+outcome-level functionals of the barycenter.
+
+The reference-distribution estimands use the scalar functional
+\[
+ h_{\mathrm{ref}}(q)=d_{W,K}(q,q_\star),
+\]
+where $q_\star$ is a fixed benchmark quantile vector. Thus
+\[
+ \theta_{\mathrm{ref}}=\mathbb{E}\{h_{\mathrm{ref}}(q_K(Y^1))
+ -h_{\mathrm{ref}}(q_K(Y^0))\},\qquad
+ \tau_{\mathrm{ref}}(v)=\mathbb{E}\{h_{\mathrm{ref}}(q_K(Y^1))
+ -h_{\mathrm{ref}}(q_K(Y^0))\mid V=v\}.
+\]
+These are the reference-distance TATE and TCATE, respectively. A negative
+value means that treatment moves the outcome law closer to the benchmark on
+average within the relevant population. They are differences of expected
+distances, not the distance between an expected quantile vector and the
+benchmark.
+
+The term endogenous adoption is used here in the observed-confounding sense:
+the propensity varies with pre-treatment covariates that also predict the
+potential outcome laws. A propensity different from one half is not, by
+itself, evidence of endogeneity. For example, a constant propensity of 0.7
+would describe unequal but otherwise randomized allocation. Endogenous
+adoption arises when $e(X)$ is related to outcome-relevant prognostic
+features, such as $\mu_{a,h}(X)$, or when treatment depends on unobserved
+potential-outcome information so that conditional exchangeability fails. The
+simulation designs use the first case: the adoption index is a function of
+covariates that also enter the outcome surfaces. The proposed calibration
+therefore targets confounding adjustment under a nonconstant propensity; it
+does not identify effects when unmeasured confounding remains after
+conditioning on $X$.
+
+\subsection{Particle-law estimation}\label{sec:boosting}
+
+For each arm, the fitted conditional law is an empirical particle law
+\[
+ \widehat P_{a,M}^K(x)=\frac{1}{M}\sum_{m=1}^{M}\delta_{p_{am}(x)},
+ \qquad p_{am}(x)\in\mathcal{Q}_K.
+\]
+The particles are fitted by gradient boosting \citep{friedman2001greedy} on the collision-smoothed
+energy score
+\[
+ S_\varepsilon(P,q)=\frac{1}{M}\sum_{m=1}^{M}d_{\varepsilon}(p_m,q)
+ -\frac{1}{2M^2}\sum_{m,l=1}^{M}d_{\varepsilon}(p_m,p_l),
+ \qquad
+ d_{\varepsilon}(a,b)=\{d_{W,K}(a,b)^2+\varepsilon^2\}^{1/2}-\varepsilon.
+\]
+The first term attracts the particle cloud to the observed quantile vector and
+the second term preserves dispersion. Each update fits a multi-output tree to
+the negative energy gradient, accepts a backtracked step only when the
+training score decreases, and projects the updated particles onto
+$\mathcal{Q}_K$ by weighted isotonic regression \citep{barlow1972isotonic}. The particle representation
+estimates an arm-specific conditional law. It does not identify a coupling of
+$Y^0$ and $Y^1$, and differences between matched particles from the two arms
+are not individual treatment effects.
+
+The final learner uses a shared covariate partition. Candidate splits are
+scored with the pooled multi-output squared-error criterion and are retained
+only when each child contains the required number of observations from each
+arm. For the contrast-regularized update used in WCF-DR, let $g_a$ be the
+mean gradient in a leaf for arm $a$, let $n_a$ be its arm count, let
+$\bar g=(n_0g_0+n_1g_1)/(n_0+n_1)$, and let $\delta=g_1-g_0$. With
+$n_{\mathrm{eff}}=n_0n_1/(n_0+n_1)$ and
+$c_\lambda=n_{\mathrm{eff}}/(n_{\mathrm{eff}}+\lambda)$, the leaf updates are
+\[
+ \widehat g_0=\bar g-\frac{n_1}{n_0+n_1}c_\lambda\delta,
+ \qquad
+ \widehat g_1=\bar g+\frac{n_0}{n_0+n_1}c_\lambda\delta.
+\]
+This shrinks the arm gap while preserving the count-weighted pooled gradient.
+The strength $\lambda$ is selected from a fixed candidate set by held-out
+energy risk computed only on each validation unit's observed arm. The method
+uses a common pooled initialization, so the initial contrast does not simply
+reproduce the difference in the two arms' empirical covariate distributions.
+
+The notation $d$, $K$, and $M$ is generic. The simulations use six covariates
+in the income track, $K=25$ grid levels, and $M=10$ particles. These are
+implementation choices rather than restrictions of the method. Their effects
+are assessed in the sensitivity study described in the accompanying
+experimental plan.
+
+\subsection{Doubly robust calibration of scalar functionals}\label{sec:dr}
+
+The particle law and the functional calibration layer target different
+objects. For a declared functional $h$, let $\widehat m_{a,h}^{(-k)}(X_i)$
+be the out-of-fold mean of $h$ over the fitted arm-$a$ particles, and let
+$\widetilde e_i$ be a cross-fitted propensity estimate clipped to a declared
+overlap interval. With $H_i=h(q_K(Y_i))$, define
+\[
+ \widehat\phi_i(h)=\widehat m_{1,h}^{(-k)}(X_i)
+ -\widehat m_{0,h}^{(-k)}(X_i)
+ +\frac{A_i}{\widetilde e_i}
+   \{H_i-\widehat m_{1,h}^{(-k)}(X_i)\}
+ -\frac{1-A_i}{1-\widetilde e_i}
+   \{H_i-\widehat m_{0,h}^{(-k)}(X_i)\}.
+\]
+The marginal estimator is the sample mean of $\widehat\phi_i(h)$ and the
+moderator-specific estimator is its sample mean within the observed bin
+$V=v$. In the implementation, WCF-DR applies this layer to the four grid
+functionals and $h_{\mathrm{ref}}$. It replaces their reported contrast
+columns, while the particle laws and all law-level scores remain those of the
+particle booster.
+
+For fixed nuisance limits $m_a^\dagger$ and $e^\dagger$, the conditional bias
+of the corresponding population score is
+\[
+ (e^\dagger-e(X))\left[
+ \frac{m_1^\dagger(X)-\mu_{1,h}(X)}{e^\dagger}
+ +\frac{m_0^\dagger(X)-\mu_{0,h}(X)}{1-e^\dagger}
+ \right].
+\]
+Consequently, the score has the standard doubly robust property at the level
+of the scalar functional: the bias vanishes when the propensity is correct or
+when both arm-specific conditional means are correct, subject to positivity,
+integrability, and the usual conditions controlling nuisance estimation and
+cross-fitting. This property does not make the fitted conditional law doubly
+robust, and it does not by itself provide an asymptotic theorem for the
+finite-particle learner.
+
+For the simulation study, $\widetilde e$ is obtained from a cross-fitted
+logistic regression and clipped to $[0.02,0.98]$. This choice is a simple
+working model, not a requirement of the estimator. A calibrated binary
+classification method, such as a suitably cross-fitted forest or boosted
+classifier, can be substituted when the assignment mechanism is nonlinear.
+The overlap interval must then be reported, and clipping can invalidate the
+propensity-correctness branch if the true propensity lies outside the clipped
+interval. In particular, the IC3 data-generating mechanism allows propensities
+down to 0.01 and up to 0.99, so the fixed $[0.02,0.98]$ clip should not be
+described as exactly correctly specified in those tails. The outcome-model
+branch remains the relevant robustness route there if its conditional means
+are consistently estimated.
+
+\subsection{Optional two-part law for a degenerate component}\label{sec:zipt}
+
+Some distribution-valued outcomes have a structural component in which the
+entire unit-level outcome law is degenerate at a point. Examples include a
+regional expenditure or benefit distribution that is identically zero when
+there are no participating units, or a claim-count distribution for a unit
+with no claims. This is different from a continuous distribution that merely
+has a lower tail near zero. For such data, the optional two-part extension
+estimates
+\[
+ \pi_a(x)=\Pr\{q_K(Y^a)\neq\mathbf{0}\mid X=x\}
+\]
+with an arm-specific binary classifier, fits the particle booster on the
+nondegenerate rows, and assembles
+\[
+ \widehat P_a^{\mathrm{2p}}(x)=
+ \{1-\widehat\pi_a(x)\}\delta_{\mathbf{0}}
+ +\widehat\pi_a(x)\widehat P_{a,M}^{+,K}(x).
+\]
+The extension gives the degenerate component its own estimable probability
+and lets every downstream law functional integrate over both parts. The plain
+particle booster can place a finite amount of mass near zero, but it has no
+separate component-probability parameter and its particle masses are tied to
+$1/M$; the two-part assembly makes that structural mass explicit. In this
+paper the extension is an optional model component for zero-inflated outcome
+laws, not an assumption about the income-track data-generating process.

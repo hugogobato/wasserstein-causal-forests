@@ -1,0 +1,11 @@
+\section{Additional sensitivity tables}\label{app:sensitivity-tables}
+
+This subsection collects the remaining sensitivity tables: the null companion placebo checks, the factorial interaction grid on IC1 and IC3, and the wall-clock cost of the resolution and particle budgets.
+
+\input{tables_generated/wcf_sensitivity_placebo.tex}
+\input{tables_generated/wcf_sensitivity_factorial.tex}
+\input{tables_generated/wcf_sensitivity_cost.tex}
+
+The null companion regimes have exactly zero treatment effects, so every entry in Table~\ref{tab:sensitivity-placebo} is an absolute false-effect error. WCF is the smallest on every target. At $n=1000$ its grid-mean TATE error is $0.0295$, against $0.1026$ for Causal-DRF and $0.0736$ for DRF, and its grid-mean TCATE error is $0.0466$, against $0.1098$ and $0.0851$. At $n=500$ its grid-mean TATE error is $0.0329$, against $0.1466$ and $0.1064$, and its reference-TCATE error is $0.0449$, against $0.0504$ and $0.0556$. The reference-distance placebo errors are smaller across methods, and WCF remains smallest at $n=1000$ with a reference-TCATE error of $0.0352$, against $0.0476$ and $0.0519$.
+
+Table~\ref{tab:sensitivity-cost} reports median wall seconds per cell under seven concurrent single-threaded workers: $(49,10)$ costs $1.6$ times $(25,10)$ and $(25,25)$ costs $4.1$ times, while $(5,10)$ costs $0.35$ times.

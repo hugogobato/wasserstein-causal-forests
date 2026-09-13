@@ -1,0 +1,153 @@
+{
+  "bundles": [
+    {
+      "bundle": "wcf_sensitivity_shard_0.zip",
+      "target": "shard_colab_00",
+      "cells": 10,
+      "rows": 500,
+      "methods": [
+        "cwdb_dr"
+      ]
+    },
+    {
+      "bundle": "wcf_sensitivity_shard_1.zip",
+      "target": "shard_colab_01",
+      "cells": 10,
+      "rows": 500,
+      "methods": [
+        "cwdb_dr"
+      ]
+    },
+    {
+      "bundle": "wcf_sensitivity_shard_10.zip",
+      "target": "shard_colab_10",
+      "cells": 10,
+      "rows": 500,
+      "methods": [
+        "cwdb_dr"
+      ]
+    },
+    {
+      "bundle": "wcf_sensitivity_shard_11.zip",
+      "target": "shard_colab_11",
+      "cells": 10,
+      "rows": 500,
+      "methods": [
+        "cwdb_dr"
+      ]
+    },
+    {
+      "bundle": "wcf_sensitivity_shard_12.zip",
+      "target": "shard_colab_12",
+      "cells": 10,
+      "rows": 500,
+      "methods": [
+        "cwdb_dr"
+      ]
+    },
+    {
+      "bundle": "wcf_sensitivity_shard_13.zip",
+      "target": "shard_colab_13",
+      "cells": 10,
+      "rows": 500,
+      "methods": [
+        "cwdb_dr"
+      ]
+    },
+    {
+      "bundle": "wcf_sensitivity_shard_14.zip",
+      "target": "shard_colab_14",
+      "cells": 10,
+      "rows": 500,
+      "methods": [
+        "cwdb_dr"
+      ]
+    },
+    {
+      "bundle": "wcf_sensitivity_shard_15.zip",
+      "target": "shard_colab_15",
+      "cells": 10,
+      "rows": 500,
+      "methods": [
+        "cwdb_dr"
+      ]
+    },
+    {
+      "bundle": "wcf_sensitivity_shard_2.zip",
+      "target": "shard_colab_02",
+      "cells": 10,
+      "rows": 500,
+      "methods": [
+        "cwdb_dr"
+      ]
+    },
+    {
+      "bundle": "wcf_sensitivity_shard_3.zip",
+      "target": "shard_colab_03",
+      "cells": 10,
+      "rows": 500,
+      "methods": [
+        "cwdb_dr"
+      ]
+    },
+    {
+      "bundle": "wcf_sensitivity_shard_4.zip",
+      "target": "shard_colab_04",
+      "cells": 10,
+      "rows": 500,
+      "methods": [
+        "cwdb_dr"
+      ]
+    },
+    {
+      "bundle": "wcf_sensitivity_shard_5.zip",
+      "target": "shard_colab_05",
+      "cells": 10,
+      "rows": 500,
+      "methods": [
+        "cwdb_dr"
+      ]
+    },
+    {
+      "bundle": "wcf_sensitivity_shard_6.zip",
+      "target": "shard_colab_06",
+      "cells": 10,
+      "rows": 500,
+      "methods": [
+        "cwdb_dr"
+      ]
+    },
+    {
+      "bundle": "wcf_sensitivity_shard_7.zip",
+      "target": "shard_colab_07",
+      "cells": 10,
+      "rows": 500,
+      "methods": [
+        "cwdb_dr"
+      ]
+    },
+    {
+      "bundle": "wcf_sensitivity_shard_8.zip",
+      "target": "shard_colab_08",
+      "cells": 10,
+      "rows": 500,
+      "methods": [
+        "cwdb_dr"
+      ]
+    },
+    {
+      "bundle": "wcf_sensitivity_shard_9.zip",
+      "target": "shard_colab_09",
+      "cells": 10,
+      "rows": 500,
+      "methods": [
+        "cwdb_dr"
+      ]
+    }
+  ],
+  "duplicate_cells": [],
+  "missing_from_bundles": [],
+  "sidecar_mismatches": [],
+  "n_declared": 160,
+  "n_present": 160
+}

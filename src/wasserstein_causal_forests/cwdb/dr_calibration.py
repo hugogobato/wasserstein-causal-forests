@@ -39,8 +39,14 @@ layer therefore costs n_folds additional booster fits, not a new method family.
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
+from sklearn.ensemble import (
+    HistGradientBoostingClassifier,
+    RandomForestClassifier,
+)
 from sklearn.linear_model import LogisticRegression
 
 from .cross_fitted import (
@@ -56,6 +62,61 @@ PROPENSITY_CLIP = (0.02, 0.98)
 
 #: Nuisance folds for the propensity. Five matches the Phase 5.5 convention.
 AIPW_N_FOLDS = 5
+
+
+def logistic_propensity_factory(seed: int = 0) -> LogisticRegression:
+    """The default factory: the original cross-fitted logistic propensity.
+
+    ``seed`` exists for the common factory interface; the deterministic solver
+    ignores it, so the default path reproduces the pre-factory behaviour.
+    """
+
+    return LogisticRegression(max_iter=2000, solver="lbfgs")
+
+
+def hist_gradient_boosting_propensity_factory(
+    seed: int = 0,
+) -> HistGradientBoostingClassifier:
+    """A flexible factory: gradient-boosted trees at the library defaults."""
+
+    return HistGradientBoostingClassifier(random_state=seed)
+
+
+def random_forest_propensity_factory(seed: int = 0) -> RandomForestClassifier:
+    """A flexible factory: a fixed 200-tree forest, single-threaded."""
+
+    return RandomForestClassifier(
+        n_estimators=200,
+        min_samples_leaf=5,
+        random_state=seed,
+        n_jobs=1,
+    )
+
+
+_PROPENSITY_FACTORY_NAMES: dict[str, Callable[[int], object]] = {
+    "logistic": logistic_propensity_factory,
+    "hist_gradient_boosting": hist_gradient_boosting_propensity_factory,
+    "random_forest": random_forest_propensity_factory,
+}
+
+
+def _resolve_propensity_factory(
+    factory: str | Callable[[int], object] | None,
+) -> Callable[[int], object] | None:
+    """Map a registry name to its factory; pass callables through unchanged."""
+
+    if factory is None:
+        return None
+    if isinstance(factory, str):
+        if factory not in _PROPENSITY_FACTORY_NAMES:
+            raise ValueError(
+                f"unknown propensity factory {factory!r}; expected one of "
+                f"{sorted(_PROPENSITY_FACTORY_NAMES)}"
+            )
+        return _PROPENSITY_FACTORY_NAMES[factory]
+    if not callable(factory):
+        raise ValueError("propensity_factory must be a registry name or a callable")
+    return factory
 
 
 def _moderator_bins(X: NDArray[np.float64]) -> NDArray[np.int64]:
@@ -101,7 +162,13 @@ def _clip_propensity(values: NDArray[np.float64]) -> NDArray[np.float64]:
 
 
 class FunctionalAIPW:
-    """One AIPW aggregation per declared functional, over training rows."""
+    """One AIPW aggregation per declared functional, over training rows.
+
+    ``propensity_factory`` maps a fold seed to a fresh binary classifier with
+    ``fit`` and ``predict_proba``, defaulting to the logistic factory. When
+    ``oracle_propensity`` is supplied, no model is fitted and the clipped
+    oracle vector is used directly as ``ehat_train_``.
+    """
 
     def __init__(self, *, n_bins: int) -> None:
         self.n_bins = n_bins
@@ -114,21 +181,34 @@ class FunctionalAIPW:
         X: NDArray[np.float64],
         treatment: NDArray[np.int64],
         random_state: int,
+        propensity_factory: Callable[[int], object] | None = None,
+        oracle_propensity: NDArray[np.float64] | None = None,
     ) -> "FunctionalAIPW":
         x = np.asarray(X, dtype=float)
         a = np.asarray(treatment, dtype=int)
-        folds = stratified_folds(a, AIPW_N_FOLDS, random_state)
-        e_oof = np.empty(x.shape[0])
-        for fold in range(AIPW_N_FOLDS):
-            held_out = folds == fold
-            if not np.any(held_out):
-                continue
-            model = LogisticRegression(max_iter=2000, solver="lbfgs")
-            model.fit(x[~held_out], a[~held_out])
-            e_oof[held_out] = _clip_propensity(
-                model.predict_proba(x[held_out])[:, 1]
+        if oracle_propensity is not None:
+            oracle = np.asarray(oracle_propensity, dtype=float)
+            if oracle.shape != (x.shape[0],):
+                raise ValueError("oracle_propensity must have shape (n,)")
+            self.ehat_train_ = _clip_propensity(oracle)
+        else:
+            factory = (
+                logistic_propensity_factory
+                if propensity_factory is None
+                else propensity_factory
             )
-        self.ehat_train_ = e_oof
+            folds = stratified_folds(a, AIPW_N_FOLDS, random_state)
+            e_oof = np.empty(x.shape[0])
+            for fold in range(AIPW_N_FOLDS):
+                held_out = folds == fold
+                if not np.any(held_out):
+                    continue
+                model = factory(random_state + fold)
+                model.fit(x[~held_out], a[~held_out])
+                e_oof[held_out] = _clip_propensity(
+                    model.predict_proba(x[held_out])[:, 1]
+                )
+            self.ehat_train_ = e_oof
 
         self.marginal_: dict[str, float] = {}
         self.bin_contrasts_: dict[str, NDArray[np.float64]] = {}
@@ -153,18 +233,29 @@ class DRCalibratedCWDB(CrossFittedCWDBRegressor):
     ``functionals`` maps a name to a callable mapping an (m, K) quantile block
     to an (m,) value. The reference distance is passed in like any other
     functional: the layer does not know it is special, which is the point.
+    ``propensity_factory`` selects the AIPW propensity model by registry name
+    or as a ``seed -> estimator`` callable; ``oracle_propensity`` replaces the
+    fitted propensity with a caller-supplied true propensity at fit time.
+
+    Fitted attributes include ``oof_particles_``, the per-arm out-of-fold
+    particle clouds that a later dense-grid calibration can interpolate, and
+    ``oof_folds_``, the fold assignment that produced them.
     """
 
     def __init__(
         self,
         *,
         functionals: dict[str, object],
+        propensity_factory: str | Callable[[int], object] | None = None,
+        oracle_propensity: bool = False,
         **parameters: object,
     ) -> None:
         super().__init__(**parameters)
         if not functionals:
             raise ValueError("at least one functional is required")
         self.dr_functionals = dict(functionals)
+        self.propensity_factory = _resolve_propensity_factory(propensity_factory)
+        self.oracle_propensity = bool(oracle_propensity)
 
     def fit(
         self,
@@ -172,11 +263,29 @@ class DRCalibratedCWDB(CrossFittedCWDBRegressor):
         treatment: ArrayLike,
         quantiles: ArrayLike,
         weights: ArrayLike,
+        *,
+        true_propensity: ArrayLike | None = None,
     ) -> "DRCalibratedCWDB":
+        """Fit the cross-fitted law and the AIPW calibration layer.
+
+        ``true_propensity`` is consumed only when ``oracle_propensity`` is set,
+        where it is required, passed to the AIPW layer, and clipped there with
+        `PROPENSITY_CLIP`; otherwise any supplied value is ignored.
+        """
+
+        if self.oracle_propensity and true_propensity is None:
+            raise ValueError(
+                "true_propensity is required when oracle_propensity is set"
+            )
         x = np.asarray(X, dtype=float)
         a = np.asarray(treatment, dtype=int)
         q = np.asarray(quantiles, dtype=float)
         w = np.asarray(weights, dtype=float)
+        oracle = None
+        if self.oracle_propensity:
+            oracle = np.asarray(true_propensity, dtype=float)
+            if oracle.shape != (x.shape[0],):
+                raise ValueError("true_propensity must have shape (n,)")
         folds = stratified_folds(a, self.n_folds, self.random_state)
 
         records: list[SelectionRecord] = []
@@ -193,6 +302,11 @@ class DRCalibratedCWDB(CrossFittedCWDBRegressor):
             name: {arm: np.empty(x.shape[0]) for arm in (0, 1)}
             for name in self.dr_functionals
         }
+        self.oof_particles_ = {
+            arm: np.full((x.shape[0], self.n_particles, q.shape[1]), np.nan)
+            for arm in (0, 1)
+        }
+        self.oof_folds_ = folds.copy()
         for fold in range(self.n_folds):
             held_out = folds == fold
             if not np.any(held_out):
@@ -201,6 +315,7 @@ class DRCalibratedCWDB(CrossFittedCWDBRegressor):
             model.fit(x[~held_out], a[~held_out], q[~held_out], w)
             for arm in (0, 1):
                 particles = model.predict_particles(x[held_out], arm)
+                self.oof_particles_[arm][held_out] = particles
                 flat = particles.reshape(-1, particles.shape[-1])
                 for name, h in self.dr_functionals.items():
                     values = np.asarray(h(flat), dtype=float).reshape(particles.shape[:2])
@@ -217,7 +332,10 @@ class DRCalibratedCWDB(CrossFittedCWDBRegressor):
             X=x,
             treatment=a,
             random_state=self.random_state + 31,
+            propensity_factory=self.propensity_factory,
+            oracle_propensity=oracle,
         )
+        self.ehat_train_ = self.aipw_.ehat_train_
         super().fit(x, a, q, w)
         return self
 

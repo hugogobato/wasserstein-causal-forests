@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "contract_id": "WCF-SENSITIVITY-v1",
+  "manifest_checksum": "4ebc3be3def6c3550bc002db27775efa4c75040290c5c20767a0c63c6b83ee8b",
+  "estimator_source_hash": "c105c0aaff1b0b8e598799351cfb490845ef2253adffd909364c0670e0505d92",
+  "partial": false,
+  "n_shards": 4,
+  "n_cells_declared": 40,
+  "n_cells_observed": 40,
+  "n_cells_missing": 0,
+  "missing_cells": [],
+  "n_failed_cells": 0,
+  "n_duplicate_keys": 0,
+  "test_seed_violations": [],
+  "law_metric_gaps": []
+}
