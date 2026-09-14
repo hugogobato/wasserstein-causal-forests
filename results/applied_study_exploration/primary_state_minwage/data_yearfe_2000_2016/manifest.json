@@ -1,0 +1,40 @@
+{
+  "study": "primary_state_minwage_yearfe_2000_2016",
+  "n": 867,
+  "p": 9,
+  "K": 25,
+  "n_treated": 117,
+  "n_control": 750,
+  "moderator_bin_counts": [
+    217,
+    216,
+    217,
+    217
+  ],
+  "feature_names": [
+    "moderator_median_wage_lag_ecdf",
+    "log_real_min_wage_lag",
+    "median_wage_lag",
+    "p10_wage_lag",
+    "below_share_lag",
+    "log_earner_pop_lag",
+    "hsl_share_lag",
+    "female_share_lag",
+    "year_z"
+  ],
+  "meta": {
+    "label": "post-hoc robustness: calendar year added to X",
+    "departure": "year is not lagged; reported as robustness only",
+    "base_window": [
+      2000,
+      2016
+    ]
+  },
+  "sha256": {
+    "X": "989598df276ef9b048a22242d50d835c49e41e574272ee5e9a374fdd2e97dd34",
+    "A": "010cb77d297ffa64faa7b4534549f48847e466b90a66193a518498d9b31c2e8d",
+    "Q": "eb4d0b39cf763581b0ae9ac0eb552e8456041e1fc1916d374c326f3b2e72df9c",
+    "moderator_raw": "3eaa4b8a0e4f2731e0019bf81a6ba16874cf5180ac2ebe4b995c40e9b8581062",
+    "q_star": "fda836fb857951406e2616b16e26023ab38d5f55594a994fdb9efcaf4a71a48a"
+  }
+}

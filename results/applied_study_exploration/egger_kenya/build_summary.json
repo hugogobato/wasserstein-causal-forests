@@ -1,0 +1,15 @@
+{
+  "n": 653,
+  "p": 8,
+  "K": 25,
+  "n_treated": 328,
+  "n_control": 325,
+  "moderator_bin_counts": [
+    163,
+    163,
+    164,
+    163
+  ],
+  "q_star_capped_at": 43827.14155840261,
+  "hh_dropped_rows": 13
+}

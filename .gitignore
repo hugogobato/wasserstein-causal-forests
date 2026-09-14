@@ -21,3 +21,14 @@ Wasserstein_Bayesian_Causal_Forest_Literature_Reading_List.md
 Wasserstein_Causal_Forest_Research_Plan.md
 Causal_DRF/
 *:Zone.Identifier
+
+research/applied/acs_state_year/
+research/applied/epa_nonattainment/
+research/applied/build_applied_assets.py
+
+results/applied_study_exploration/acs_state_year/
+results/applied_study_exploration/epa_nonattainment/
+results/applied_study_exploration/EVIDENCE_LEDGER.md
+results/applied_study_exploration/nordic_benchmark/
+paper/
+report/

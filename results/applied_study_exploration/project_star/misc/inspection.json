@@ -1,0 +1,139 @@
+{
+  "students_shape": [
+    11601,
+    379
+  ],
+  "schools_shape": [
+    80,
+    53
+  ],
+  "student_sha256": "769be163ed54515858efa60b1a069c49ca0c475f0b0f9f5bdf90413be9d3ba97",
+  "school_sha256": "776f2d3c4c09f047bfdfa5ce9406ed745ded425c4f5b4721f2c48aa81389cba9",
+  "grades": {
+    "gk": {
+      "n_students_with_class": 6325,
+      "n_units": 325,
+      "classtype_student_counts": {
+        "1.0": 1900,
+        "2.0": 2194,
+        "3.0": 2231
+      },
+      "freelunch_missing_share_assigned": 0.003952569169960474,
+      "math_missing_share_by_arm": {
+        "small": 0.07263157894736842,
+        "regular": 0.07141242937853107
+      },
+      "reading_missing_share_by_arm": {
+        "small": 0.08473684210526315,
+        "regular": 0.0847457627118644
+      }
+    },
+    "g1": {
+      "n_students_with_class": 6829,
+      "n_units": 339,
+      "classtype_student_counts": {
+        "1.0": 1925,
+        "2.0": 2584,
+        "3.0": 2320
+      },
+      "freelunch_missing_share_assigned": 0.026211744032801288,
+      "math_missing_share_by_arm": {
+        "small": 0.03012987012987013,
+        "regular": 0.03527732463295269
+      },
+      "reading_missing_share_by_arm": {
+        "small": 0.052987012987012985,
+        "regular": 0.06769983686786298
+      }
+    },
+    "g2": {
+      "n_students_with_class": 6840,
+      "n_units": 340,
+      "classtype_student_counts": {
+        "1.0": 2016,
+        "2.0": 2329,
+        "3.0": 2495
+      },
+      "freelunch_missing_share_assigned": 0.050292397660818715,
+      "math_missing_share_by_arm": {
+        "small": 0.11259920634920635,
+        "regular": 0.11359867330016583
+      },
+      "reading_missing_share_by_arm": {
+        "small": 0.11011904761904762,
+        "regular": 0.11214759535655058
+      }
+    },
+    "g3": {
+      "n_students_with_class": 6802,
+      "n_units": 336,
+      "classtype_student_counts": {
+        "1.0": 2174,
+        "2.0": 2084,
+        "3.0": 2543
+      },
+      "freelunch_missing_share_assigned": 0.041458394589826524,
+      "math_missing_share_by_arm": {
+        "small": 0.10855565777368906,
+        "regular": 0.10566119273984442
+      },
+      "reading_missing_share_by_arm": {
+        "small": 0.11913523459061638,
+        "regular": 0.11732929991356958
+      }
+    }
+  },
+  "school_overlap": {
+    "gk": {
+      "n_units": 325,
+      "units_with_two_classtypes": 0,
+      "n_schools": 79,
+      "schools_with_both_arms": 79
+    },
+    "g1": {
+      "n_units": 339,
+      "units_with_two_classtypes": 0,
+      "n_schools": 76,
+      "schools_with_both_arms": 76
+    },
+    "g2": {
+      "n_units": 340,
+      "units_with_two_classtypes": 0,
+      "n_schools": 75,
+      "schools_with_both_arms": 75
+    },
+    "g3": {
+      "n_units": 336,
+      "units_with_two_classtypes": 0,
+      "n_schools": 75,
+      "schools_with_both_arms": 75
+    }
+  },
+  "school_file_checks": {
+    "gk": {
+      "official_column": "var9",
+      "n_schools_compared": 79,
+      "pearson_r_official_vs_student_share": 0.9439375038517631,
+      "mean_abs_diff_pct_points": 6.690077441430072
+    },
+    "g1": {
+      "official_column": "var21",
+      "n_schools_compared": 76,
+      "pearson_r_official_vs_student_share": 0.9235721311090215,
+      "mean_abs_diff_pct_points": 7.322501039241191
+    },
+    "g2": {
+      "official_column": "var33",
+      "n_schools_compared": 73,
+      "pearson_r_official_vs_student_share": 0.9559127143678318,
+      "mean_abs_diff_pct_points": 6.580259303989902
+    },
+    "g3": {
+      "official_column": "var45",
+      "n_schools_compared": 74,
+      "pearson_r_official_vs_student_share": 0.930998188496494,
+      "mean_abs_diff_pct_points": 7.034261791640048
+    },
+    "urbanicity_agreement": 1.0
+  }
+}

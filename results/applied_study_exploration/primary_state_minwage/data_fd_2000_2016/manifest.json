@@ -1,0 +1,40 @@
+{
+  "study": "primary_state_minwage_fd_2000_2016",
+  "n": 867,
+  "p": 8,
+  "K": 25,
+  "n_treated": 117,
+  "n_control": 750,
+  "moderator_bin_counts": [
+    217,
+    216,
+    217,
+    217
+  ],
+  "feature_names": [
+    "moderator_median_wage_lag_ecdf",
+    "log_real_min_wage_lag",
+    "median_wage_lag",
+    "p10_wage_lag",
+    "below_share_lag",
+    "log_earner_pop_lag",
+    "hsl_share_lag",
+    "female_share_lag"
+  ],
+  "meta": {
+    "label": "post-hoc robustness: within-state year-over-year quantile change",
+    "q_star": "zero vector; ramp benchmark in benchmarks.npz",
+    "ramp_delta": 0.7158448934517139,
+    "base_window": [
+      2000,
+      2016
+    ]
+  },
+  "sha256": {
+    "X": "dc4664b859dde27148883431c3d44d7cc84d6d6cf11c4c0c860ed3bd522939d5",
+    "A": "010cb77d297ffa64faa7b4534549f48847e466b90a66193a518498d9b31c2e8d",
+    "Q": "060bec6ec40f0db8e63853306b5609d069fae42907854aa6598006c15d5aa475",
+    "moderator_raw": "3eaa4b8a0e4f2731e0019bf81a6ba16874cf5180ac2ebe4b995c40e9b8581062",
+    "q_star": "6d9c54dee5660c46886f32d80e57e9dd0ffa57ee0cd2a762b036d9c8e0c3a33a"
+  }
+}

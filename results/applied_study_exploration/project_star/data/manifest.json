@@ -1,0 +1,163 @@
+{
+  "study": "project_star_math",
+  "n": 1333,
+  "p": 9,
+  "K": 25,
+  "n_treated": 522,
+  "n_control": 811,
+  "moderator_bin_counts": [
+    333,
+    333,
+    334,
+    333
+  ],
+  "feature_names": [
+    "moderator_school_fl_ecdf",
+    "teacher_female",
+    "teacher_nonwhite",
+    "teacher_graduate_degree",
+    "teacher_years",
+    "school_urbanicity",
+    "share_female",
+    "share_black",
+    "share_freelunch"
+  ],
+  "meta": {
+    "unit_definition": "(grade, g?schid, g?tchid); one classroom-grade",
+    "score": "math",
+    "standardization": "within-grade student z-score over all tested students",
+    "min_tested": 5,
+    "include_aide": true,
+    "qstar": "control",
+    "sources": {
+      "student_file": {
+        "name": "STAR_Students.tab",
+        "dataverse_doi": "10.7910/DVN/SIWH9F",
+        "datafile_id": 666716,
+        "url": "https://dataverse.harvard.edu/api/access/datafile/666716",
+        "license": "CC0",
+        "sha256": "769be163ed54515858efa60b1a069c49ca0c475f0b0f9f5bdf90413be9d3ba97"
+      },
+      "school_file": {
+        "name": "STAR_K-3_Schools.tab",
+        "dataverse_doi": "10.7910/DVN/SIWH9F",
+        "datafile_id": 666717,
+        "url": "https://dataverse.harvard.edu/api/access/datafile/666717",
+        "license": "CC0",
+        "sha256": "776f2d3c4c09f047bfdfa5ce9406ed745ded425c4f5b4721f2c48aa81389cba9"
+      }
+    },
+    "grade_info": [
+      {
+        "grade": "gk",
+        "score_col": "gktmathss",
+        "n_assigned_with_class": 6325,
+        "n_tested": 5871,
+        "score_mean": 485.3771078180889,
+        "score_sd": 47.697879915475625,
+        "n_units_assigned": 325,
+        "n_units_with_test": 325
+      },
+      {
+        "grade": "g1",
+        "score_col": "g1tmathss",
+        "n_assigned_with_class": 6829,
+        "n_tested": 6598,
+        "score_mean": 530.5278872385571,
+        "score_sd": 43.1086777508933,
+        "n_units_assigned": 339,
+        "n_units_with_test": 339
+      },
+      {
+        "grade": "g2",
+        "score_col": "g2tmathss",
+        "n_assigned_with_class": 6840,
+        "n_tested": 6065,
+        "score_mean": 580.6125309150866,
+        "score_sd": 44.573986565108505,
+        "n_units_assigned": 340,
+        "n_units_with_test": 335
+      },
+      {
+        "grade": "g3",
+        "score_col": "g3tmathss",
+        "n_assigned_with_class": 6801,
+        "n_tested": 6076,
+        "score_mean": 617.9700460829494,
+        "score_sd": 39.84115073533358,
+        "n_units_assigned": 336,
+        "n_units_with_test": 334
+      }
+    ],
+    "missingness_by_arm_grade": [
+      {
+        "grade": "gk",
+        "arm": "small",
+        "n_assigned": 1900,
+        "math_missing_share": 0.07263157894736842,
+        "reading_missing_share": 0.08473684210526315
+      },
+      {
+        "grade": "gk",
+        "arm": "regular",
+        "n_assigned": 4425,
+        "math_missing_share": 0.07141242937853107,
+        "reading_missing_share": 0.0847457627118644
+      },
+      {
+        "grade": "g1",
+        "arm": "small",
+        "n_assigned": 1925,
+        "math_missing_share": 0.03012987012987013,
+        "reading_missing_share": 0.052987012987012985
+      },
+      {
+        "grade": "g1",
+        "arm": "regular",
+        "n_assigned": 4904,
+        "math_missing_share": 0.03527732463295269,
+        "reading_missing_share": 0.06769983686786298
+      },
+      {
+        "grade": "g2",
+        "arm": "small",
+        "n_assigned": 2016,
+        "math_missing_share": 0.11259920634920635,
+        "reading_missing_share": 0.11011904761904762
+      },
+      {
+        "grade": "g2",
+        "arm": "regular",
+        "n_assigned": 4824,
+        "math_missing_share": 0.11359867330016583,
+        "reading_missing_share": 0.11214759535655058
+      },
+      {
+        "grade": "g3",
+        "arm": "small",
+        "n_assigned": 2174,
+        "math_missing_share": 0.10855565777368906,
+        "reading_missing_share": 0.11913523459061638
+      },
+      {
+        "grade": "g3",
+        "arm": "regular",
+        "n_assigned": 4627,
+        "math_missing_share": 0.10568402852820402,
+        "reading_missing_share": 0.117354657445429
+      }
+    ],
+    "dropped_units_below_min_tested": 7,
+    "dropped_units_aide": 0,
+    "moderator_fallback_units": 0,
+    "moderator_raw_name": "school free/reduced-lunch share (official school file, mean across grades)",
+    "q_star_definition": "equal-weight average over grades of pooled control-student quantile vectors"
+  },
+  "sha256": {
+    "X": "1e9ad3fddcb3aa49ebc39a309ac6c7c6bb90445ad65e80e9b2c3a0cc150ab13e",
+    "A": "b5e122e2432e667c4180b00a9879821510ecd2605ed89abd1048643345850481",
+    "Q": "a6752d3cc8ba127f2a39d8845ac745732a7fa3ff88f375265b8cbfdb936e9551",
+    "moderator_raw": "b747360b33322ef8e8845aaf7ea22d668588c194457d2e4d9d9bb93f009a999a",
+    "q_star": "fdcd07fa33f5ea1065b99939a7c374add3d757401871c31d7da940ff64e75ea6"
+  }
+}

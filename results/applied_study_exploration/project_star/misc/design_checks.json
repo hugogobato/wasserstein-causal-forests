@@ -1,0 +1,120 @@
+{
+  "n_units": 1333,
+  "tested_n_quantiles": {
+    "regular": {
+      "0.0": 13,
+      "0.1": 19,
+      "0.25": 20,
+      "0.5": 21,
+      "0.75": 23,
+      "0.9": 24,
+      "1.0": 29
+    },
+    "regular_mean": 21.274969173859432,
+    "small": {
+      "0.0": 7,
+      "0.1": 12,
+      "0.25": 13,
+      "0.5": 14,
+      "0.75": 15,
+      "0.9": 17,
+      "1.0": 20
+    },
+    "small_mean": 14.091954022988507
+  },
+  "threshold_feasibility": {
+    "13": {
+      "small_units": 429,
+      "regular_units": 811,
+      "adapter_min_arm_5_satisfied": true
+    },
+    "15": {
+      "small_units": 221,
+      "regular_units": 809,
+      "adapter_min_arm_5_satisfied": true
+    },
+    "17": {
+      "small_units": 55,
+      "regular_units": 791,
+      "adapter_min_arm_5_satisfied": true
+    },
+    "18": {
+      "small_units": 6,
+      "regular_units": 771,
+      "adapter_min_arm_5_satisfied": true
+    },
+    "20": {
+      "small_units": 1,
+      "regular_units": 646,
+      "adapter_min_arm_5_satisfied": false
+    }
+  },
+  "balance": {
+    "classsize": {
+      "small_mean": 15.293103448275861,
+      "regular_mean": 23.008631319358816,
+      "std_diff": -3.890988071230378
+    },
+    "assigned_n": {
+      "small_mean": 15.293103448275861,
+      "regular_mean": 23.008631319358816,
+      "std_diff": -3.890988071230378
+    },
+    "teacher_tyears": {
+      "small_mean": 11.948275862068966,
+      "regular_mean": 12.04438964241677,
+      "std_diff": -0.011592008851652544
+    },
+    "share_female": {
+      "small_mean": 0.48661938159932,
+      "regular_mean": 0.4803023454089857,
+      "std_diff": 0.06258665471305241
+    },
+    "share_black": {
+      "small_mean": 0.31168958090242027,
+      "regular_mean": 0.34125082096072873,
+      "std_diff": -0.07354448187026562
+    },
+    "share_freelunch": {
+      "small_mean": 0.48123819609976687,
+      "regular_mean": 0.5135209425892746,
+      "std_diff": -0.11497028431665467
+    },
+    "school_fl_official": {
+      "small_mean": 0.4757614942528736,
+      "regular_mean": 0.48694512946979035,
+      "std_diff": -0.043227004289253516
+    },
+    "school_urban": {
+      "small_mean": 2.4616858237547894,
+      "regular_mean": 2.406905055487053,
+      "std_diff": 0.059983612467277084
+    }
+  },
+  "within_school_balance": {
+    "teacher_tyears": {
+      "within_school_diff_small_minus_control": -0.04358303801338978,
+      "cluster_se": 0.45928234210758045
+    },
+    "share_female": {
+      "within_school_diff_small_minus_control": 0.005111078283068378,
+      "cluster_se": 0.009285913174108663
+    },
+    "share_black": {
+      "within_school_diff_small_minus_control": -0.0033484387952096586,
+      "cluster_se": 0.005696931416256391
+    },
+    "share_freelunch": {
+      "within_school_diff_small_minus_control": -0.023281230639451297,
+      "cluster_se": 0.010678614057882905
+    },
+    "teacher_nonwhite": {
+      "within_school_diff_small_minus_control": 0.008965390634535608,
+      "cluster_se": 0.02009810121062129
+    },
+    "teacher_graduate_degree": {
+      "within_school_diff_small_minus_control": -0.04702984184976665,
+      "cluster_se": 0.026654096810103722
+    }
+  }
+}

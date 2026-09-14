@@ -1,0 +1,30 @@
+{
+  "small": {
+    "n_units": 522,
+    "mean_tested_n": 14.091954022988507,
+    "mean_quantile_variance_W2sq": 0.09539938562294709,
+    "mean_distance_to_qstar": 0.6106859379870744,
+    "implied_inflation_var_over_2d": 0.07810838574194112
+  },
+  "control": {
+    "n_units": 811,
+    "mean_tested_n": 21.274969173859432,
+    "mean_quantile_variance_W2sq": 0.06448259842050161,
+    "mean_distance_to_qstar": 0.5636009063263593,
+    "implied_inflation_var_over_2d": 0.05720590376691326
+  },
+  "mechanical_component_of_reference_contrast": 0.020902481975027865,
+  "observed_reference_marginal_seed0": 0.05568734011004914,
+  "high_fl_quartile": {
+    "small": {
+      "n_units": 127,
+      "mean_quantile_variance_W2sq": 0.08930617256956289,
+      "mean_distance_to_qstar": 0.6426356758159557
+    },
+    "control": {
+      "n_units": 206,
+      "mean_quantile_variance_W2sq": 0.05387158079442277,
+      "mean_distance_to_qstar": 0.7654479628524746
+    }
+  }
+}

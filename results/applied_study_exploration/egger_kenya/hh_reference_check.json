@@ -1,0 +1,147 @@
+{
+  "all": {
+    "nondurables_exp_pc": {
+      "estimate": -118.26614889602934,
+      "se_clustered": 1997.2262805734422,
+      "t": -0.0592151976200077,
+      "n": 8226,
+      "n_clusters": 653,
+      "mean_treated": 38259.157868621114,
+      "mean_control": 38377.42401751714
+    },
+    "log1p_nondurables_exp_pc": {
+      "estimate": 0.024766194036111244,
+      "se_clustered": 0.024459109341304137,
+      "t": 1.0125550235914982,
+      "n": 8226,
+      "n_clusters": 653,
+      "mean_treated": 10.238077867849231,
+      "mean_control": 10.21331167381312
+    },
+    "total_exp_pc": {
+      "estimate": -436.27551063798455,
+      "se_clustered": 2299.818996306428,
+      "t": -0.1896999334898333,
+      "n": 8226,
+      "n_clusters": 653,
+      "mean_treated": 39876.88491767479,
+      "mean_control": 40313.160428312774
+    }
+  },
+  "eligible": {
+    "nondurables_exp_pc": {
+      "estimate": 1157.406491709291,
+      "se_clustered": 1433.4285423211777,
+      "t": 0.8074392671399447,
+      "n": 5419,
+      "n_clusters": 653,
+      "mean_treated": 36277.24191453192,
+      "mean_control": 35119.83542282263
+    },
+    "log1p_nondurables_exp_pc": {
+      "estimate": 0.03127293609277615,
+      "se_clustered": 0.027529705854106606,
+      "t": 1.1359705860464602,
+      "n": 5419,
+      "n_clusters": 653,
+      "mean_treated": 10.171312489512488,
+      "mean_control": 10.140039553419712
+    },
+    "total_exp_pc": {
+      "estimate": 3221.377912007534,
+      "se_clustered": 1548.623410004358,
+      "t": 2.0801557636265287,
+      "n": 5419,
+      "n_clusters": 653,
+      "mean_treated": 39628.68474969863,
+      "mean_control": 36407.306837691096
+    }
+  },
+  "ineligible": {
+    "nondurables_exp_pc": {
+      "estimate": -755.4790149906476,
+      "se_clustered": 2891.722428243652,
+      "t": -0.26125571652791846,
+      "n": 2807,
+      "n_clusters": 653,
+      "mean_treated": 39248.659968544416,
+      "mean_control": 40004.138983535064
+    },
+    "log1p_nondurables_exp_pc": {
+      "estimate": 0.021510548328642187,
+      "se_clustered": 0.03181757522838297,
+      "t": 0.6760586931669649,
+      "n": 2807,
+      "n_clusters": 653,
+      "mean_treated": 10.2714115124622,
+      "mean_control": 10.249900964133557
+    },
+    "total_exp_pc": {
+      "estimate": -2262.7914236333017,
+      "se_clustered": 3331.4045799534583,
+      "t": -0.6792304474963873,
+      "n": 2807,
+      "n_clusters": 653,
+      "mean_treated": 40000.80267862072,
+      "mean_control": 42263.59410225402
+    }
+  },
+  "hi_sat1": {
+    "nondurables_exp_pc": {
+      "estimate": 1533.567920898713,
+      "se_clustered": 1605.5399261080076,
+      "t": 0.955172709168459,
+      "n": 4085,
+      "n_clusters": 324,
+      "mean_treated": 37801.754988732995,
+      "mean_control": 36268.18706783428
+    },
+    "log1p_nondurables_exp_pc": {
+      "estimate": -0.0149338022170582,
+      "se_clustered": 0.03728491509090005,
+      "t": -0.40053201624973045,
+      "n": 4085,
+      "n_clusters": 324,
+      "mean_treated": 10.217855280826402,
+      "mean_control": 10.23278908304346
+    },
+    "total_exp_pc": {
+      "estimate": 2133.1954385095014,
+      "se_clustered": 1722.316920502921,
+      "t": 1.2385615057922108,
+      "n": 4085,
+      "n_clusters": 324,
+      "mean_treated": 39446.19904963759,
+      "mean_control": 37313.003611128086
+    }
+  },
+  "hi_sat0": {
+    "nondurables_exp_pc": {
+      "estimate": -403.35105937462504,
+      "se_clustered": 3161.0076462733086,
+      "t": -0.12760205115294754,
+      "n": 4141,
+      "n_clusters": 329,
+      "mean_treated": 39117.07331632335,
+      "mean_control": 39520.42437569798
+    },
+    "log1p_nondurables_exp_pc": {
+      "estimate": 0.07325100007021312,
+      "se_clustered": 0.03535002520124318,
+      "t": 2.0721625982783474,
+      "n": 4141,
+      "n_clusters": 329,
+      "mean_treated": 10.27600782098733,
+      "mean_control": 10.202756820917116
+    },
+    "total_exp_pc": {
+      "estimate": -1254.2629950173214,
+      "se_clustered": 3586.8549224202143,
+      "t": -0.3496832244809648,
+      "n": 4141,
+      "n_clusters": 329,
+      "mean_treated": 40684.68931843969,
+      "mean_control": 41938.95231345701
+    }
+  }
+}

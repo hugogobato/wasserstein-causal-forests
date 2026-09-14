@@ -1,0 +1,8 @@
+{
+  "stage": "sens20",
+  "cut": 20,
+  "n": 8,
+  "n_treated": 4,
+  "n_control": 4,
+  "status": "skipped: fewer than five units in an arm (adapter guard)"
+}

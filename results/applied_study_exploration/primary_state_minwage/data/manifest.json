@@ -1,0 +1,71 @@
+{
+  "study": "primary_state_minwage_2000_2016",
+  "n": 867,
+  "p": 8,
+  "K": 25,
+  "n_treated": 117,
+  "n_control": 750,
+  "moderator_bin_counts": [
+    217,
+    216,
+    217,
+    217
+  ],
+  "feature_names": [
+    "moderator_median_wage_lag_ecdf",
+    "log_real_min_wage_lag",
+    "median_wage_lag",
+    "p10_wage_lag",
+    "below_share_lag",
+    "log_earner_pop_lag",
+    "hsl_share_lag",
+    "female_share_lag"
+  ],
+  "meta": {
+    "study": "primary_state_minwage",
+    "year_window": [
+      2000,
+      2016
+    ],
+    "treatment_primary": "A1",
+    "n_states": 51,
+    "sources": {
+      "microdata": "NBER CPS MORG annual, https://data.nber.org/morg/annual/morgYY.dta",
+      "policy": "Vaghul-Zipperer v1.4.0, https://github.com/benzipperer/historicalminwage/releases/download/v1.4.0/mw_state_stata.zip",
+      "deflator": "CPI-U-RS from Cengiz et al. (2019) replica (doi:10.7910/DVN/TJCTC7), 2017+ spliced with https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCSL",
+      "nordic": "results/applied_study_exploration/nordic_benchmark/nordic_qstar_k25_grid.csv column B_incY2024_4c_popw (Eurostat ilc_di01 TC, PPS, income year 2024, DK/FI/NO/SE pop-weighted)"
+    },
+    "sample": "age 16-64; earnwt>0; not self-employed; paidhre in {1,2}; non-imputed (Cengiz-Hirsch-Schumacher rules); wage=earnhre/100 if paid-hourly else earnwke/uhourse; positive finite wage; 2016 dollars via CPI-U-RS",
+    "treatment_definitions": {
+      "A1": "real effective MW rose > $0.25, own nominal rate rose, not federal-only",
+      "A2": "real effective MW rose > $0.25 (federal-induced included)",
+      "A3": "state rate strictly above the federal floor"
+    },
+    "q_star": {
+      "primary": "nordic_scaled",
+      "scalar": 0.0006655277789426888,
+      "scalar_definition": "pooled US 2016 sample median / Nordic u=0.5 value",
+      "pooled_median_2016": 17.6922,
+      "nordic_median": 26583.713797953344
+    },
+    "moderator": "lagged state median real wage, ecdf transform in X[:,0]",
+    "feature_names": [
+      "moderator_median_wage_lag_ecdf",
+      "log_real_min_wage_lag",
+      "median_wage_lag",
+      "p10_wage_lag",
+      "below_share_lag",
+      "log_earner_pop_lag",
+      "hsl_share_lag",
+      "female_share_lag"
+    ],
+    "preregistration": "research/applied/primary_state_minwage/preregistration.md"
+  },
+  "sha256": {
+    "X": "703f42bde3e3d118f20018134d370ff8de5cd3946810c67a990d9100f8ab0805",
+    "A": "010cb77d297ffa64faa7b4534549f48847e466b90a66193a518498d9b31c2e8d",
+    "Q": "eb4d0b39cf763581b0ae9ac0eb552e8456041e1fc1916d374c326f3b2e72df9c",
+    "moderator_raw": "3eaa4b8a0e4f2731e0019bf81a6ba16874cf5180ac2ebe4b995c40e9b8581062",
+    "q_star": "fda836fb857951406e2616b16e26023ab38d5f55594a994fdb9efcaf4a71a48a"
+  }
+}

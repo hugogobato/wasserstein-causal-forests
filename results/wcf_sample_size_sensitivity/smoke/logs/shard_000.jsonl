@@ -1,0 +1,1 @@
+{"cell_key": "8760e165b3938de3", "grid": "wcf_sample_size_v1_logit_f3", "dgp": "IC1", "n_train": 125, "n_grid": 25, "n_particles": 10, "method": "cwdb_dr", "seed": 0, "status": "ok", "n_rows": 33, "wall_seconds": 64.896, "finished_at": 1789414677.9063447}

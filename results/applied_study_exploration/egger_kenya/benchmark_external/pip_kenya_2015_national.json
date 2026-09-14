@@ -1,0 +1,34 @@
+{
+  "provenance": {
+    "source": "World Bank Poverty and Inequality Platform (PIP) API",
+    "endpoint": "https://api.worldbank.org/pip/v1/pip?country=KEN&year=2015&format=json",
+    "retrieved": "2026-09-14",
+    "survey": "Kenya Integrated Household Budget Survey (KIHBS) 2015/16",
+    "survey_year": 2015.67,
+    "reporting_level": "national",
+    "welfare_type": "consumption",
+    "welfare_units": "per capita, 2017 PPP US dollars per day",
+    "rural_cut_available": false,
+    "note": "rural and urban PIP queries for Kenya 2015 return no rows; only the national estimate is published."
+  },
+  "fields": {
+    "mean": 5.1342,
+    "median": 3.7466,
+    "gini": 0.4077,
+    "mld": 0.2796,
+    "polarization": 0.3594,
+    "decile1": 0.0241,
+    "decile2": 0.0374,
+    "decile3": 0.0467,
+    "decile4": 0.0558,
+    "decile5": 0.0665,
+    "decile6": 0.0795,
+    "decile7": 0.0952,
+    "decile8": 0.1195,
+    "decile9": 0.1596,
+    "decile10": 0.3156,
+    "ppp": 42.428,
+    "cpi": 0.7368,
+    "reporting_pop": 47792803.87
+  }
+}
