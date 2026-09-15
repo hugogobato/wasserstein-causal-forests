@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "shards_directory": "colab/wcf_confirmatory_r50_26_shards",
+  "n_shards": 26,
+  "n_cells": 2100,
+  "manifest_checksum": "e3fee5f3b5f410365b3c46ae898f3a87c81d774c5a0ae26d349bea08ba3e23d6",
+  "source_archive_sha256": "f30ba0081043975db512058bfcf1629cafa72e8e1c059e1a90a8baab22846a70",
+  "causal_drf_paper": {
+    "repository": "herbps10/causal_drf_paper",
+    "commit": "06d156e1f2c17c676000f258ccdf15fc60544384",
+    "files": {
+      "R/simulation_study_setup.R": "b4b6f94054c3814c7cce272cd66a10bf772a2efbcdeb98ef058e425a5f2607a2",
+      "R/simulation_study.R": "fbf7ec12a375b169737edaa07e4c3bb62bf5d10bcf56f80a66bbc307a2778a59"
+    }
+  },
+  "findings": []
+}

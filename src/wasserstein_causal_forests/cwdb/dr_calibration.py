@@ -213,6 +213,7 @@ class FunctionalAIPW:
         self.marginal_: dict[str, float] = {}
         self.bin_contrasts_: dict[str, NDArray[np.float64]] = {}
         self.if_se_: dict[str, float] = {}
+        self.scores_: dict[str, NDArray[np.float64]] = {}
         for name, h_values in observed.items():
             scores = aipw_scores(
                 h_values,
@@ -221,6 +222,7 @@ class FunctionalAIPW:
                 self.ehat_train_,
                 a,
             )
+            self.scores_[name] = scores
             self.marginal_[name] = float(np.mean(scores))
             self.bin_contrasts_[name] = hajek_bin_means(scores, _moderator_bins(x), self.n_bins)
             self.if_se_[name] = float(np.std(scores) / np.sqrt(scores.size))

@@ -189,6 +189,14 @@ class DRAdapter:
         dr_reference = {1: reference_broadcast, 0: zero}
         object.__setattr__(output, "functionals", dr_functionals)
         object.__setattr__(output, "reference", dr_reference)
+        object.__setattr__(
+            output,
+            "calibration_scores",
+            {
+                name: np.asarray(values, dtype=float).copy()
+                for name, values in model.aipw_.scores_.items()
+            },
+        )
         diagnostics = {
             **output.diagnostics,
             "n_boosting_steps": float(len(model.training_history_)),

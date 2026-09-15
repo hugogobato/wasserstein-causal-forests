@@ -60,6 +60,7 @@ class MethodOutput:
     predict_seconds: float
     peak_ram_mb: float
     diagnostics: dict[str, float] = field(default_factory=dict)
+    calibration_scores: dict[str, NDArray[np.float64]] | None = None
 
     @property
     def produces_law(self) -> bool:

@@ -58,10 +58,12 @@ Upload one notebook per Colab session, choose Run all, and wait for the run cell
 | `wcf_sample_size_shard_49.ipynb` | 36 | 58 | causal_drf, cwdb_dr, cwdb_zipt, drf |
 | `wcf_sample_size_shard_50.ipynb` | 36 | 58 | causal_drf, cwdb_dr, cwdb_zipt, drf |
 
-Each bundle contains `wcf_sample_size_parquet.parquet`, its sidecar, the manifest slice, execution logs, failure rows when present, and dependency metadata. Rename the parquet and sidecar to `shard_colab_<index>.parquet` and `shard_colab_<index>.meta.json` in `results/wcf_sample_size_sensitivity/shards/`, then run:
+Each bundle contains `wcf_sample_size_parquet.parquet`, its sidecar, the manifest slice, execution logs, failure rows when present, and dependency metadata. To validate and import a directory of downloaded ZIP bundles, then merge and summarize the `all_dgps` stage, run:
 
 ```bash
-rtk python3 research/run_wcf_sample_size_sensitivity.py merge
+rtk python3 research/checks/wcf_sample_size_import_colab.py colab/wcf_sample_size_all_dgps_51_shards/Results --stage all_dgps
+rtk python3 research/run_wcf_sample_size_sensitivity.py --stage all_dgps merge
+rtk python3 research/run_wcf_sample_size_sensitivity.py --stage all_dgps summarize
 ```
 
-Do not edit the parquet, manifest slice, sidecar, or logs. The local merge checks the contract, source hash, manifest checksum, and cell keys. Failed cells remain explicit rather than being silently dropped.
+Do not edit the parquet, manifest slice, sidecar, or logs. The importer checks the contract, source hash, manifest checksum, shard index, and exact cell keys before placing validated files in the stage directory. It also detects duplicate downloads and refuses conflicting duplicates. Failed cells remain explicit rather than being silently dropped.
