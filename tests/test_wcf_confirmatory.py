@@ -13,10 +13,14 @@ from research.checks.wcf_confirmatory_make_colab_notebooks import (
     PAPER_SETUP_SHA256,
     PAPER_STUDY_PATH,
     PAPER_STUDY_SHA256,
+    PYTHON_SETUP,
     allocate,
     causal_drf_paper_pin,
     download,
+    finalize_cell,
     group_cells,
+    registration,
+    run_cell,
 )
 from research.run_wcf_confirmatory import (
     ORDINARY_METHODS,
@@ -113,3 +117,23 @@ def test_notebook_download_and_r_setup_are_pinned():
     assert "(Not on Colab / download skipped):" in source
     assert 'install_version("drf", version="1.3.1"' in FOREST_SETUP_PINNED
     assert "0a1a508444176b5b1553f13e832be93a374b0af2" in FOREST_SETUP_PINNED
+
+
+def test_numerical_work_is_isolated_from_the_preimported_kernel_stack():
+    for source in (PYTHON_SETUP, run_cell(), finalize_cell()):
+        compile(source, "<cell>", "exec")
+    assert "%pip" not in PYTHON_SETUP
+    assert "sys.executable" in PYTHON_SETUP
+    assert "subprocess.run" in PYTHON_SETUP
+    assert "subprocess.Popen" in run_cell()
+    assert "subprocess.Popen" in finalize_cell()
+    assert "os.environ['WCF_SOURCE_ROOT']" in run_cell()
+    assert "os.environ['WCF_SOURCE_ROOT']" in finalize_cell()
+
+
+def test_shard_payload_stays_out_of_the_downloaded_result_bundle():
+    manifest = build_manifest()
+    cell = registration(0, 26, manifest["cells"][:1], manifest, 1.0)
+    combined = cell + run_cell() + finalize_cell()
+    assert "wcf_confirmatory_payload.json" in combined
+    assert "shard_output/wcf_confirmatory_payload.json" not in combined

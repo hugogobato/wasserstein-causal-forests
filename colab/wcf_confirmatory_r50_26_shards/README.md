@@ -2,7 +2,7 @@
 
 Run all 26 notebooks with at most 51 concurrent sessions. Together they cover all 2,100 cells and 700 paired replications exactly once.
 
-Each notebook installs pinned dependencies, verifies the embedded source, verifies the authors' Causal-DRF repository at its pinned commit, checkpoints every estimator, validates coverage, writes a hash inventory, and downloads one ZIP file.
+Each notebook installs pinned dependencies, runs every numerical import in a fresh child process (Colab pre-imports numpy, so replacing it under the live kernel would break the loaded stack), verifies the embedded source, verifies the authors' Causal-DRF repository at its pinned commit, checkpoints every estimator, validates coverage, writes a hash inventory, and downloads one ZIP file.
 
 | Notebook | Cells | Paired replications | Conservative hours |
 |---|---:|---:|---:|

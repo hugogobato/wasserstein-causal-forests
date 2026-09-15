@@ -38,10 +38,14 @@ from research.checks.wcf_confirmatory_make_colab_notebooks import (  # noqa: E40
     PAPER_SETUP_SHA256,
     PAPER_STUDY_PATH,
     PAPER_STUDY_SHA256,
+    PYTHON_PACKAGES,
     PYTHON_SETUP,
-    RUN,
     THREADS,
     causal_drf_paper_pin,
+    download,
+    finalize_cell,
+    registration,
+    run_cell,
     source_archive,
 )
 from research.run_wcf_confirmatory import (  # noqa: E402
@@ -75,7 +79,6 @@ REQUIRED_ARCHIVE_PATHS = (
     "src/wasserstein_causal_forests/g3/confirmatory_evaluation.py",
     "src/wasserstein_causal_forests/g3/phase65_dgps.py",
 )
-PYTHON_PIN_PATTERN = re.compile(r"%pip -q install ((?:\S+==\S+\s*)+)")
 
 
 def sha256(payload: bytes) -> str:
@@ -155,15 +158,19 @@ def audit_notebook(
                 f"{label}: R setup cell changed")
     audit.check(cell_source(nb, CELL_PAPER_PIN) == causal_drf_paper_pin(),
                 f"{label}: authors' Causal-DRF provenance cell changed")
-    audit.check(cell_source(nb, CELL_RUN) == RUN, f"{label}: run cell changed")
+    audit.check(cell_source(nb, CELL_RUN) == run_cell(),
+                f"{label}: run launcher cell changed")
+    audit.check(cell_source(nb, CELL_FINALIZE) == finalize_cell(),
+                f"{label}: finalize launcher cell changed")
+    audit.check(
+        "subprocess.Popen" in cell_source(nb, CELL_RUN)
+        and "subprocess.Popen" in cell_source(nb, CELL_FINALIZE),
+        f"{label}: numerical work is not isolated in child processes",
+    )
 
-    pins = PYTHON_PIN_PATTERN.findall(cell_source(nb, CELL_PYTHON))
-    audit.check(len(pins) == 1, f"{label}: expected one Python pin line")
-    for pin in pins:
-        audit.check(
-            all("==" in item for item in pin.split()),
-            f"{label}: unpinned Python dependency in {pin!r}",
-        )
+    python_cell = cell_source(nb, CELL_PYTHON)
+    for package in PYTHON_PACKAGES:
+        audit.check(package in python_cell, f"{label}: Python pin {package} missing")
 
     archive_cell = cell_source(nb, CELL_ARCHIVE)
     declared_archive = extract(
@@ -197,11 +204,11 @@ def audit_notebook(
     for required in REQUIRED_ARCHIVE_PATHS:
         audit.check(required in names, f"{label}: archive lacks {required}")
 
-    registration = cell_source(nb, CELL_REGISTRATION)
-    index = int(extract(r"SHARD_INDEX = (\d+)", registration, "SHARD_INDEX"))
-    total = int(extract(r"SHARD_TOTAL = (\d+)", registration, "SHARD_TOTAL"))
+    registration_cell = cell_source(nb, CELL_REGISTRATION)
+    index = int(extract(r"SHARD_INDEX = (\d+)", registration_cell, "SHARD_INDEX"))
+    total = int(extract(r"SHARD_TOTAL = (\d+)", registration_cell, "SHARD_TOTAL"))
     estimate = float(extract(
-        r"ESTIMATED_REFERENCE_SECONDS = ([0-9.]+)", registration,
+        r"ESTIMATED_REFERENCE_SECONDS = ([0-9.]+)", registration_cell,
         "ESTIMATED_REFERENCE_SECONDS",
     ))
     audit.check(index == record["index"], f"{label}: shard index mismatch")
@@ -211,8 +218,15 @@ def audit_notebook(
         f"{label}: reference estimate disagrees with the generation record",
     )
     slice_doc = json.loads(extract(
-        r"MANIFEST_SLICE = json.loads\('''(.*?)'''\)", registration, "MANIFEST_SLICE"
+        r"MANIFEST_SLICE = json.loads\('''(.*?)'''\)", registration_cell,
+        "MANIFEST_SLICE",
     ))
+    audit.check(
+        registration_cell == registration(
+            index, total, slice_doc["cells"], manifest, estimate
+        ),
+        f"{label}: registration cell changed",
+    )
     for field in (
         "manifest_contract_id",
         "manifest_checksum",
@@ -262,22 +276,15 @@ def audit_notebook(
             )
         group_shards.setdefault((dgp, seed), set()).add(index)
 
-    finalize = cell_source(nb, CELL_FINALIZE)
-    for fragment in (
-        "manifest_slice.json",
-        "completion.json",
-        "sha256_inventory.json",
-        "CAUSAL_DRF_PAPER_COMMIT",
-        "CAUSAL_DRF_PAPER_FILES",
-        "CAUSAL_CLEAN_DRF_COMMIT",
-    ):
-        audit.check(fragment in finalize, f"{label}: finalize cell lacks {fragment}")
-
-    download = cell_source(nb, CELL_DOWNLOAD)
+    download_cell = cell_source(nb, CELL_DOWNLOAD)
     audit.check(
-        "from google.colab import files" in download
-        and "files.download(output_file)" in download
-        and "except Exception" in download,
+        download_cell == download(index, manifest["manifest_checksum"]),
+        f"{label}: download cell changed",
+    )
+    audit.check(
+        "from google.colab import files" in download_cell
+        and "files.download(output_file)" in download_cell
+        and "except Exception" in download_cell,
         f"{label}: download fallback missing",
     )
 

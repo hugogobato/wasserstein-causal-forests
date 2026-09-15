@@ -62,9 +62,33 @@ for name in ('OMP_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'MKL_NUM_THREADS',
 print('numerical libraries pinned to one thread')
 """
 
-PYTHON_SETUP = """\
-%pip -q install numpy==2.4.3 scipy==1.17.1 scikit-learn==1.8.0 pandas==3.0.1 pyarrow==24.0.0
-print('Python dependencies installed')
+PYTHON_PACKAGES = (
+    "numpy==2.4.3",
+    "scipy==1.17.1",
+    "scikit-learn==1.8.0",
+    "pandas==3.0.1",
+    "pyarrow==24.0.0",
+)
+
+# Colab pre-imports numpy when the kernel starts.  Replacing its files under
+# the live kernel leaves the old extension module in memory, and the first
+# later import of a new pure-Python submodule fails with
+# `cannot import name '_slice' from 'numpy._core.umath'`.  The kernel therefore
+# installs the pinned stack but never imports it: the run and finalize cells
+# launch fresh child processes that load the pins from disk.
+PYTHON_SETUP = f"""\
+import subprocess, sys
+PYTHON_PACKAGES = {PYTHON_PACKAGES!r}
+completed = subprocess.run(
+    [sys.executable, '-m', 'pip', 'install', '-q', *PYTHON_PACKAGES],
+    text=True, capture_output=True,
+)
+if completed.returncode != 0:
+    print(completed.stdout[-2000:])
+    raise SystemExit(completed.stderr[-4000:])
+print('Python dependencies installed:', ', '.join(PYTHON_PACKAGES))
+print('the kernel keeps its pre-imported stack; numerical work runs in a '
+      'fresh child process that loads the pins from disk')
 """
 
 FOREST_SETUP_PINNED = f"""\
@@ -199,7 +223,7 @@ print('the WCF driver reproduces the pinned call with num_trees=2500, '
 def setup_source(encoded: str, source_sha: str, manifest_sha: str) -> str:
     chunks = "\n".join(encoded[i:i + 96] for i in range(0, len(encoded), 96))
     return f"""\
-import base64, hashlib, pathlib, sys, tempfile, zipfile
+import base64, hashlib, os, pathlib, sys, tempfile, zipfile
 SOURCE_ARCHIVE_SHA256 = {source_sha!r}
 SOURCE_ARCHIVE_B64 = '''\\
 {chunks}
@@ -211,6 +235,7 @@ assert hashlib.sha256(archive_path.read_bytes()).hexdigest() == SOURCE_ARCHIVE_S
 with zipfile.ZipFile(archive_path) as archive:
     archive.extractall(workdir)
 sys.path[:0] = [str(workdir), str(workdir / 'src')]
+os.environ['WCF_SOURCE_ROOT'] = str(workdir)
 print('source archive:', SOURCE_ARCHIVE_SHA256)
 print('manifest:', {manifest_sha!r})
 """
@@ -227,22 +252,71 @@ def registration(index: int, total: int, shard: list[dict], manifest: dict, load
     }
     return f"""\
 import json
-from research.run_wcf_confirmatory import run_cell
-from wasserstein_causal_forests.g3.wcf_sensitivity import apply_method_registry
+from pathlib import Path
 SHARD_INDEX = {index}
 SHARD_TOTAL = {total}
 ESTIMATED_REFERENCE_SECONDS = {load!r}
 MANIFEST_SLICE = json.loads('''{json.dumps(slice_doc)}''')
-apply_method_registry({{'method_registry': MANIFEST_SLICE['method_registry']}})
+payload = {{
+    'shard_index': SHARD_INDEX,
+    'shard_total': SHARD_TOTAL,
+    'manifest_slice': MANIFEST_SLICE,
+    'source_archive_sha256': SOURCE_ARCHIVE_SHA256,
+    'causal_drf_paper_repository': CAUSAL_DRF_PAPER_REPOSITORY,
+    'causal_drf_paper_commit': CAUSAL_DRF_PAPER_COMMIT,
+    'causal_drf_paper_files': dict(CAUSAL_DRF_PAPER_FILES),
+    'causal_clean_drf_commit': CAUSAL_CLEAN_DRF_COMMIT,
+}}
+output = Path('shard_output')
+output.mkdir(exist_ok=True)
+Path('wcf_confirmatory_payload.json').write_text(json.dumps(payload), encoding='utf-8')
 print('shard', SHARD_INDEX, 'of', SHARD_TOTAL, '| cells', len(MANIFEST_SLICE['cells']))
 """
 
 
-RUN = r"""
-import gc, json, os, time
+def _launcher(worker_name: str, worker_source: str) -> str:
+    return f"""\
+import os, subprocess, sys
 from pathlib import Path
+WORKER_SOURCE = {worker_source!r}
+worker = Path(os.environ['WCF_SOURCE_ROOT']) / {worker_name!r}
+worker.write_text(WORKER_SOURCE, encoding='utf-8')
+environment = dict(os.environ)
+environment['PYTHONUNBUFFERED'] = '1'
+process = subprocess.Popen(
+    [sys.executable, str(worker)],
+    stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+    text=True, bufsize=1, env=environment,
+)
+try:
+    for line in process.stdout:
+        print(line, end='', flush=True)
+    status = process.wait()
+except KeyboardInterrupt:
+    process.terminate()
+    process.wait()
+    raise
+assert status == 0, f'{worker_name} exited with status ' + str(status)
+print('{worker_name} finished cleanly')
+"""
+
+
+RUN_WORKER = r"""\
+import gc, json, os, sys, time
+from pathlib import Path
+
+ROOT = os.path.dirname(os.path.abspath(__file__))
+sys.path[:0] = [ROOT, os.path.join(ROOT, 'src')]
+
 import pyarrow.parquet as pq
+from research.run_wcf_confirmatory import run_cell
 from wasserstein_causal_forests.g3.manifest import Cell
+from wasserstein_causal_forests.g3.wcf_sensitivity import apply_method_registry
+
+PAYLOAD = json.loads(Path('wcf_confirmatory_payload.json').read_text(encoding='utf-8'))
+MANIFEST_SLICE = PAYLOAD['manifest_slice']
+SHARD_INDEX = PAYLOAD['shard_index']
+apply_method_registry({'method_registry': MANIFEST_SLICE['method_registry']})
 
 OUTPUT = Path('shard_output')
 OUTPUT.mkdir(exist_ok=True)
@@ -286,42 +360,57 @@ print('elapsed hours:', round((time.time() - started) / 3600, 3))
 """
 
 
-def finalize(source_sha: str) -> str:
-    return f"""\
+FINALIZE_WORKER = r"""\
 import hashlib, json, platform, subprocess, sys, time
 from pathlib import Path
+
 import pyarrow.parquet as pq
+
+PAYLOAD = json.loads(Path('wcf_confirmatory_payload.json').read_text(encoding='utf-8'))
+MANIFEST_SLICE = PAYLOAD['manifest_slice']
+SHARD_INDEX = PAYLOAD['shard_index']
+SHARD_TOTAL = PAYLOAD['shard_total']
+SOURCE_ARCHIVE_SHA256 = PAYLOAD['source_archive_sha256']
+
 out = Path('shard_output')
 parquet = out / 'confirmatory_results.parquet'
 frame = pq.read_table(parquet).to_pandas()
-expected = {{item['cell_key'] for item in MANIFEST_SLICE['cells']}}
+expected = {item['cell_key'] for item in MANIFEST_SLICE['cells']}
 observed = set(frame.cell_key)
 assert observed == expected, (len(expected - observed), len(observed - expected))
-versions = {{'python': sys.version, 'platform': platform.platform()}}
+versions = {'python': sys.version, 'platform': platform.platform()}
 for name in ('numpy','scipy','sklearn','pandas','pyarrow'):
     module = __import__(name)
     versions[name] = module.__version__
 versions['R'] = subprocess.run(['Rscript','-e','cat(R.version.string)'], capture_output=True, text=True, check=True).stdout
 versions['cran_drf'] = subprocess.run(['Rscript','-e','cat(as.character(packageVersion("drf")))'], capture_output=True, text=True, check=True).stdout
-config = {{'shard_index': SHARD_INDEX, 'shard_total': SHARD_TOTAL,
-           'manifest_contract_id': MANIFEST_SLICE['manifest_contract_id'],
-           'manifest_checksum': MANIFEST_SLICE['manifest_checksum'],
-           'estimator_source_hash': MANIFEST_SLICE['estimator_source_hash'],
-           'evaluation_protocol_id': MANIFEST_SLICE['evaluation_protocol_id'],
-           'source_archive_sha256': {source_sha!r}, 'n_cells': len(expected),
-           'causal_drf_paper_repository': CAUSAL_DRF_PAPER_REPOSITORY,
-           'causal_drf_paper_commit': CAUSAL_DRF_PAPER_COMMIT,
-           'causal_drf_paper_files': dict(CAUSAL_DRF_PAPER_FILES),
-           'causal_clean_drf_commit': CAUSAL_CLEAN_DRF_COMMIT,
-           'n_failed': int(frame.loc[frame.status == 'failed', 'cell_key'].nunique()),
-           'versions': versions, 'completed_at': time.time()}}
+config = {'shard_index': SHARD_INDEX, 'shard_total': SHARD_TOTAL,
+          'manifest_contract_id': MANIFEST_SLICE['manifest_contract_id'],
+          'manifest_checksum': MANIFEST_SLICE['manifest_checksum'],
+          'estimator_source_hash': MANIFEST_SLICE['estimator_source_hash'],
+          'evaluation_protocol_id': MANIFEST_SLICE['evaluation_protocol_id'],
+          'source_archive_sha256': SOURCE_ARCHIVE_SHA256, 'n_cells': len(expected),
+          'causal_drf_paper_repository': PAYLOAD['causal_drf_paper_repository'],
+          'causal_drf_paper_commit': PAYLOAD['causal_drf_paper_commit'],
+          'causal_drf_paper_files': PAYLOAD['causal_drf_paper_files'],
+          'causal_clean_drf_commit': PAYLOAD['causal_clean_drf_commit'],
+          'n_failed': int(frame.loc[frame.status == 'failed', 'cell_key'].nunique()),
+          'versions': versions, 'completed_at': time.time()}
 (out / 'manifest_slice.json').write_text(json.dumps(MANIFEST_SLICE, indent=2), encoding='utf-8')
 (out / 'completion.json').write_text(json.dumps(config, indent=2), encoding='utf-8')
-inventory = {{path.name: hashlib.sha256(path.read_bytes()).hexdigest()
-             for path in out.iterdir() if path.is_file()}}
+inventory = {path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+             for path in out.iterdir() if path.is_file()}
 (out / 'sha256_inventory.json').write_text(json.dumps(inventory, indent=2), encoding='utf-8')
 print(json.dumps(config, indent=2))
 """
+
+
+def run_cell() -> str:
+    return _launcher('run_shard_worker.py', RUN_WORKER)
+
+
+def finalize_cell() -> str:
+    return _launcher('finalize_shard_worker.py', FINALIZE_WORKER)
 
 
 def download(index: int, manifest_sha: str) -> str:
@@ -357,7 +446,7 @@ def notebook(index, total, shard, manifest, load, encoded, source_sha):
         code(FOREST_ENVIRONMENT), code(FOREST_SETUP_PINNED),
         code(causal_drf_paper_pin()),
         code(registration(index, total, shard, manifest, load)),
-        code(RUN), code(finalize(source_sha)),
+        code(run_cell()), code(finalize_cell()),
         code(download(index, manifest["manifest_checksum"])),
     ]
     return {
@@ -401,7 +490,7 @@ def main() -> int:
     (output / "notebook_generation.json").write_text(json.dumps(generation, indent=2) + "\n", encoding="utf-8")
     lines = ["# WCF confirmatory Colab shards", "",
              f"Run all {args.shards} notebooks with at most 51 concurrent sessions. Together they cover all 2,100 cells and 700 paired replications exactly once.", "",
-             "Each notebook installs pinned dependencies, verifies the embedded source, verifies the authors' Causal-DRF repository at its pinned commit, checkpoints every estimator, validates coverage, writes a hash inventory, and downloads one ZIP file.", "",
+             "Each notebook installs pinned dependencies, runs every numerical import in a fresh child process (Colab pre-imports numpy, so replacing it under the live kernel would break the loaded stack), verifies the embedded source, verifies the authors' Causal-DRF repository at its pinned commit, checkpoints every estimator, validates coverage, writes a hash inventory, and downloads one ZIP file.", "",
              "| Notebook | Cells | Paired replications | Conservative hours |", "|---|---:|---:|---:|"]
     lines.extend(f"| `{x['notebook']}` | {x['cells']} | {x['replications']} | {x['estimated_seconds']/3600:.2f} |" for x in records)
     (output / "README.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
