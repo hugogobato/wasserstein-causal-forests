@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "manifest_checksum": "e3fee5f3b5f410365b3c46ae898f3a87c81d774c5a0ae26d349bea08ba3e23d6",
+  "estimator_source_hash": "46c17ddaff8996d4ccc5cb1e5022f19cad36488cd1a436752f89f9b63d36b2cf",
+  "n_cells_declared": 2100,
+  "n_cells_observed": 2100,
+  "n_cells_missing": 0,
+  "n_failed_cells": 0,
+  "n_duplicate_cells": 0
+}

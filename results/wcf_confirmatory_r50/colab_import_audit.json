@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "source_directory": "colab/wcf_confirmatory_r50_26_shards",
+  "manifest_checksum": "e3fee5f3b5f410365b3c46ae898f3a87c81d774c5a0ae26d349bea08ba3e23d6",
+  "source_archive_sha256": "f30ba0081043975db512058bfcf1629cafa72e8e1c059e1a90a8baab22846a70",
+  "archives_imported": 26,
+  "cells_observed": 2100,
+  "cells_declared": 2100,
+  "missing_shards": [],
+  "failed_cells": 0
+}

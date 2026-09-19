@@ -1,0 +1,8 @@
+{
+  "manifest_checksum": "e3fee5f3b5f410365b3c46ae898f3a87c81d774c5a0ae26d349bea08ba3e23d6",
+  "estimator_source_hash": "46c17ddaff8996d4ccc5cb1e5022f19cad36488cd1a436752f89f9b63d36b2cf",
+  "evaluation_protocol_id": "WCF-CONFIRMATORY-EVAL-v1",
+  "source_archive_sha256": "f30ba0081043975db512058bfcf1629cafa72e8e1c059e1a90a8baab22846a70",
+  "source_bundle": "wcf_confirmatory_shard_19_e3fee5f3b5f4.zip",
+  "source_bundle_sha256": "c512ca75eb0dc00e687c52bcd6399007862b0b5e11240ba1e250ff314a4b808f"
+}
