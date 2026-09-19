@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "notebooks": 120,
+  "cells_declared": 6800,
+  "cells_covered": 6800,
+  "n_duplicates": 0,
+  "manifest_checksum": "94c31a64332f2940d3b4fcd0619349b2b2234c88a9bd924dbe314a9d3611c471",
+  "estimator_source_hash": "9379c84445660650ced9e93d926eec3996c5662ea601544400b610cc0cd4b515"
+}

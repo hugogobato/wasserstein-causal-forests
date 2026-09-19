@@ -365,7 +365,6 @@ _MINWAGE_FUNCTIONALS = (
     "p10",
     "p90",
     "ref_us2016",
-    "ref_mean_norm",
 )
 
 
@@ -407,6 +406,7 @@ def minwage_figure() -> Path:
     x = data["X"]
     benchmarks = np.load(MINWAGE_DIR / "data" / "benchmarks.npz")
     nordic = benchmarks["nordic_scaled"]
+    us2016 = benchmarks["us2016"]
 
     ehat = _selection_propensity(x, a, seed=0)
     variants = [
@@ -427,7 +427,7 @@ def minwage_figure() -> Path:
         _density_curves(
             ax,
             {"control": q[mask & (a == 0)], "treated": q[mask & (a == 1)]},
-            {"Nordic (scaled)": nordic},
+            {"Nordic (scaled)": nordic, "US 2016": us2016},
             grid,
             log_coordinates=True,
             title=title,
@@ -454,7 +454,6 @@ def minwage_estimates_figure() -> Path:
         ("p10", "$p_{10}$"),
         ("p90", "$p_{90}$"),
         ("ref_us2016", "Ref. (US 2016)"),
-        ("ref_mean_norm", "Mean-norm. ref."),
     )
     ys = np.arange(len(order))
     full_paths = sample_paths[0][1]
@@ -516,9 +515,7 @@ def minwage_estimates_figure() -> Path:
     ax.set_yticks(ys)
     ax.set_yticklabels([label for _, label in order])
     ax.set_ylim(len(order) - 0.42, -0.85)
-    ax.set_xlabel(
-        "Contrast (2016 USD per hour; skewness and mean-normalized reference dimensionless)"
-    )
+    ax.set_xlabel("Contrast (2016 USD per hour; skewness dimensionless)")
     ax.set_title("State minimum wage: calibrated contrasts by sample")
     ax.grid(alpha=0.22, lw=0.5, axis="x")
     ax.legend(frameon=False, loc="lower right", fontsize=8.5)
@@ -662,7 +659,9 @@ def star_estimates_figure() -> Path:
 
 
 def egger_estimates_figure() -> Path:
-    summary = json.load(open(EGGER_DIR / "summary.json"))["primary"]
+    payload = json.load(open(EGGER_DIR / "summary.json"))
+    summary = payload["primary"]
+    capped = payload["capped_reference"]
     raw = json.load(open(EGGER_DIR / "raw_checks.json"))
     external = json.load(open(EGGER_DIR / "runs" / "external" / "results.json"))
     bench = json.load(
@@ -683,6 +682,12 @@ def egger_estimates_figure() -> Path:
     raw_p = [raw["permutation"]["p_value_two_sided"][f] for f, _ in order]
     labels = [label for _, label in order]
 
+    dr.append(float(capped["dr_mean"]))
+    se.append(float(capped["if_se"]))
+    raw_values.append(float("nan"))
+    raw_p.append(float("nan"))
+    labels.append("Ref. (capped p75)")
+
     external_dr = external["aggregate"]["marginal_dr"]["reference"]["mean"]
     external_se = float(
         np.mean([run["if_se"]["reference"] for run in external["per_seed"]])
@@ -697,6 +702,8 @@ def egger_estimates_figure() -> Path:
     dr = np.asarray(dr)
     se = np.asarray(se)
     raw_values = np.asarray(raw_values)
+    raw_p = np.asarray(raw_p)
+    raws_ok = np.isfinite(raw_values)
     ys = np.arange(len(labels))
 
     fig, ax = plt.subplots(figsize=(9.0, 4.2), constrained_layout=True)
@@ -712,8 +719,8 @@ def egger_estimates_figure() -> Path:
         label="Calibrated (DR, $\\pm 1$ SE)",
     )
     ax.plot(
-        raw_values,
-        ys,
+        raw_values[raws_ok],
+        ys[raws_ok],
         "D",
         mfc="white",
         mec="#666666",
@@ -726,6 +733,8 @@ def egger_estimates_figure() -> Path:
         ax.axhline(y, color="#eeeeee", lw=0.6, zorder=0)
     p_column = 6_000.0
     for y, p_value in zip(ys, raw_p):
+        if not np.isfinite(p_value):
+            continue
         text = f"{p_value:.3f}" if p_value >= 0.01 else f"{p_value:.4f}"
         ax.annotate(
             f"$p={text}$",
