@@ -1,0 +1,52 @@
+--- a/paper/references.bib
++++ b/paper/references.bib
+@@ -280,6 +280,30 @@
+   doi     = {10.1198/016214506000001437}
+ }
+ 
++@article{hoeffding1963probability,
++  author  = {Hoeffding, Wassily},
++  title   = {Probability Inequalities for Sums of Bounded Random Variables},
++  journal = {Journal of the American Statistical Association},
++  volume  = {58},
++  number  = {301},
++  pages   = {13--30},
++  year    = {1963},
++  doi     = {10.1080/01621459.1963.10500830},
++  url     = {https://www.cs.rpi.edu/academics/courses/spring06/random/hoefding.pdf}
++}
++
++@article{nadaraya1964regression,
++  author  = {Nadaraya, E. A.},
++  title   = {On Estimating Regression},
++  journal = {Theory of Probability and Its Applications},
++  volume  = {9},
++  number  = {1},
++  pages   = {141--142},
++  year    = {1964},
++  doi     = {10.1137/1109020},
++  url     = {https://www.mathnet.ru/eng/tvp356}
++}
++
+ @article{friedman2001greedy,
+   author  = {Friedman, Jerome H.},
+   title   = {Greedy Function Approximation: A Gradient Boosting Machine},
+@@ -300,6 +324,18 @@
+   pages   = {140--147},
+   year    = {1972},
+   doi     = {10.1080/01621459.1972.10481216}
++}
++
++@article{busing2022monotone,
++  author  = {Busing, Frank M. T. A.},
++  title   = {Monotone Regression: A Simple and Fast {O(n)} {PAVA} Implementation},
++  journal = {Journal of Statistical Software, Code Snippets},
++  volume  = {102},
++  number  = {1},
++  pages   = {1--25},
++  year    = {2022},
++  doi     = {10.18637/jss.v102.c01},
++  url     = {https://www.jstatsoft.org/article/view/v102c01}
+ }
+ 
+ @article{peyre2019optimaltransport,

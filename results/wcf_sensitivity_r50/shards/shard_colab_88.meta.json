@@ -1,0 +1,10 @@
+{
+  "manifest_checksum": "94c31a64332f2940d3b4fcd0619349b2b2234c88a9bd924dbe314a9d3611c471",
+  "estimator_source_hash": "9379c84445660650ced9e93d926eec3996c5662ea601544400b610cc0cd4b515",
+  "contract_id": "WCF-SENSITIVITY-R50-v1",
+  "evaluation_protocol_id": "WCF-CONFIRMATORY-EVAL-v1",
+  "shard_index": 88,
+  "provenance": "local rerun of the missing Colab shard 88 with the frozen manifest slice embedded in wcf_sensitivity_r50_shard_88.ipynb",
+  "n_cells": 58,
+  "n_failed": 0
+}

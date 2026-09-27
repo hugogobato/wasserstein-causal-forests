@@ -1,0 +1,89 @@
+{
+  "seed": 20260924,
+  "python": "3.12.3",
+  "numpy": "2.4.3",
+  "scipy": "1.17.1",
+  "gradient_max_abs_error": 7.980261590434523e-11,
+  "shrinkage_max_abs_error": 8.215650382226158e-15,
+  "bernstein_integral_max_abs_error": 4.440892098500626e-16,
+  "enumerated_particle_identity_max_abs_error": 1.3877787807814457e-16,
+  "dr_remainder_max_abs_error": 5.684341886080802e-14,
+  "mixture_min_slack": -2.220446049250313e-16,
+  "tail_escape": [
+    {
+      "j": 10,
+      "D_eps_1": 0.1809975124224178,
+      "W1": 1
+    },
+    {
+      "j": 100,
+      "D_eps_1": 0.01980099997500125,
+      "W1": 1
+    },
+    {
+      "j": 1000,
+      "D_eps_1": 0.00199800099999975,
+      "W1": 1
+    },
+    {
+      "j": 10000,
+      "D_eps_1": 0.00019998000100000002,
+      "W1": 1
+    }
+  ],
+  "tail_formula_direct_energy_max_error": 1.1102230246251565e-16,
+  "risk_integrability_witness": [
+    {
+      "lower_cutoff": 0.01,
+      "integral_R_P_from_cutoff_to_1": 2.3025850929940455
+    },
+    {
+      "lower_cutoff": 0.0001,
+      "integral_R_P_from_cutoff_to_1": 4.605170185988091
+    },
+    {
+      "lower_cutoff": 1e-08,
+      "integral_R_P_from_cutoff_to_1": 9.210340371976184
+    },
+    {
+      "lower_cutoff": 1e-16,
+      "integral_R_P_from_cutoff_to_1": 18.420680743952367
+    }
+  ],
+  "local_ratio_variance": [
+    {
+      "bandwidth": 0.1,
+      "raw_centered_numerator_variance_over_b": 1.15,
+      "residual_numerator_variance_over_b": 0.25,
+      "limiting_ratio_variance": 1.0
+    },
+    {
+      "bandwidth": 0.01,
+      "raw_centered_numerator_variance_over_b": 1.24,
+      "residual_numerator_variance_over_b": 0.25,
+      "limiting_ratio_variance": 1.0
+    },
+    {
+      "bandwidth": 0.001,
+      "raw_centered_numerator_variance_over_b": 1.249,
+      "residual_numerator_variance_over_b": 0.25,
+      "limiting_ratio_variance": 1.0
+    }
+  ],
+  "dgp_min_derivative_gamma_085": 0.15000000000000002,
+  "S3_equal_scale_max_error": 2.220446049250313e-16,
+  "S3_coordinate_variance_gap_at_z_1": [
+    {
+      "x4": -1,
+      "control_minus_treated": 0.3217323802316764
+    },
+    {
+      "x4": 0,
+      "control_minus_treated": 0.41234241493485213
+    },
+    {
+      "x4": 1,
+      "control_minus_treated": 0.5475167025591824
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+[
+  {
+    "pass": "latex1",
+    "returncode": 0,
+    "tail": [
+      "onts/type1/public/cm-super/sfti1000.pfb></usr/share/texmf/fonts/type1/public/cm",
+      "-super/sftt1000.pfb>",
+      "Output written on main.pdf (37 pages, 1035025 bytes).",
+      "Transcript written on main.log."
+    ]
+  },
+  {
+    "pass": "bibtex",
+    "returncode": 0,
+    "tail": [
+      "This is BibTeX, Version 0.99d (TeX Live 2023/Debian)",
+      "The top-level auxiliary file: main.aux",
+      "The style file: apalike.bst",
+      "Database file #1: references.bib"
+    ]
+  },
+  {
+    "pass": "latex2",
+    "returncode": 0,
+    "tail": [
+      "onts/type1/public/cm-super/sfti1000.pfb></usr/share/texmf/fonts/type1/public/cm",
+      "-super/sftt1000.pfb>",
+      "Output written on main.pdf (37 pages, 1038401 bytes).",
+      "Transcript written on main.log."
+    ]
+  },
+  {
+    "pass": "latex3",
+    "returncode": 0,
+    "tail": [
+      "onts/type1/public/cm-super/sfti1000.pfb></usr/share/texmf/fonts/type1/public/cm",
+      "-super/sftt1000.pfb>",
+      "Output written on main.pdf (37 pages, 1038239 bytes).",
+      "Transcript written on main.log."
+    ]
+  },
+  {
+    "final_log_warnings": [
+      "Overfull \\hbox (5.1225pt too wide) in paragraph at lines 35--35",
+      "Underfull \\hbox (badness 1377) in paragraph at lines 36--37",
+      "Underfull \\hbox (badness 5175) in paragraph at lines 47--48",
+      "Underfull \\hbox (badness 1122) in paragraph at lines 71--73",
+      "Underfull \\hbox (badness 6445) in paragraph at lines 10--10",
+      "Underfull \\hbox (badness 10000) in paragraph at lines 10--10",
+      "Underfull \\hbox (badness 10000) in paragraph at lines 12--12",
+      "Underfull \\hbox (badness 10000) in paragraph at lines 12--12",
+      "Underfull \\hbox (badness 10000) in paragraph at lines 12--12",
+      "Underfull \\hbox (badness 7595) in paragraph at lines 12--12",
+      "Underfull \\hbox (badness 10000) in paragraph at lines 13--13",
+      "Underfull \\hbox (badness 10000) in paragraph at lines 13--13",
+      "Underfull \\hbox (badness 10000) in paragraph at lines 13--13",
+      "Underfull \\hbox (badness 10000) in paragraph at lines 14--14",
+      "Underfull \\hbox (badness 10000) in paragraph at lines 14--14",
+      "Underfull \\hbox (badness 10000) in paragraph at lines 14--14",
+      "Underfull \\hbox (badness 7595) in paragraph at lines 14--14"
+    ]
+  },
+  {
+    "pass": "latex_final1",
+    "returncode": 0,
+    "tail": [
+      "Output written on main.pdf (37 pages, 1038243 bytes).",
+      "Transcript written on main.log."
+    ]
+  },
+  {
+    "pass": "latex_final2",
+    "returncode": 0,
+    "tail": [
+      "Output written on main.pdf (37 pages, 1038243 bytes).",
+      "Transcript written on main.log."
+    ]
+  },
+  {
+    "final_unresolved": []
+  }
+]

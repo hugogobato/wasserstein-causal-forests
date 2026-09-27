@@ -1,0 +1,217 @@
+\documentclass[twoside]{article}
+
+% Provisional formatting only. Replace aistats2026 with the official
+% aistats2027 package as soon as the conference releases it.
+\usepackage{aistats2026}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs,longtable}
+\usepackage{graphicx}
+\usepackage{microtype}
+\usepackage[round]{natbib}
+\usepackage[hidelinks]{hyperref}
+
+\renewcommand{\bibname}{References}
+\renewcommand{\bibsection}{\subsubsection*{\bibname}}
+\bibliographystyle{apalike}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\QK}{\mathcal{Q}_K}
+\newcommand{\Law}{\operatorname{Law}}
+\newcommand{\TATE}{\operatorname{TATE}}
+\newcommand{\TCATE}{\operatorname{TCATE}}
+
+\begin{document}
+\raggedbottom
+
+\twocolumn[
+\aistatstitle{Wasserstein Causal Forests for Distribution-Valued Outcomes}
+\author{Hugo Gobato Souto\\ Dell Technologies\\ \texttt{hugo.souto@dell.com}}
+\aistatsauthor{Hugo Gobato Souto}
+\aistatsaddress{Dell Technologies}
+]
+
+\begin{abstract}
+This paper proposes Wasserstein Causal Forests (WCF) for settings in which each unit's outcome is itself a probability distribution. This study also defines finite-grid transformed average and conditional average treatment effects, including a reference-distance contrast that asks whether treatment moves unit-level distributions toward a prespecified benchmark. Simulations cover null effects, location and shape changes, limited overlap, equal-mean but different laws, heterogeneous effects, multimodality, and structural zeros. WCF is most accurate on the conditional-law metric in most reported designs and sharply improves reference-effect estimation in the principal location-and-shape settings, but it is less accurate than the forest baselines for multimodal settings. WCF is applied to the famous Project STAR \citep{word1990state}, revealing that small classes alter more than the mean: they raise within-grade mathematics achievement by $0.161$ standard deviations on average (SE $0.028$); but the gain is not a uniform location shift, it is larger in the upper part of the classroom score distribution ($+0.179$ at the ninetieth percentile versus $+0.091$ at the tenth) and, in descriptive stratum estimates, largest in the schools serving the most economically disadvantaged students (highest free-lunch quartile, $+0.262$, versus $+0.092$ to $+0.164$ elsewhere), while overall dispersion is essentially unchanged.
+\end{abstract}
+
+\section{Introduction}\label{sec:intro}
+
+Average treatment effects reduce an intervention to a difference in means, albeit many scientific questions concern changes in dispersion, tails, asymmetry, participation, or multimodality. Conditional distributional treatment effects address such questions through conditional mean embeddings, distributional forests, and related nonparametric tools \citep{Counterfactualmeanembeddings,CATEGeneralization,GRFDistributionalCausalEffects,martineztaboada2023efficient,DRF-paper,naf2026causaldrf}. A distinct but complementary setting is studied in this paper: the observed outcome for each unit is itself a distribution, represented by a quantile function on a common grid. Examples include classroom score distributions, village consumption distributions, and regional wage distributions.
+
+Regressing one summary at a time requires fixing the scientific question before estimation and can miss effects that leave the selected summary unchanged. Two conditional laws can have the same mean while differing in spread, tails, shape, or the frequency of a degenerate component. Estimating the conditional law of the quantile vector supplies one coherent object from which several prespecified functionals can be evaluated. It also keeps separate two operations (and their respective causal treatment effect estimands) that need not commute: averaging a transformed distribution-valued outcome and transforming its average \citep{souto_diamantis_tcda_2026}. Nonetheless, it is worth remembering that the richer target does not remove the need to choose a grid, control representation error, or justify causal identification, but makes those choices explicit.
+
+This research proposes Wasserstein Causal Forests (WCF). For each treatment arm, WCF represents the conditional law of a unit-level quantile vector by a small cloud of monotone particles. The particles are learned with an energy-score objective, shared treatment-arm tree partitions, and shrinkage of arm-specific updates. A second layer uses cross-fitted augmented inverse-propensity weighting (AIPW) to calibrate marginal and moderator-specific effects for declared scalar functionals. The law estimator and calibration layer have different roles: calibration changes reported functional contrasts, not the fitted particle law.
+
+The paper contributes 1. a conditional-law learner adapted to the Wasserstein geometry of one-dimensional distributions, 2. a finite-grid specialization of the Topological Average Treament Effect (TATE) and Topological Conditional Average Treament Effect (TCATE) estimants \citep{souto_diamantis_tcda_2026}, including a reference-distance effect, and 3. an optional two-part representation for an atom at an entirely degenerate unit-level distribution. The proposed model is evaluated against existing benchmark models in the literature, namely Distributional Random Forests (DRF) \citep{DRF-paper} and Causal-DRF \citep{naf2026causaldrf}, report heterogeneous-effect designs explicitly, retain a difficult multimodal setting in which WCF does not lead, and finally apply WCF for three real world settings, namely Project STAR \citep{word1990state}, a randomized class-size experiment, America state-year minimum wages effect, and Kenyan cash transfers \citep{egger2022general,egger2024replication}.
+
+\paragraph{Related work.}
+
+Several literatures study distributional causal questions, but they differ in what constitutes one observational unit. Counterfactual distribution methods identify marginal distributions of a scalar potential outcome and their features \citep{Chernozhukov2013}. Conditional distributional treatment-effect methods instead compare $\Law(Y^1\mid X=x)$ and $\Law(Y^0\mid X=x)$ for scalar or multivariate $Y$. Kernel conditional mean embeddings permit flexible law comparisons and tests \citep{Counterfactualmeanembeddings,CATEGeneralization,martineztaboada2023efficient,jain2026conditional}; robust pseudo-outcome regressions target conditional kernel effects \citep{GRFDistributionalCausalEffects}. In WCF, by contrast, one observation $Y_i$ is already a distribution. The target $P_a^K(x)$ is therefore a law over unit-level distributions, not merely the conditional distribution of scalar observations pooled across units. This additional probability layer is what permits treatment effects on, for example, classroom-specific dispersion while retaining heterogeneity across classrooms.
+
+Distributional Random Forests estimate multivariate conditional laws through forest weights and kernel-based splitting \citep{DRF-paper}; uncertainty procedures for those laws are developed by \citet{naf2023confidence}. Causal-DRF adapts this construction to conditional kernel treatment effects using a treatment-aware shared forest \citep{naf2026causaldrf}. WCF shares the goal of flexible conditional-law estimation but uses a different representation and optimization problem: a covariate-indexed particle law on the monotone quantile cone, fitted directly by a proper energy score. The shared partition and shrinkage of treatment-arm updates are motivated by the same finite-sample tension found in causal forests and Bayesian causal forests, where prognostic structure should be learned without allowing treatment-effect regularization to absorb confounding \citep{wager2018estimation,athey2019generalized,hahn2020bayesian}.
+
+The functional layer connects WCF to semiparametric causal estimation. Standard AIPW scores can estimate marginal or stratum-specific contrasts of scalar summaries under the usual causal assumptions \citep{bang2005doubly,chernozhukov2018double}. WCF uses its out-of-fold particle means as outcome nuisances, but does not claim that doubly robust scalar calibration makes the complete law estimator doubly robust. This separation also clarifies the relation to TCDA \citep{souto_diamantis_tcda_2026}.
+
+Finally, the structural-zero extension is related to two-part models that distinguish participation from intensity \citep{duan1983medical,mullahy1986modified}. Here the first component is an atom at an entirely degenerate distribution, not a zero observation inside an otherwise nondegenerate unit-level distribution. The distinction determines both the statistical model and the meaning of the estimated component probability.
+
+\section{Targets and Estimator}\label{sec:model}
+
+\subsection{Distribution-valued outcomes and causal targets}\label{sec:targets}
+
+For independent units, observe $O_i=(X_i,A_i,Q_i)$, where $X_i\in\mathbb R^d$ contains pretreatment covariates, $A_i\in\{0,1\}$ is treatment, and $Y_i\in\mathcal P_2(\mathbb R)$ is the unit-level outcome distribution. We observe its quantile function $Q_i=q_K(Y_i)$ at levels $0<u_1<\cdots<u_K<1$, where
+\begin{align*}
+ q_K(Y)&=\{Q_Y(u_1),\ldots,Q_Y(u_K)\},\\
+ \QK&:=\{q\in\mathbb R^K:q_1\leq\cdots\leq q_K\}.
+\end{align*}
+With positive quadrature weights $w_k$ summing to one, define
+\[
+ d_{W,K}(q,q')=\left\{\sum_{k=1}^K w_k(q_k-q'_k)^2\right\}^{1/2}.
+\]
+This is a quadrature approximation to the one-dimensional $W_2$ distance and is exactly the Wasserstein distance between the corresponding weighted discrete distributions \citep{peyre2019optimaltransport}. The superscript $a$ denotes a potential outcome, so $Q^a=q_K(Y^a)$.
+
+Assume consistency, conditional exchangeability $Y^a\perp A\mid X$, and positivity $0<e(X)<1$ almost surely, where $e(x)=\Prob(A=1\mid X=x)$ \citep{rosenbaum1983propensity}. These assumptions identify the across-unit conditional law
+\begin{align*}
+ P_a^K(x)&:=\Law(Q^a\mid X=x)\\
+ &=\Law(Q\mid A=a,X=x).
+\end{align*}
+The distinction between $Y^a$ and $P_a^K(x)$ is important: $Y^a$ is one unit's within-unit distribution, whereas $P_a^K(x)$ describes heterogeneity in those distributions across comparable units.
+
+Let $h:\QK\rightarrow\mathbb R$ be a measurable, integrable scalar summary of a quantile vector. Thus $h(Q)=h\{q_K(Y)\}$ evaluates that summary for the observed unit-level distribution, while $h\circ q_K$ denotes the same mapping written as a function of the original distribution: $(h\circ q_K)(Y)=h\{q_K(Y)\}$. For example, $h$ may return the grid mean, standard deviation, upper-tail mean, a selected quantile, skewness, or distance to a reference vector. The finite-grid outcome-level effects can be defined as:
+\begin{align}
+ \TATE_{h,K}
+ &=\E\{h(Q^1)\}-\E\{h(Q^0)\},\label{eq:tate}\\
+ \TCATE_{h,K}(x)
+ &=\E\{h(Q^1)-h(Q^0)\mid X=x\}.\label{eq:tcate}
+\end{align}
+These agree with the TATE formulation of TCDA \citep{souto_diamantis_tcda_2026} after taking its outcome representation to be $h\circ q_K$; equation~\eqref{eq:tcate} is the corresponding conditional extension. No transformed moderator is needed. When results are summarized over a prespecified covariate stratum $B_j\subseteq\mathbb R^d$, one can report the group effect $\E\{h(Q^1)-h(Q^0)\mid X\in B_j\}$, which averages the TCATE over that stratum. 
+
+For a prespecified reference quantile vector $q_\star^K\in\QK$ (i.e., quantile vector of an ideal/desired distribution for $Y$) representing a substantive benchmark, set $h_{\star,K}(q)=d_{W,K}(q,q_\star^K)$. This paper calls \eqref{eq:tate} and \eqref{eq:tcate} with $h=h_{\star,K}$ the reference TATE and reference TCATE. Although it may seem counterintuitive, a negative reference effect is desirable: it indicates that the treatment reduces the expected distance between the unit-level distributions and the "ideal" distribution. These effects compare expected unit-level distances; they neither compare barycenters nor require a joint coupling of $Q^0$ and $Q^1$.
+
+\subsection{Conditional particle laws}\label{sec:particle}
+
+WCF approximates $P_a^K(x)$ by
+\begin{align}
+ \widehat P_{a,M}^K(x)&=\frac{1}{M}\sum_{m=1}^M
+ \delta_{p_{am}^K(x)},\label{eq:particle-law}\\[-2pt]
+ &\hspace{2.1cm}p_{am}^K(x)\in\QK.\nonumber
+\end{align}
+where $K$ is the number of quantile levels, $M$ is the number of equally weighted particles per arm, and $\delta_q$ is the Dirac probability measure at $q$. For $p_{1:M}=(p_1,\ldots,p_M)$ and an observed vector $q$, the boosting loss is the collision-smoothed energy score
+\begin{align}
+ S_{\varepsilon,M}(p_{1:M};q)
+ &=\frac1M\sum_m d_\varepsilon(p_m,q)\nonumber\\
+ &\quad-\frac{1}{2M^2}\sum_{m,\ell}d_\varepsilon(p_m,p_\ell),\label{eq:energy}\\
+ d_\varepsilon(p,q)&=
+ \{d_{W,K}(p,q)^2+\varepsilon^2\}^{1/2}-\varepsilon.
+\end{align}
+The unsmoothed energy score is strictly proper under a finite first-moment condition \citep{gneiting2007proper}. The first term fits the observed quantile vectors, while the second prevents particle collapse. A shared regression tree maps covariates to arm-specific leaf updates in $\mathbb R^{MK}$. Each update is projected onto $\QK$ via weighted isotonic regression to ensure valid, monotonically increasing quantile vectors. Candidate splits rely on a pooled multi-output criterion and must retain observations from both treatment arms in each child node. Within each leaf, the treatment-arm update contrast is shrunk toward zero while preserving the count-weighted pooled update, mirroring regularization strategies in causal forests \citep{wager2018estimation}. Appendix~\ref{app:algorithm} details the optimization and tuning.
+
+The two fitted arms represent separate marginal conditional laws. Because the particles in the treatment arm are learned independently of those in the control arm, individual particles are not coupled across treatment arms; consequently, differences between individual particles do not represent unit-level treatment effects.
+
+\subsection{Functional calibration and structural mass}\label{sec:calibration}
+
+For a declared functional $h$, define the WCF outcome-regression estimate as the mean of $h$ over the fitted particles,
+\[
+ \widehat m_{a,h}^{(-f)}(x)
+ =\frac{1}{M}\sum_{m=1}^M h\{\widehat p_{am}^{K,(-f)}(x)\},
+\]
+where $(-f)$ indicates that the observation's fold was excluded when fitting WCF. Let $\widehat e_i^{(-f)}$ be the corresponding cross-fitted estimate of the propensity $e(X_i)$, bounded away from zero and one. With $H_i=h(Q_i)$, define
+\begin{align}
+ \widehat\phi_i(h)={}&\widehat m_{1,h}^{(-f)}(X_i)-\widehat m_{0,h}^{(-f)}(X_i)\nonumber\\
+ &+\frac{A_i}{\widehat e_i^{(-f)}}\{H_i-\widehat m_{1,h}^{(-f)}(X_i)\}\nonumber\\
+ &-\frac{1-A_i}{1-\widehat e_i^{(-f)}}\{H_i-\widehat m_{0,h}^{(-f)}(X_i)\}.\label{eq:aipw}
+\end{align}
+The sample average estimates $\TATE_{h,K}$. Its average within a prespecified stratum $X\in B_j$ estimates the corresponding group effect; a regression of the scores on $X$ can instead target the full TCATE curve. This score has the usual doubly robust mean-zero property when either the propensity model or both arm-specific functional regressions are consistently estimated, subject to positivity, moment, cross-fitting, and nuisance-rate conditions \citep{bang2005doubly,chernozhukov2018double}. This double-robustness property applies to the calibrated scalar functionals, whereas the underlying particle law is estimated as a plug-in conditional distribution. Nevertheless, this does not preclude the particle law from supporting causal estimations; the fitted conditional particles can still be used directly to evaluate TATE, TCATE, and reference-distance effects.
+
+Finally, when some units have the entirely degenerate outcome $Q^a=\mathbf 0_K$, the optional two-part WCF model estimates $\pi_a(x)=\Prob(Q^a\neq\mathbf0_K\mid X=x)$ and the nondegenerate law $P_a^{+,K}(x)$, then assembles
+\begin{equation}
+ \widehat P_a^{\mathrm{2p},K}(x)=
+ \{1-\widehat\pi_a(x)\}\delta_{\mathbf0_K}
+ +\widehat\pi_a(x)\widehat P_{a,M}^{+,K}(x).\label{eq:two-part}
+\end{equation}
+This is a genuine two-part WCF estimator for the structural mass and assembled law. This two-part implementation does not apply the AIPW layer to scalar functionals of this mixture, so its scalar effects are plug-in rather than doubly robust. This limitation concerns calibration evidence, not the availability of the two-part law.
+
+\section{Simulation Studies}\label{sec:simulations}
+
+\subsection{Design and evaluation}\label{sec:sim-design}
+
+The simulations use three complementary families. The location-shape family is a regular-regime benchmark: a placebo (LS0), location-and-shape heterogenous effects that vary with $X_4$ under moderate overlap (LS1), a location heterogenous effect that varies with $X_3$ together with a constant scale change (LS2), and the LS1 outcome surfaces under limited overlap (LS3). The second family is a mechanism-based stress-test suite: a location effect varying with $X_1$ and a scale effect varying with $X_2$ (S1), a stochastic null (S2), a distributional effect with identical mean quantile curves that is constant across covariates (S3), a multimodal outer law with a location effect proportional to $X_1$ (S4), a shape effect modified by $X_1$ (S5), and a weak heterogeneous effect under strong confounding (S6). Conditional effects are evaluated along each design's active moderator: $X_4$ for LS1, LS3, S3, Z1, and Z3; $X_3$ for LS2; $X_2$ for Z2; and $X_1$ for the remaining designs. Thus S1, S4, S5, and S6 directly test effects that vary across strata of $X_1$, while LS1 and LS3 test $X_4$-indexed heterogeneity and LS2 tests $X_3$-indexed heterogeneity; the placebo and null designs LS0, S2, and Z0 retain $X_1$ as stability checks. The structural-zero family contains a placebo (Z0), participation-only (Z1), positive-component-only (Z2), and joint participation and positive-component effects (Z3). Exact equations appear in Appendix~\ref{app:dgps}. 
+
+WCF is compared with DRF and Causal-DRF \citep{DRF-paper,naf2026causaldrf}. The primary experiments use $n=1000$, mirroring the typical scale of the applied studies considered, $R=50$ paired Monte Carlo replications, $K=25$ quantile levels, $M=10$ WCF particles, and an independent test sample of 1000 units in every replication to avoid overfitting. The main text selects LS1, LS3, S4, and S5 because together they test ordinary shape changes, limited overlap, heterogeneous effects, and the principal particle-model failure. Appendix~\ref{app:simulation-results} reports every design in the fifty-replication $n=1000$ comparison. Additionally, sensitivity analyses reported in Appendix~\ref{app:sensitivity} vary the quantile grid and particle budget, the assignment mechanism, and the propensity model, add null companion designs, and include a sample-size study over $n\in\{125,250,500,1000\}$ with ten paired replications (given limited computational budget). Except for the sample-size study, these checks use the same fifty paired replications and confirmatory protocol as the primary comparison.
+
+Concerning evaluation metrics, conditional-law error is squared maximum mean discrepancy (MMD$^2$) between the fitted and quadrature-approximated true conditional laws, averaged over arms and test units, using a common Gaussian kernel within each replication \citep{gretton2012kernel}. In the primary comparison and Appendix~\ref{app:simulation-results}, all functional-effect columns use one convention: Monte Carlo RMSE. For a scalar $h$, marginal RMSE is $[R^{-1}\sum_{r=1}^R\{\widehat\TATE_{h,K}^{(r)}-\TATE_{h,K}\}^2]^{1/2}$; conditional RMSE additionally averages the squared errors over four prespecified strata of the design's active moderator. Reference errors use $h_{\star,K}$. The aggregate functional panels also average squared errors over the grid mean, grid standard deviation, grid skewness, and upper-half mean before taking the square root. Figure bars and table parentheses are Monte Carlo standard errors over the fifty replications of the $n=1000$ comparison. The resolution, assignment, propensity, and null tables in Appendix~\ref{app:sensitivity} follow the same fifty-replication convention, except that native-grid law entries remain Monte Carlo means; the sample-size study uses ten replications and states its own convention. For the two-part designs, mass error evaluates $1-\pi_a(x)$ and mass-TCATE error evaluates its stratum contrast. Every reported criterion is an error, so smaller is better.
+
+\subsection{Results}\label{sec:sim-results}
+
+Figure~\ref{fig:simulation-summary} shows all five principal criteria. In the smooth location-and-shape designs LS1 and LS3, WCF has the smallest error throughout. Its law errors are $0.0176$ and $0.0187$, compared with $0.0466$ and $0.0608$ for the stronger forest baseline, while its reference-TCATE RMSEs are $0.0311$ and $0.0546$, compared with $0.1526$ and $0.2551$. The advantage persists under LS3's deteriorating overlap, consistent with a shared covariate partition and a particle law fitted directly with the Wasserstein energy score. 
+
+The S designs show that global law accuracy and accuracy for one nonlinear functional need not have the same ordering. In S4, the separated multimodal outer law is poorly matched to a small equally weighted particle cloud: WCF loses the law and reference-TCATE criteria, while it retains the lowest reference-TATE point estimate. In S5, WCF again has the best law error under heterogeneous shape effects, but it loses the reference-TCATE criterion and its reference-TATE comparison is within paired uncertainty. These reversals are not contradictions because MMD$^2$ assesses the whole fitted law, whereas the reference criteria assess one nonlinear functional after scalar calibration.
+
+Taken together, WCF is most attractive when the scientific target is the conditional law or several functionals of a smooth, nonmultimodal law, especially when shared structure across treatment arms is valuable. The results do not show a general failure under heterogeneity: WCF leads in all LS designs with heterogeneous effects, leads in heterogeneous S1, and is competitive on the aggregate functionals in S5. They instead identify target-specific difficulty for multimodality. 
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.94\textwidth]{figures/simulation_summary.pdf}
+\caption{Simulation accuracy on selected designs at $n=1000$ and $R=50$ paired replications. Law points are mean MMD$^2$; the other panels are Monte Carlo RMSEs. Bars show one Monte Carlo standard error. LS1 changes location and shape, LS3 combines the same effect with limited overlap, S4 has a multimodal outer law with a heterogeneous location effect, and S5 has heterogeneous shape effects. All vertical axes use a log scale.}
+\label{fig:simulation-summary}
+\end{figure*}
+
+Briefly about the degenerated family found in Appendix~\ref{app:simulation-results}: the two-part WCF estimator has the lowest law, structural-mass, and mass-TCATE errors across Z0 to Z3. In Z3, its law error is $0.0187$ and its mass error is $0.0622$, compared with $0.0796$ and $0.1782$ for Causal-DRF and $0.2671$ and $0.3624$ for DRF. These results evaluate the assembled law and participation component, not AIPW-calibrated mixture effects.
+
+Sensitivity checks vary $K\in\{5,25,49\}$, $M\in\{5,10,25\}$ and  $n\in\{125,250,500,1000\}$. Under the sensitivity protocol, native-grid law, mean-quantile, and end-to-end reference errors change by at most a few percent across $K$ and $M$, so $(K,M)=(25,10)$ remains the primary computational setting; because the native target changes with $K$, these comparisons do not separate quadrature resolution from tail coverage. Assignment experiments at both $n=500$ and $n=1000$ show that WCF has the lowest end-to-end reference-TCATE error in all four mechanisms at $n=500$ and in three of four at $n=1000$, where DRF is slightly more accurate under linear assignment. The reported errors are nearly invariant to the propensity factory because the confirmatory AIPW layer is fixed, while the estimator's internal calibration diagnostic flags the untuned gradient-boosting factory as three to four times less stable than the logistic, random-forest, or oracle alternatives. On the null companions, WCF's pooled false-effect error on the grid-mean functionals is roughly three times smaller than the forest baselines. Additionaly, the sample-size sensitivity study has convergent results to the main simulation studies, namely WCF has the lowest law error in all 16 LS cells, 20 of 24 S cells, and all 16 Z cells. Yet, it is worth mentioning that reference-TCATE error deteriorates faster as $n$ decreases: WCF remains best throughout LS, but in S it leads only in S1 and its small-sample disadvantage is largest for multimodal S4 and weak-effect, strong-confounding S6. Appendix~\ref{app:sensitivity} gives the complete numerical tables and trajectories, together with the null, assignment, and resolution checks.
+
+\section{Project STAR Application}\label{sec:applied}
+
+Project STAR randomized pupils within schools to small classes, regular classes, or regular classes with a full-time teacher aide \citep{word1990state,krueger1999experimental,chetty2011kindergarten}. We reshape 24,610 tested students into 1,333 classroom-grade units: 522 small-class units and 811 controls, of which 400 are regular classes and 411 have an aide. Each unit is represented by $K=25$ quantiles of within-grade standardized mathematics scores. Small-class units contain 7 to 20 tested students and control units 13 to 29, so their observed quantile vectors differ in measurement precision. The learner receives nine pretreatment or classroom-composition covariates: school free/reduced-lunch share, four teacher characteristics (sex, race, graduate degree, and years of experience), school urbanicity, and the classroom shares of female, Black, and free/reduced-lunch students. The four prespecified strata $B_j$ are quartiles of the school free/reduced-lunch share and are nearly balanced, with 333, 333, 334, and 333 classroom-grade units.
+
+The reference distribution is the grade average of pooled control-student quantiles. Because outcomes are standardized within grade and the benchmark is constructed from controls, reference effects describe movement toward or away from a blended control distribution rather than toward an external welfare standard. Fitted propensities range from $0.232$ to $0.551$, their treated and control means are $0.394$ and $0.390$, and none lies outside $[0.05,0.95]$. Overlap is therefore not a binding concern.
+
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.92\linewidth]{figures/applied_star_estimates.pdf}
+\caption{Project STAR calibrated functional contrasts with influence-function standard errors (bars). Open circles report the permuted-treatment placebo, and the dashed line marks the experimental literature value of about one fifth of a within-grade standard deviation for the mean effect. Skewness is dimensionless; all other contrasts are in within-grade standard deviations.}
+\label{fig:applied-star-estimates}
+\end{figure}
+
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.96\textwidth]{figures/applied_star_densities.pdf}
+\caption{Project STAR arm densities relative to the pooled control benchmark, by school free-lunch quartile. Panels Q1 to Q4 and the marginal panel show unadjusted equal-unit mixtures of classroom-grade laws. The final panel compares raw and calibrated reference contrasts. The treated distribution separates most clearly in Q4, where the control law lies below the blended benchmark and treatment moves it toward that benchmark.}
+\label{fig:applied-star-densities}
+\end{figure*}
+
+Figure~\ref{fig:applied-star-estimates} depicts the overall results. Marginally, the calibrated mean contrast is $+0.161$ (influence-function SE $0.028$), near the experimental literature's student-level estimate of approximately $0.2$ standard deviations and the WCF plug-in estimate of $+0.150$. The upper-half mean and ninetieth-percentile contrasts are $+0.166$ and $+0.179$, compared with $+0.091$ at the tenth percentile. Small classes therefore produce larger gains in the upper part of the classroom distribution rather than a uniform location shift. Dispersion is essentially unchanged ($-0.001$), and the reference TATE contrast is $+0.053$, indicating that the treatment shifts the distribution slightly farther from the pooled control benchmark. Combined with the positive mean contrast, this reveals that small classes shift the entire classroom score distribution to the right of the control reference; hence achieving a better performance.
+
+The stratum summaries reveal additional structure. Mean effects are $+0.164$, $+0.092$, $+0.126$, and $+0.262$ from the lowest to highest free-lunch quartile; the upper-tail contrasts follow the same pattern. To understand how these heterogenous gains interact with the distributional baseline, we examine the reference-distance effects found in Figure~\ref{fig:applied-star-densities}. Across most schools, the treatment pushes the outcome distribution farther from the pooled control benchmark, except in the most vulnerable classrooms. In Q4, the control median is $-0.53$ while the blended benchmark median is $-0.11$, so the upward shift from small classes moves the outcome law closer to the benchmark and produces a reference contrast of $-0.103$. In Q1 to Q3 the control distributions are already at or above the blend, and similar upward shifts move them farther away. 
+
+Besides this applied study, Appendix~\ref{app:applications} reports results for two additional settings: an analysis of Kenyan cash transfers \citep{egger2022general,egger2024replication}, which reveals lower-tail gains and movement toward an external consumption benchmark, and an evaluation of U.S. state-year minimum wage policies, which highlights compression and rightward shifts in regional wage distributions.
+
+\clearpage
+\section{Conclusion}\label{sec:conclusion}
+
+Wasserstein Causal Forests provide a flexible framework for estimating treatment-arm conditional laws of distribution-valued outcomes and calibrating selected scalar functionals. The simulation studies demonstrate strong performance under location, shape, and overlap variations, including settings where mean effects are entirely absent, while also highlighting limitations, such as the inadequacy of small equal-weight particle clouds for complex multimodal laws. Beyond the primary simulations, empirical evaluations in Project STAR, Kenyan cash-transfer experiments, and state-level minimum wage analyses show how distributional estimation uncovers rich structural changes, ranging from upper-tail classroom gains and lower-tail consumption shifts to regional wage compression.
+
+Nonetheless, reference effects must be interpreted with care: movement toward a benchmark is not inherently beneficial, nor is movement away inherently harmful, as success depends entirely on a scientifically defensible choice of target. Additional limitations include finite $K$ and $M$ approximations, the absence of formal uniform coverage guarantees, and quantile measurement error arising from finite lower-level sample sizes. Furthermore, clustered and design-based extensions remain necessary for dependent units. Within these boundaries, estimating the conditional distribution as a primary object offers a robust, reusable representation for causal questions that cannot be reduced to a single regression target.
+
+\section*{AI Use Statement}
+
+Generative AI tools were used to assist wite refining simulation designs; creating and editing code; auditing notation and internal consistency; drafting the manuscript; producing figures and tables; and checking publicly available submission instructions. The author thoroughly reviewed all actions and outputs originated from the use of Generative AI tools. Last but not least, it is worth emphasizing the Generative AI tools were solely used as a tool to accelerate research work and not to take the lead in the research process.
+
+\bibliography{references}
+
+\clearpage
+\section*{Reproducibility Checklist}
+
+% Replace this compact record with the official AISTATS 2027 checklist once
+% its template is released.
+The manuscript states the causal assumptions, estimands, simulation data-generating processes, evaluation metrics, sample sizes, replication counts, comparators, and principal tuning parameters. Appendix~\ref{app:algorithm} documents the estimator, Appendix~\ref{app:simulation-results} reports the complete design comparison, and Appendix~\ref{app:sensitivity} reports the complete sensitivity tables. Code and frozen experiment outputs can be found in \url{https://github.com/hugogobato/wasserstein-causal-forests}.
+
+\clearpage
+\appendix
+\onecolumn
+\input{supplement}
+
+\end{document}

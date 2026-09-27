@@ -489,6 +489,14 @@ def summarize(_: argparse.Namespace) -> int:
     document = load_manifest()
     frame = pd.DataFrame(_read_rows(MERGED_PATH))
     frame = frame[(frame.status == "ok") & frame.value.notna()].copy()
+    # Law and barycenter metrics are stored per treatment arm.  Average the
+    # arms within each replication first so one row per seed reaches the
+    # seed-level aggregation, matching the sensitivity archive's cell metrics.
+    frame = frame.groupby(
+        ["grid", "dgp", "n_train", "n_grid", "n_particles", "method",
+         "metric", "target_id", "detail", "seed"],
+        dropna=False, as_index=False,
+    )["value"].mean()
     keys = ["grid", "dgp", "n_train", "n_grid", "n_particles", "method", "metric", "target_id", "detail"]
     records = []
     for key, group in frame.groupby(keys, dropna=False):

@@ -1,0 +1,505 @@
+\section{Estimator Details and Asymptotic Theory}\label{app:algorithm}
+
+\subsection{Observations, probability layers, and causal targets}
+
+One observational unit contributes $O_i=(X_i,A_i,Q_i)$, where $X_i\in\mathbb R^d$ is a vector of pretreatment adjustment variables, $A_i\in\{0,1\}$ is treatment, and $Q_i$ represents that unit's outcome distribution. Specifically, if $Y_i$ is a probability distribution on $\mathbb R$, then $Q_i=q_K(Y_i)=(Q_{Y_i}(u_1),\ldots,Q_{Y_i}(u_K))$ at fixed levels $0<u_1<\cdots<u_K<1$. Thus $n$ counts units, $K$ counts coordinates of each unit's outcome, and $M$ below counts particles used to represent heterogeneity \emph{across} units. These three sample or resolution parameters have different roles. The ordered vectors belong to $\QK=\{q\in\mathbb R^K:q_1\leq\cdots\leq q_K\}$. For fixed $w_k>0$ with $\sum_k w_k=1$, write
+\[
+ \|v\|_w=\Big(\sum_{k=1}^K w_kv_k^2\Big)^{1/2},\qquad
+ d_{W,K}(q,r)=\|q-r\|_w.
+\]
+The latter is the $W_2$ distance between $\sum_k w_k\delta_{q_k}$ and $\sum_k w_k\delta_{r_k}$. It approximates the distance between the original distributions only to the accuracy of their quantile-grid representation.
+
+Write $Q^a=q_K(Y^a)$ for the potential quantile vector under arm $a$, $e(x)=\Prob(A=1\mid X=x)$, $e_1=e$, and $e_0=1-e$. Consistency, $Y^a\perp A\mid X$, and $0<e(X)<1$ identify
+\[
+ P_a(x):=P_a^K(x)=\Law(Q^a\mid X=x)=\Law(Q\mid A=a,X=x).
+\]
+Throughout this appendix $K$ and $w$ are fixed unless explicitly stated otherwise, so the superscript $K$ is usually suppressed. A draw from $P_a(x)$ is a whole ordered vector, not one scalar draw from $Y^a$. Conditional laws and their means are identified $P_X$-almost everywhere; a value at an individual point of a continuous covariate distribution requires a chosen regular version, for example one continuous near that point.
+
+For a prespecified measurable summary $h:\QK\to\mathbb R$, put $H=h(Q)$ and
+\[
+ \mu_{a,h}(x)=\int h(q)\,dP_a(x)(q),\qquad
+ \tau_h(x)=\mu_{1,h}(x)-\mu_{0,h}(x),\qquad
+ \theta_h=\E\{\tau_h(X)\}.
+\]
+These are, respectively, the arm-specific conditional mean, $\TCATE_{h,K}(x)$, and $\TATE_{h,K}$. For a fixed measurable stratum $B$ with $p_B=\Prob(X\in B)>0$, define $\theta_{h,B}=\E\{\tau_h(X)\mid X\in B\}$. A stratum effect is not a pointwise TCATE. Conditioning on a moderator or a stratum also does not replace adjustment for the full $X$ in the arm regressions and propensity.
+
+Examples are the grid mean $\sum_k w_kq_k$, the grid standard deviation $[\sum_k w_k(q_k-\sum_\ell w_\ell q_\ell)^2]^{1/2}$, and a specified coordinate $q_j$. For a fixed benchmark $q_\star\in\QK$, $h_\star(q)=\|q-q_\star\|_w$ gives the reference TATE and TCATE. A negative reference effect means a reduction in expected distance to this benchmark, rather than an ordering of welfare without further scientific justification. All these targets average a function of each unit's distribution. In general $\int h\,dP_a\neq h(\int q\,dP_a)$; in particular, distance to the mean quantile vector does not replace mean distance to the reference. Neither identification nor estimation of these contrasts requires a joint law of $(Q^0,Q^1)$.
+
+\subsection{Particle representation and the complete fitting step}
+
+For each $x$ and arm $a$, WCF returns
+\[
+ \widehat P_a(x)=M^{-1}\sum_{m=1}^M\delta_{p_{am}(x)},\qquad p_{am}(x)\in\QK.
+\]
+Each particle is a possible unit-level quantile vector; it is not a confidence draw or a matched potential outcome. Particle labels within an arm are arbitrary, and cross-arm differences $p_{1m}-p_{0m}$ have no individual causal interpretation. Functional predictions are $\widehat m_{a,h}(x)=M^{-1}\sum_m h\{p_{am}(x)\}$.
+
+For $\varepsilon>0$, define $r_\varepsilon(p,q)=(\|p-q\|_w^2+\varepsilon^2)^{1/2}$ and $d_\varepsilon(p,q)=r_\varepsilon(p,q)-\varepsilon$. The observed-arm empirical objective is
+\begin{equation}
+ \widehat R_\varepsilon(p)=\frac1n\sum_{i=1}^n
+ \left\{\frac1M\sum_m d_\varepsilon(p_{A_i m}(X_i),Q_i)
+ -\frac1{2M^2}\sum_{m,\ell}d_\varepsilon(p_{A_i m}(X_i),p_{A_i\ell}(X_i))\right\}.
+ \label{eq:app-empirical-risk}
+\end{equation}
+The double sum includes diagonal pairs, whose contribution is zero. The first term attracts particles toward observed vectors and the second rewards dispersion. Smoothing makes the gradient well defined at coincident particles. No propensity weights enter this fitting objective: conditional on $X=x$, each observed arm supplies data from its own identified law. Overlap is needed to learn both laws over the target covariate population.
+
+Both arms start from the same $M$ pooled observed vectors. The implementation orders the pooled vectors lexicographically and takes the indices $\lfloor(m-1/2)n/M\rfloor$, $m=1,\ldots,M$, using zero-based indexing. This is a deterministic initialization, not a multivariate quantile definition. At iteration $t$, abbreviate $p_m=p_{A_i m}^{(t)}(X_i)$. The negative preconditioned gradient for coordinate $k$ is
+\begin{equation}
+ G_{imk}^{(t)}=-\frac{M}{w_k}\frac{\partial S_{\varepsilon,M}(p_{1:M};Q_i)}{\partial p_{mk}}
+ =-\frac{p_{mk}-Q_{ik}}{r_\varepsilon(p_m,Q_i)}
+ +\frac1M\sum_{\ell=1}^M\frac{p_{mk}-p_{\ell k}}{r_\varepsilon(p_m,p_\ell)}.
+ \label{eq:app-gradient}
+\end{equation}
+Flattening $(m,k)$ yields one $MK$-dimensional response $G_i^{(t)}$ per unit. A single tree uses pooled multi-output squared-error reduction to choose covariate splits. For a node $I$, its criterion is $\sum_{i\in I}\|G_i^{(t)}-\overline G_I^{(t)}\|_2^2$; a candidate split maximizes its reduction subject to the total and arm-specific minimum child counts. The partition is shared, but the terminal-node prediction is arm specific. This is a boosting tree construction, so asymptotic results for honest subsampled random forests do not apply merely because the estimator is named WCF.
+
+In a terminal leaf let $n_a$ count arm-$a$ observations and let $u_a\in\mathbb R^{MK}$ be their mean gradient target. Define
+\[
+ \bar u=\frac{n_0u_0+n_1u_1}{n_0+n_1},\quad
+ \Delta_u=u_1-u_0,\quad n_{\rm eff}=\frac{n_0n_1}{n_0+n_1},\quad
+ c_\lambda=\frac{n_{\rm eff}}{n_{\rm eff}+\lambda}.
+\]
+The leaf predictions are
+\[
+ \widehat u_0=\bar u-\frac{n_1}{n_0+n_1}c_\lambda\Delta_u,\qquad
+ \widehat u_1=\bar u+\frac{n_0}{n_0+n_1}c_\lambda\Delta_u.
+\]
+They minimize $\sum_a n_a\|v_a-u_a\|_2^2+\lambda\|v_1-v_0\|_2^2$ over $(v_0,v_1)$. Thus $\lambda=0$ retains the raw arm means, while larger $\lambda$ shrinks their contrast without changing their count-weighted mean. The leaf containing a new $x$ supplies the update block $\widehat u_{am}^{(t)}(x)\in\mathbb R^K$. WCF then sets
+\[
+ p_{am}^{(t+1)}(x)=\Pi_{\QK}^w\{p_{am}^{(t)}(x)+\eta_t\widehat u_{am}^{(t)}(x)\},\qquad
+ \Pi_{\QK}^w(v)=\arg\min_{q\in\QK}\sum_k w_k(q_k-v_k)^2.
+\]
+This projection is unique, nonexpansive in $\|\cdot\|_w$, and computed by weighted pool-adjacent-violators \citep{barlow1972isotonic}. Backtracking halves $\eta_t$ until the observed-arm objective does not increase; fitting stops if its backtracking budget finds no acceptable step. This guarantees accepted-step descent, not global optimization of the nonconvex particle objective.
+
+The reported fits use at most 100 iterations, initial step size $0.12$, depth 4, minimum total leaf size 10, minimum arm-specific leaf size 5, $\varepsilon=10^{-3}$, and $\lambda\in\{0,50,500\}$ selected by held-out observed-arm energy risk. Outcome fitting uses three folds for LS and two for S and Z. Propensity estimation uses five-fold logistic regression, clipped to $[0.02,0.98]$. The selected learner is refitted to obtain the final law; out-of-fold predictions supply calibration. DRF uses 2,500 trees per arm and Causal-DRF uses 2,500 shared trees \citep{DRF-paper,naf2026causaldrf}. These are finite experimental budgets, not sequences already proved to satisfy the asymptotic conditions below.
+
+\subsection{What the energy objective identifies}
+
+For any probability laws $F,G$ on $\QK$ with finite first $\|\cdot\|_w$ moments, let
+\[
+ S_\varepsilon(F;q)=\E_{Z\sim F}d_\varepsilon(Z,q)
+ -\tfrac12\E_{Z,Z'\sim F}d_\varepsilon(Z,Z'),\qquad
+ D_\varepsilon(F,G)=2\E d_\varepsilon(Z,V)-\E d_\varepsilon(Z,Z')-\E d_\varepsilon(V,V'),
+\]
+where $Z,Z'$ are independent with law $F$, $V,V'$ are independent with law $G$, and all four draws are mutually independent. $D_\varepsilon$ is an energy divergence between \emph{outer} laws, whereas $d_{W,K}$ compares two unit-level vectors.
+
+\paragraph{Proposition A.1 (strict propriety, including fixed smoothing).}
+For each fixed $\varepsilon\geq0$,
+\begin{equation}
+ \E_{V\sim G}\{S_\varepsilon(F;V)-S_\varepsilon(G;V)\}
+ =\tfrac12D_\varepsilon(F,G)\geq0,
+ \qquad D_\varepsilon(F,G)=0\ \Longleftrightarrow\ F=G.
+ \label{eq:app-proper}
+\end{equation}
+In particular, fixed positive smoothing does not change the population-optimal unrestricted law.
+
+\paragraph{Proof.}
+The equality follows by expansion. For completeness, the strictness argument specializes the kernel-score construction of \citet[Section 5, Theorem 5]{gneiting2007proper}. Transform $q$ to $z=(\sqrt{w_1}q_1,\ldots,\sqrt{w_K}q_K)$, an invertible linear map. For $r\geq0$,
+\[
+ \sqrt{r^2+\varepsilon^2}-\varepsilon
+ =\frac1{2\sqrt\pi}\int_0^\infty(1-e^{-tr^2})e^{-\varepsilon^2t}t^{-3/2}\,dt.
+\]
+Consequently $D_\varepsilon(F,G)$ is the integral, with this positive weight, of
+$\E k_t(Z,Z')+\E k_t(V,V')-2\E k_t(Z,V)$, where $k_t(z,v)=e^{-t\|z-v\|_2^2}$ and the expectations now use transformed draws. Each integrand is nonnegative and is zero only for equal laws: Fourier inversion expresses it as a positive Gaussian-weighted integral of the squared difference between their characteristic functions. Finite first moments justify integration of the constituent $1-k_t$ terms. The weight is positive for every $t>0$, proving strictness, also when $\varepsilon=0$. This also explains why strict propriety does not imply that a restricted $M$-particle fit exactly reproduces an arbitrary law. $\square$
+
+Let $R_\varepsilon(F)=\E S_\varepsilon(F_A(X);Q)$ for a pair $F=(F_0,F_1)$ of measurable conditional laws, and let $P=(P_0,P_1)$ denote the truth. Conditioning on $(X,A)$ gives the exact identity
+\begin{equation}
+ R_\varepsilon(F)-R_\varepsilon(P)
+ =\tfrac12\E_X\sum_{a=0}^1 e_a(X)D_\varepsilon(F_a(X),P_a(X)).
+ \label{eq:app-risk-id}
+\end{equation}
+Thus positivity identifies both conditional laws at the population optimum. This is not double robustness: the law fit has no propensity-based bias correction.
+
+\subsection{Conditional-law consistency and its algorithmic conditions}
+
+\paragraph{Theorem A.2 (excess-risk bound and consistency).}
+Suppose the units are i.i.d., the causal assumptions above hold, and $c\leq e(X)\leq1-c$ almost surely for some $c>0$. Fix $K,w,\varepsilon\geq0$. Let $\mathcal F_n$ be a deterministic class of pairs of measurable equal-weight $M_n$-particle laws, and suppose $\widehat F\in\mathcal F_n$. Define
+\[
+ U_n=\sup_{F\in\mathcal F_n}|\widehat R_\varepsilon(F)-R_\varepsilon(F)|,\qquad
+ b_n=\inf_{F\in\mathcal F_n}\{R_\varepsilon(F)-R_\varepsilon(P)\}.
+\]
+If $\widehat R_\varepsilon(\widehat F)\leq\inf_{F\in\mathcal F_n}\widehat R_\varepsilon(F)+o_n$ for a nonnegative optimization error $o_n$, then
+\begin{equation}
+ \E_X\sum_{a=0}^1D_\varepsilon(\widehat F_a(X),P_a(X))
+ \leq\frac{2}{c}(2U_n+b_n+o_n).
+ \label{eq:app-oracle}
+\end{equation}
+Here and below $\E_X$ integrates a fresh covariate conditional on the fitted functions. If $U_n,b_n,o_n\to_p0$, the left side tends to zero. If, in addition, all true and fitted laws are supported on a common compact $C\subset\QK$, then, for $a=0,1$,
+\begin{equation}
+ \E_X\mathcal W_{1,w}(\widehat F_a(X),P_a(X))\to_p0,\qquad
+ \mathcal W_{1,w}(F,G)=\inf_{\gamma\in\Gamma(F,G)}\int\|q-r\|_w\,d\gamma(q,r),
+ \label{eq:app-law-consistency}
+\end{equation}
+where $\Gamma(F,G)$ is the set of couplings of the two outer laws.
+
+\paragraph{Proof.}
+Adding and subtracting empirical risks gives $R_\varepsilon(\widehat F)-R_\varepsilon(P)\leq2U_n+b_n+o_n$; an arbitrarily close approximate minimizer handles a nonattained infimum. Equation~\eqref{eq:app-risk-id} and $e_a\geq c$ prove the bound. On compact $C$, the space of probability laws is weakly compact, $D_\varepsilon$ is continuous, and its zero set is the diagonal by Proposition A.1. For any $\delta>0$, its minimum $\kappa_\delta$ over pairs with $\mathcal W_{1,w}(F,G)\geq\delta$ is strictly positive whenever that set is nonempty. If $L_C$ is the diameter of $C$, then
+\[
+ \E_X\mathcal W_{1,w}(\widehat F_a,P_a)
+ \leq\delta+\frac{L_C}{\kappa_\delta}\E_XD_\varepsilon(\widehat F_a,P_a).
+\]
+First let $n\to\infty$ and then $\delta\downarrow0$. $\square$
+
+The three terms in \eqref{eq:app-oracle} have distinct meanings. $U_n$ controls overfitting, $b_n$ combines particle and covariate-function approximation, and $o_n$ measures failure to optimize within the declared class. For example, on compact $C$, a finite deterministic class of size $N_n$ has $U_n=O_p(\sqrt{\log(2N_n)/n})$ by bounded-score concentration and a union bound. For an infinite class with a uniform $\delta_n$-net of the score functions of size $N_n$, the bound becomes $O_p(\delta_n+\sqrt{\log(2N_n)/n})$. Thus increasing model complexity can be allowed if this entropy grows slowly enough. These are sufficient conditions, not an entropy calculation for the implemented adaptive booster.
+
+Particle approximation itself admits a useful quantitative check. If $Z_1,\ldots,Z_M$ are i.i.d. from a fixed $P$ and $P_M=M^{-1}\sum_m\delta_{Z_m}$, direct expansion yields
+\begin{equation}
+ \E D_\varepsilon(P_M,P)=M^{-1}\E d_\varepsilon(Z,Z').
+ \label{eq:app-particle-rate}
+\end{equation}
+On compact $C$ the right side is at most $L_C/M$, so an equal-weight cloud with no larger divergence exists. This is an approximation statement at a fixed conditional law, not a convergence rate for fitted WCF. To make $b_n\to0$, the covariate-indexed model class must also approximate the conditional laws. Nonvacuous examples include a finite covariate partition on which the true laws are constant equal-weight clouds, with those clouds in the fitting class; there $b_n=0$ and bounded finite-dimensional parameter classes admit a uniform law of large numbers. More general laws require growing particle and partition capacity. Conversely, on compact $C$ the class of laws with at most $M$ atoms is weakly closed. A nonatomic conditional law therefore cannot be consistently recovered with $M$ fixed, even by perfect risk minimization.
+
+For WCF, accepted-step descent alone does not establish $o_n\to0$, and fixed depth and a fixed number of boosting iterations do not establish $b_n\to0$. Theorem A.2 identifies exactly what must be verified for a growing-budget implementation; it is not an unconditional consistency theorem for the reported 100-step, ten-particle algorithm. The compact-support assumption is a sufficient regime for the stated transport conclusion and does not cover the Gaussian-tail simulations literally. The excess-risk inequality still holds under finite moments; extending its transport conclusion to unbounded laws requires a separate tightness and uniform-integrability argument. Neither TCDA stability nor random-forest consistency supplies these missing optimization and approximation guarantees. The tail condition is substantive: for $F_j=(1-j^{-1})\delta_{\mathbf0_K}+j^{-1}\delta_{j\mathbf1_K}$ and $G=\delta_{\mathbf0_K}$, one has $D_\varepsilon(F_j,G)=2j^{-2}(\sqrt{j^2+\varepsilon^2}-\varepsilon)\to0$ but $\mathcal W_{1,w}(F_j,G)=1$. Thus even the grid mean need not converge from vanishing energy divergence without tail control.
+
+\paragraph{Corollary A.2a (a concrete growing shared-partition class).}
+The risk conditions can be made quantitative for a comparison class of particle predictors. In addition to the compact-support conditions of Theorem A.2, suppose $X\in[0,1]^d$ and each $P_a(x)$ has a version satisfying $\mathcal W_{1,w}(P_a(x),P_a(x'))\leq L_X\|x-x'\|_2$. Partition the covariate cube into $J_n$ deterministic cubes of side length $\ell_n$, where $J_n=O(\ell_n^{-d})$, and allow an arbitrary $M_n$-particle cloud in $C$ for each arm and cell. This is a shared-partition particle class, representable by a sufficiently large axis-aligned tree. For an approximate global empirical minimizer in this class,
+\begin{equation}
+ \E_X\sum_aD_\varepsilon(\widehat F_a(X),P_a(X))
+ =O_p\left(\ell_n+M_n^{-1}
+ +\sqrt{\frac{K M_nJ_n\log n}{n}}+o_n\right).
+ \label{eq:app-sieve-rate}
+\end{equation}
+For fixed $K,d$, the choice $\ell_n\asymp M_n^{-1}\asymp(\log n/n)^{1/(d+3)}$ makes the first three terms of order $(\log n/n)^{1/(d+3)}$. This is an upper bound on energy divergence, not a sharp minimax rate or a transport-rate bound.
+
+\paragraph{Proof.}
+In a cell with positive arm-specific probability let $G_{a,j}=\Law(Q\mid A=a,X\text{ in cell }j)$. Mixture coupling and the Lipschitz assumption give $\mathcal W_{1,w}(G_{a,j},P_a(x))\leq L_X\sqrt d\,\ell_n$ within the cell. The score is $2$-Lipschitz as a function of its forecast law in $\mathcal W_{1,w}$: the attraction term contributes one Lipschitz constant and the half-weighted pair term contributes one more. Thus the piecewise $G_{a,j}$ forecast has excess risk at most $2L_X\sqrt d\,\ell_n$. Replacing each $G_{a,j}$ by an independent empirical $M_n$-cloud increases its expected risk, averaged over the cell's observed outcomes, by at most $L_C/(2M_n)$ using \eqref{eq:app-particle-rate}. Hence some deterministic set of cell clouds achieves $b_n\leq2L_X\sqrt d\,\ell_n+L_C/(2M_n)$. Cells of zero probability can be filled arbitrarily.
+
+For fixed $K$, a compact subset of $\mathbb R^K$ has a $\delta$-net of size at most $(C_0/\delta)^K$ for $0<\delta<1$, where $C_0$ depends on $C,w,K$. Quantizing the $2M_nJ_n$ particle locations induces a $2\delta$ uniform net of the score functions with log cardinality at most $2KM_nJ_n\log(C_0/\delta)$. Set $\delta=n^{-1}$ and use bounded-score concentration, then substitute the resulting bound for $U_n$ and the approximation bound into \eqref{eq:app-oracle}. $\square$
+
+This construction verifies that particle count and partition complexity can grow jointly while retaining risk consistency. It still requires approximate global minimization. The greedy boosting path, its shrinkage schedule, and its stopping rule would need a separate comparison with such a class before \eqref{eq:app-sieve-rate} could be asserted for the experimental algorithm. Keeping this distinction makes the available statistical result explicit without assuming that training-score descent proves optimization consistency.
+
+\subsection{From a fitted law to TATE, TCATE, and reference effects}
+
+\paragraph{Proposition A.3 (functional error transfer).}
+If $h$ is $L_h$-Lipschitz in $\|\cdot\|_w$, then for any fitted probability laws with finite first moments,
+\begin{align}
+ |\widehat m_{a,h}(x)-\mu_{a,h}(x)|&\leq L_h\mathcal W_{1,w}(\widehat F_a(x),P_a(x)),\nonumber\\
+ |\widehat\tau_h(x)-\tau_h(x)|&\leq L_h\sum_a\mathcal W_{1,w}(\widehat F_a(x),P_a(x)),\label{eq:app-transfer}\\
+ |\E_X\widehat\tau_h(X)-\theta_h|&\leq L_h\sum_a\E_X\mathcal W_{1,w}(\widehat F_a(X),P_a(X)).\nonumber
+\end{align}
+The stratum analogue divides the expectation restricted to $B$ by $p_B$. In particular $L_{h_\star}=1$, irrespective of the location of the fixed reference.
+
+\paragraph{Proof.}
+For any coupling $(Z,V)$ of the fitted and true laws, $|\E h(Z)-\E h(V)|\leq L_h\E\|Z-V\|_w$. Take the infimum over couplings, subtract arms, and integrate as needed. The reverse triangle inequality proves the reference claim. $\square$
+
+The grid mean and grid standard deviation have Lipschitz constant at most one; for standard deviation this follows by viewing centering as an orthogonal projection in the weighted Euclidean space. Coordinate $j$ has constant $w_j^{-1/2}$. For a nonempty tail-index set $J$, the normalized weighted mean $\sum_{j\in J}w_jq_j/\sum_{j\in J}w_j$ has constant $(\sum_{j\in J}w_j)^{-1/2}$. Skewness is different: its denominator vanishes at constant vectors, and no global Lipschitz or even continuity claim holds there. A skewness analysis needs an explicit convention at degeneracy and its own moment/regularity conditions, or a restricted support with dispersion bounded away from zero. AIPW inference below only needs the stated scalar moment and nuisance conditions, rather than Lipschitzness of every chosen $h$.
+
+Theorem A.2 therefore gives integrated conditional-effect consistency for Lipschitz summaries, including reference TCATE, and marginal and fixed-stratum consistency. It does not give convergence at every fixed $x$: integrated error can vanish while an error remains on a shrinking neighborhood of that point. Pointwise transport convergence gives pointwise functional convergence through \eqref{eq:app-transfer}; a uniform transport bound gives its uniform counterpart. To estimate the marginal plug-in effect using an independent evaluation sample of size $N$, average $\widehat\tau_h(X_i)$ over that sample. With bounded $h$ on $C$, its error is bounded by the population plug-in error plus $O_p(N^{-1/2})$. Foldwise evaluation gives the analogous consistency result. Root-$n$ normality of a plug-in effect does not follow from law consistency alone because its first-order regression bias remains.
+
+These arguments instantiate the identification and stability-transfer logic of TCDA \citep[Theorem 5.1 and Definition 5.2]{souto_diamantis_tcda_2026}: use the outcome representation $h\circ q_K$, then estimate its conditional mean. The finite-grid reference effect is also an outcome-level transformed contrast. It is not TCDA's nonlinear transformation of an already averaged interventional law. TCDA's silhouette-specific inference theorems concern another representation and cannot substitute for WCF law-learning or pointwise regression theory.
+
+\subsection{Cross-fitted calibration: consistency, limiting distribution, and standard errors}
+
+Use a fixed number $F\geq2$ of folds $I_1,\ldots,I_F$, assigned independently of the observations, with $|I_f|/n\to\rho_f\in(0,1)$. The fold count $F$ is unrelated to the quantile-grid size $K$. For $i\in I_f$, fit both nuisances outside $I_f$ and write $\widehat m_{a,h}^{(-f)}$ and $\widehat e^{(-f)}$ for their predictions. Any tuning used in the following simple cross-fitting argument is also performed outside $I_f$. Put
+\begin{align}
+ \widehat\phi_i(h)={}&\widehat m_{1,h}^{(-f)}(X_i)-\widehat m_{0,h}^{(-f)}(X_i)
+ +\frac{A_i}{\widehat e^{(-f)}(X_i)}\{H_i-\widehat m_{1,h}^{(-f)}(X_i)\}\nonumber\\
+ &-\frac{1-A_i}{1-\widehat e^{(-f)}(X_i)}\{H_i-\widehat m_{0,h}^{(-f)}(X_i)\},\qquad
+ \widehat\theta_h=\frac1n\sum_i\widehat\phi_i(h).
+ \label{eq:app-score}
+\end{align}
+For fixed candidate functions $(m_0,m_1,g)$, the corresponding score satisfies
+\begin{equation}
+ b_h(x):=\E\{\phi(h;m,g)\mid X=x\}-\tau_h(x)
+ =(g-e)\left\{\frac{m_1-\mu_{1,h}}{g}+\frac{m_0-\mu_{0,h}}{1-g}\right\}(x).
+ \label{eq:app-dr-bias}
+\end{equation}
+This follows by replacing $A H$ and $(1-A)H$ by their conditional means. It is the scalar specialization of TCDA's augmented remainder and product-rate bound \citep[Proposition 5.3]{souto_diamantis_tcda_2026}, and of the usual doubly robust identity \citep{bang2005doubly}. If fitted propensities lie in $[c,1-c]$, Cauchy--Schwarz gives
+\[
+ |\E_X b_h(X)|\leq c^{-1}\|g-e\|_2\sum_a\|m_a-\mu_{a,h}\|_2,
+ \qquad \|v\|_2^2=\E_X v(X)^2.
+\]
+Thus cross-fitted consistency follows when this product tends to zero and the foldwise score second moments are $O_p(1)$. In particular, either nuisance side may be inconsistent if the other side is consistent and the remaining errors are bounded in $L^2$. Consistency under one correct side is weaker than the efficient central limit theorem below.
+
+\paragraph{Theorem A.4 (scalar AIPW inference).}
+Suppose the causal and i.i.d. assumptions hold, $c\leq e,\widehat e^{(-f)}\leq1-c$, $\E H^2<\infty$, and $\E[(H-\mu_{a,h}(X))^2\mid X,A=a]$ is uniformly bounded for both arms. For every fold suppose
+\[
+ r_{e,f}=\|\widehat e^{(-f)}-e\|_2=o_p(1),\qquad
+ r_{m,f}=\sum_a\|\widehat m_{a,h}^{(-f)}-\mu_{a,h}\|_2=o_p(1),\qquad
+ r_{e,f}r_{m,f}=o_p(n^{-1/2}).
+\]
+Let $\phi_0(O;h)$ be \eqref{eq:app-score} evaluated at $(\mu_{0,h},\mu_{1,h},e)$ and put $\psi_h(O)=\phi_0(O;h)-\theta_h$. If $0<V_h=\E\psi_h^2<\infty$, then
+\begin{equation}
+ \sqrt n(\widehat\theta_h-\theta_h)=n^{-1/2}\sum_i\psi_h(O_i)+o_p(1)
+ \ \Longrightarrow\ N(0,V_h),\qquad
+ \widehat V_h=\frac1n\sum_i\{\widehat\phi_i(h)-\widehat\theta_h\}^2\to_p V_h.
+ \label{eq:app-clt}
+\end{equation}
+Accordingly $\sqrt{\widehat V_h/n}$ is a consistent standard error. The influence function is the efficient one in the nonparametric i.i.d. model for the fixed scalar target.
+
+\paragraph{Proof.}
+This is the ATE specialization of double/debiased machine learning \citep[Theorem 5.1]{chernozhukov2018double}; the following argument states the exact sufficient conditions used here. Subtract the true score fold by fold. Equation~\eqref{eq:app-dr-bias} makes its conditional mean $o_p(n^{-1/2})$. Bounded inverse weights, the conditional residual-variance bound, and $L^2$ nuisance consistency make the conditional $L^2$ distance between fitted and true scores $o_p(1)$. Conditional on the training data for one fold, its centered empirical difference is therefore $o_p(n^{-1/2})$ by Chebyshev's inequality. Sum over the fixed number of folds. The ordinary i.i.d. central limit theorem applies to $\psi_h$. The same conditional $L^2$ bound makes the empirical mean squared score difference $o_p(1)$; the law of large numbers and Cauchy--Schwarz then prove variance consistency. $\square$
+
+Under a law-transport rate $s_{a,f}=\|\mathcal W_{1,w}(\widehat F_a^{(-f)}(X),P_a(X))\|_2$, Proposition A.3 gives $r_{m,f}\leq L_h\sum_a s_{a,f}$. Hence $r_{e,f}\sum_a s_{a,f}=o_p(n^{-1/2})$ suffices for the product condition for Lipschitz $h$, alongside consistency of both nuisance sides. Theorem A.2 by itself supplies no such rate. Fixed-$M$ WCF can still yield a consistent calibrated scalar effect when the propensity is consistently estimated, but it need not satisfy the outcome-consistency condition of Theorem A.4. If the propensity is exactly known and the fitted outcome means converge in $L^2$ to fixed, possibly incorrect limits, the same proof instead uses $\phi(h;m^\dagger,e)-\theta_h$ as the influence function; normality and score-based standard errors remain available, generally without efficiency. Estimating the propensity while the outcome limit is incorrect does not inherit that conclusion without additional analysis.
+
+For a fixed stratum, use $\widehat p_B=n^{-1}\sum_i1\{X_i\in B\}$ and
+\[
+ \widehat\theta_{h,B}=\frac{\sum_i1\{X_i\in B\}\widehat\phi_i(h)}{n\widehat p_B},\qquad
+ \psi_{h,B}(O)=\frac{1\{X\in B\}}{p_B}\{\phi_0(O;h)-\theta_{h,B}\}.
+\]
+Under Theorem A.4's conditions and positive stratum variance, the ratio expansion gives root-$n$ normality with variance $\E\psi_{h,B}^2$. Its estimate is the sample mean of $[1\{X_i\in B\}\{\widehat\phi_i(h)-\widehat\theta_{h,B}\}/\widehat p_B]^2$. The same argument gives a joint finite-dimensional normal limit for finitely many prespecified summaries and strata, using their empirical influence-function covariance. It does not justify selecting favorable functionals after examining their estimated effects or simultaneous bands over all $x$.
+
+For the archived implementation, outcome and propensity folds differ and the contrast penalty is selected using held-out risks across the outcome folds. These details are not literally the single-partition, training-only tuning scheme of Theorem A.4. One can establish an extension with suitable foldwise arguments and uniform control over the finite tuning candidates, or use common outer folds with tuning nested inside each training set; neither extension is certified here by calling predictions out of fold. Likewise, clipping at $[0.02,0.98]$ permits propensity consistency only if the true range is compatible with those bounds (or the clipping rule is changed). The theorem states sufficient conditions for valid calibration, rather than asserting that the experimental defaults meet every condition.
+
+\subsection{Pointwise TCATE inference requires a second estimation step}
+
+Averages within fixed strata have the preceding root-$n$ theory. A full function $x\mapsto\tau_h(x)$ requires conditional regression of the scores. Here is an explicit sufficient construction, separate from the archived stratum estimator, which shows that this target also permits inference.
+
+\paragraph{Proposition A.5 (a local score estimator).}
+Fit the nuisances on an independent training sample and form scores $\widehat\phi_i$ on an evaluation sample of size $N$. Let $L:\mathbb R^d\to[0,\infty)$ be a bounded, compactly supported kernel with $\int L=1$ and $\int L^2>0$. At an interior point $x$, let
+\[
+ \widehat\tau_{h,b}(x)=\frac{\sum_{i=1}^N L((X_i-x)/b)\widehat\phi_i}{\sum_{i=1}^N L((X_i-x)/b)}.
+\]
+Assign any fixed value if the denominator is zero, an event whose probability tends to zero under the conditions below. Suppose $X$ has density $f_X$ continuous and positive at $x$, $\tau_h$ is locally H\"older of order $s\in(0,1]$, and $v_h(z)=\operatorname{Var}(\phi_0(O;h)\mid X=z)$ is continuous with $v_h(x)>0$. Suppose the conditional $(2+\delta)$ moments of $\phi_0$ are locally bounded for some $\delta>0$. Use clipped nuisance propensities bounded away from zero and one. Conditional on training, assume over the kernel neighborhood that
+\[
+ \sup_z\E[(\widehat\phi-\phi_0)^2\mid X=z,\text{training}]=o_p(1),\qquad
+ \sup_z|\E[\widehat\phi-\phi_0\mid X=z,\text{training}]|=o_p((Nb^d)^{-1/2}).
+\]
+If $b\to0$, $Nb^d\to\infty$, and $\sqrt{Nb^d}\,b^s\to0$, then
+\begin{equation}
+ \sqrt{Nb^d}\{\widehat\tau_{h,b}(x)-\tau_h(x)\}
+ \ \Longrightarrow\ N\left(0,\frac{v_h(x)\int L(u)^2du}{f_X(x)}\right).
+ \label{eq:app-local-clt}
+\end{equation}
+For example, local uniform nuisance consistency, bounded conditional residual variances, and a local uniform product error $o_p((Nb^d)^{-1/2})$ imply the two score conditions through \eqref{eq:app-dr-bias}.
+
+\paragraph{Proof.}
+The denominator divided by $Nb^d$ converges to $f_X(x)$. The fitted-minus-true score contribution has conditional mean of the stipulated smaller order and centered variance $o_p((Nb^d)^{-1})$. For true scores, the locally H\"older mean contributes bias $O(b^s)$, which undersmoothing removes at the stated scale. A triangular-array central limit theorem for the centered kernel-weighted true scores, using the conditional $(2+\delta)$ moment bound, gives variance $f_X(x)v_h(x)\int L^2$ before division by the squared limiting denominator. $\square$
+
+One consistent variance construction for this proposition uses
+\[
+ \widehat f_b(x)=\frac{1}{Nb^d}\sum_iL((X_i-x)/b),\qquad
+ \widehat v_b(x)=\frac{\sum_iL((X_i-x)/b)\{\widehat\phi_i-\widehat\tau_{h,b}(x)\}^2}{\sum_iL((X_i-x)/b)}.
+\]
+Under the same local moment and score conditions, $\widehat v_b(x)\int L^2/\{Nb^d\widehat f_b(x)\}$ estimates the variance of $\widehat\tau_{h,b}(x)$. This construction applies verbatim to the fixed-reference summary. It explains both the slower effective sample size $Nb^d$ and the extra local assumptions; global $L^2$ nuisance rates alone do not establish pointwise TCATE inference. A lower-dimensional moderator $V$ can replace $X$ in this second regression while the nuisance models still adjust for the full $X$. No uniform confidence-band claim is made.
+
+\subsection{Two-part laws and their causal calibration}
+
+Let $Z=1\{Q\neq\mathbf0_K\}$, with $Z^a$ defined analogously. On the finite-grid observation space define $\pi_a(x)=\Prob(Z^a=1\mid X=x)$ and $P_a^+(x)=\Law(Q^a\mid X=x,Z^a=1)$ wherever $\pi_a(x)>0$. Then
+\[
+ P_a(x)=(1-\pi_a(x))\delta_{\mathbf0_K}+\pi_a(x)P_a^+(x),\qquad
+ \mu_{a,h}(x)=h(\mathbf0_K)+\pi_a(x)\{\mu_{a,h}^+(x)-h(\mathbf0_K)\},
+ \quad \mu_{a,h}^+=\int h\,dP_a^+.
+\]
+The two-part fit learns participation from the binary responses $Z_i$ and the nondegenerate particle law from units with $Z_i=1$, then assembles the probability mixture. In the archived implementation, an arm-specific logistic classifier estimates the zero-state probability (with a constant empirical-rate fallback for a single observed class), and the shared particle learner is fitted on the nondegenerate rows. The classifier defines numerical zeros by $\max_k|Q_{ik}|\leq10^{-12}$ and clips fitted zero-state probabilities to $[10^{-9},1-10^{-9}]$ before assembly. These small fixed tolerances are implementation conventions, not asymptotic guarantees for arbitrarily small participation probabilities. Both components must be refitted outside each evaluation fold for the proposed calibrated extension; the archived full-training classifiers are used for plug-in prediction. The $+$ notation does not mean every coordinate is positive. For $1-\widehat\pi_a$ to equal the total zero-atom mass of the fitted mixture, its fitted component must satisfy $\widehat P_a^+(\{\mathbf0_K\})=0$. Without this support restriction, the assembled zero mass is $1-\widehat\pi_a+\widehat\pi_a\widehat P_a^+(\{\mathbf0_K\})$; the classifier still estimates the declared structural-state probability. Training on nonzero vectors alone does not impose that restriction on particle predictions. If $\pi_a=0$, the component law is immaterial and may be assigned any convention. Learning that component precisely in a neighborhood nevertheless needs enough nondegenerate observations in that arm. The contrast $\mu_{1,h}^+-\mu_{0,h}^+$ conditions on different post-treatment populations; it is not an effect among always-participating units without additional principal-stratum assumptions.
+
+The event $Q=\mathbf0_K$ is observable for the grid target, but is not logically equivalent to $Y=\delta_0$ for arbitrary distributions: a small tail beyond the grid can be missed. Interpreting it as an entirely degenerate underlying distribution requires that equivalence in the scientific model, or an independently observed structural-state indicator. Thresholding near-zero measurements instead defines a different state and must be declared. This qualification is separate from double robustness.
+
+\paragraph{Proposition A.6 (mixture stability and scalar repair).}
+If true and fitted component laws are supported on a set $C$ containing $\mathbf0_K$ with diameter $L_C<\infty$, then pointwise in $x$,
+\begin{align}
+ \mathcal W_{1,w}(\widehat P_a^{\rm 2p},P_a)
+ &\leq L_C|\widehat\pi_a-\pi_a|+
+ \pi_a\mathcal W_{1,w}(\widehat P_a^+,P_a^+),\label{eq:app-mixture}\\
+ |\widehat m_{a,h}^{\rm 2p}-\mu_{a,h}|
+ &\leq2B_h|\widehat\pi_a-\pi_a|+
+ \pi_a|\widehat\mu_{a,h}^+-\mu_{a,h}^+|,\qquad \sup_{q\in C}|h(q)|\leq B_h.\nonumber
+\end{align}
+Here $\widehat m_{a,h}^{\rm 2p}=h(\mathbf0_K)+\widehat\pi_a(\widehat\mu_{a,h}^+-h(\mathbf0_K))$. Its cross-fitted version can replace $\widehat m_{a,h}$ in \eqref{eq:app-score}, with exactly the same double-robust identity and Theorem A.4 whenever that theorem's nuisance conditions hold.
+
+\paragraph{Proof.}
+Insert the intermediate mixture with mass $\pi_a$ and component $\widehat P_a^+$. Moving the unmatched mass between zero and this component costs at most $L_C|\widehat\pi_a-\pi_a|$; couple the two remaining positive components at common mass $\pi_a$. For the second bound expand the difference as $(\widehat\pi_a-\pi_a)(\widehat\mu_{a,h}^+-h(\mathbf0_K))+\pi_a(\widehat\mu_{a,h}^+-\mu_{a,h}^+)$. The score result follows because AIPW only requires a scalar outcome regression, regardless of its factorization. $\square$
+
+Thus $\|\widehat m_{a,h}^{\rm 2p}-\mu_{a,h}\|_2$ is bounded by $2B_h\|\widehat\pi_a-\pi_a\|_2+\|\pi_a(\widehat\mu_{a,h}^+-\mu_{a,h}^+)\|_2$. These are the component errors to combine with the propensity rate in Theorem A.4. The law bound also shows that regions with vanishing participation need not have well-estimated component laws to have small assembled-law error. For structural-mass effects use the observed outcome $1-Z$ with nuisance $1-\widehat\pi_a$ in the same score. For reference effects, retain $h_\star(\mathbf0_K)=\|q_\star\|_w$, which is generally nonzero. No new causal identification assumption is needed merely to calibrate the assembled scalar mean. The reported two-part experiments remain plug-in experiments: these formulas establish an available calibrated extension, not evidence that it was implemented or that its coverage was tested.
+
+\subsection{Grid resolution, learned benchmarks, and the scope of inference}
+
+The preceding results concern exact finite-grid observations, a fixed summary and reference, and independent units. To relate them to an underlying-distribution target, let $\mathcal R_Kq$ be the step-quantile distribution assigning mass $w_k$ to $q_k$, and put $a_K(Y)=W_2(\mathcal R_Kq_K(Y),Y)$. If a full-distribution summary $h_\infty$ is $L$-Lipschitz in $W_2$ and $h_K(q)=h_\infty(\mathcal R_Kq)$, then
+\[
+ |\theta_{h_K,K}-\theta_{h_\infty}|\leq L\sum_{a=0}^1\E a_K(Y^a).
+\]
+For reference distance to an underlying benchmark $Y_\star$, the bound is $\sum_a\E a_K(Y^a)+2W_2(\mathcal R_Kq_\star^K,Y_\star)$. These follow by coupling each distribution to its reconstruction and applying the triangle inequality. Merely increasing $K$ does not establish these approximation rates for arbitrary grids and tails. Moreover, taking $K=K_n\to\infty$ changes the learner's dimension and requires its statistical conditions to hold along that sequence. Root-$n$ inference for a full-distribution target needs total representation bias $o(n^{-1/2})$, not just convergence of that bias to zero.
+
+If the observed vector is an estimated $\widetilde Q$, Lipschitz summaries obey $|h(\widetilde Q)-h(Q)|\leq L_h\|\widetilde Q-Q\|_w$. Nonvanishing within-unit quantile error therefore changes the observed-outcome target; increasing the number of units does not remove it automatically. A joint measurement-error or growing-within-unit-sample analysis is needed to interpret the result as inference on latent distributions.
+
+For a learned reference $\widehat q_\star$, the difference between population reference contrasts at $\widehat q_\star$ and a fixed $q_\star$ is at most $2\|\widehat q_\star-q_\star\|_w$. An independently learned reference can be conditioned on if the target is explicitly the effect relative to that random benchmark. For inference about a fixed limiting benchmark, $o_p(n^{-1/2})$ reference error suffices to ignore its estimation; otherwise its first-order contribution must be included. Where $\Prob(Q^a=q_\star)=0$ for both arms, the derivative of the reference contrast in direction $v$ is
+\[
+ \E\frac{\langle q_\star-Q^1,v\rangle_w}{\|q_\star-Q^1\|_w}
+ -\E\frac{\langle q_\star-Q^0,v\rangle_w}{\|q_\star-Q^0\|_w},\qquad
+ \langle u,v\rangle_w=\sum_k w_ku_kv_k.
+\]
+Combining this derivative with an asymptotically linear reference estimate gives its additional influence term; an atom at the reference can invalidate ordinary differentiability. The control-derived STAR benchmark is therefore not covered automatically by fixed-reference standard errors. Estimated stratum boundaries likewise require a separate argument. Finally, classroom or regional dependence requires cluster- or design-appropriate inference. None of these extensions follows from the i.i.d. scalar theorem merely by substituting a new outcome representation.
+
+\section{Simulation Designs}\label{app:dgps}
+
+All simulation covariates are independent $\operatorname{Unif}[-1,1]$. Given treatment $a$ and covariates $x$, the generic potential quantile vector has coordinates
+\begin{equation}
+ Q_k^a=m_a(x)+\xi_a+exp\{s_a(x)+\eta_a\}\psi\{z_k;\gamma_a(x)\},
+ \qquad z_k=\Phi^{-1}\{(k-1/2)/K\},\label{eq:dgp-app}
+\end{equation}
+where
+\[
+ \psi(z;\gamma)=z+\gamma\left\{\frac{z^2-1}{2}+\frac{z^3-3z}{6}\right\}.
+\]
+For $0\leq\gamma<1$, $\psi$ is increasing because its derivative is $1-\gamma+\gamma(z+1)^2/2$. Assignment is $A\mid X\sim\operatorname{Bernoulli}\{e(X)\}$. Write $\sigma(t)=(1+e^{-t})^{-1}$ and $C_{l,u}(t)=\min\{u,\max(l,t)\}$.
+
+\subsection{Location, shape, and overlap family}
+
+This family uses $d=6$, independent shocks $\xi_a\sim N(0,0.20^2)$ and $\eta_a\sim N(0,0.12^2)$, and
+\begin{align*}
+ b(x)&=0.55x_2+0.35x_3-0.45x_4+0.30x_5,\\
+ s(x)&=0.16+0.08x_6-0.04x_2,\\
+ r(x)&=0.55+0.10x_4-0.08x_2.
+\end{align*}
+The designs are
+\begin{align*}
+\mathrm{LS0}:\quad&m_a=b,\quad s_a=s,\quad \gamma_a=C_{.05,.85}(r),\\
+\mathrm{LS1}:\quad&m_a=b+a(0.20+0.15x_4),\quad s_a=s,\\
+&\gamma_a=C_{.05,.85}\{r-a(0.16+0.06x_4)\},\\
+\mathrm{LS2}:\quad&m_a=b+a(0.10+0.05x_3),\quad s_a=s-0.12a,\\
+&\gamma_a=C_{.05,.85}(r-0.08a),\\
+\mathrm{LS3}:\quad&(m_a,s_a,\gamma_a)\text{ as in LS1}.
+\end{align*}
+LS0 and LS1 use $e(x)=C_{.10,.90}\{\sigma(1.4x_4-1.1x_5+0.4x_6)\}$. LS2 uses $C_{.05,.95}\{\sigma(1.8x_4-0.9x_5)\}$, and LS3 uses $C_{.01,.99}[\sigma\{3.5(x_4-0.9x_5)\}]$. LS0 is a placebo, LS1 changes location and shape, LS2 also changes scale, and LS3 combines LS1's outcome surfaces with weaker overlap. Conditional effects are reported along each design's active moderator: $X_4$ for LS1 and LS3, $X_3$ for LS2, and $X_1$ for the placebo LS0. LS1 and LS3 change both location and shape through $X_4$, and LS2 adds a scale change through $X_3$, so these strata test recovery of LS effect modification. LS0 has no treatment effect, so its $X_1$ criterion is a null-heterogeneity stability check. The reference is
+\[
+ q_{\star,k}^K=1.10+0.60\left[z_k+0.30
+ \left\{\frac{z_k^2-1}{2}+\frac{z_k^3-3z_k}{6}\right\}\right].
+\]
+
+\subsection{Law separation and heterogeneous effects}
+
+This family uses $d=5$, the same four moderator bins, $q_{\star,k}^K=z_k$, and
+\[
+ f(x)=0.6\sin(\pi x_1)+0.4x_2x_3,\qquad
+ e_m(x)=C_{.10,.90}[\sigma\{0.8(x_1+0.5x_2)\}].
+\]
+The six consecutive paper labels replace the nonconsecutive legacy labels D0, D2, and D5 to D8 in the archived experiment files. S1 (legacy D0) sets $m_a=f+0.8ax_1$, $s_a=0.20x_4+0.25ax_2$, $\gamma_a=0$, and both shocks to zero. S2 (legacy D2) is a stochastic null with $m_a=f$, $s_a=0.20x_4$, $\gamma_a=0$, and shock standard deviations $(0.35,0.20)$.
+
+S3 (legacy D5) has equal mean quantile curves but different laws. It sets $m_a=f$ and $\gamma_a=0$; the control arm uses $s_0=0.20x_4$ and shock standard deviations $(0.40,0.45)$, while the treated arm uses $s_1=0.20x_4+0.45^2/2$ and $(0.15,0)$. The log-scale adjustment equates expected scales. S4 (legacy D6) sets $m_a=f+0.7ax_1$, $s_a=0.20x_4$, $\gamma_a=0$, $\eta_a\sim N(0,0.15^2)$, and
+\[
+ \xi_a\sim\tfrac12N(-1.5,0.25^2)+\tfrac12N(1.5,0.25^2),
+\]
+which creates a multimodal across-unit law. S5 (legacy D7) changes shape through $m_a=f$, $s_a=0.20x_4$, $\gamma_a=0.20+0.10x_3+a(0.30+0.10x_1)$, and shock standard deviations $(0.35,0.20)$. S1, S4, and S5 have effects that vary with $X_1$, while S3's spread change is carried by $X_4$. S1 to S5 use $e_m$.
+
+S6 (legacy D8) combines a weak heterogeneous effect with stronger confounding:
+\begin{align*}
+ m_a(x)&=1.2\sin(\pi x_1)+0.9x_2x_3+a(0.12x_1+0.06),\\
+ s_a(x)&=0.20x_4+0.05ax_2,\qquad\gamma_a(x)=0,\\
+ e(x)&=C_{.05,.95}[\sigma\{2.5(x_1+0.7x_2-0.5x_3)\}],
+\end{align*}
+with shock standard deviations $(0.35,0.20)$. Its effects vary with $X_1$ and $X_2$.
+
+\subsection{Structural-zero family}
+
+The Z family uses $d=6$. With probability $1-\pi_a(x)$ the unit outcome is $\mathbf0_K$; otherwise equation~\eqref{eq:dgp-app} holds with
+\begin{align*}
+ m_a^+(x)&=4.80+0.35x_2-0.25x_4+a(\Delta+\beta x_2),\\
+ s_a^+(x)&=0.10+0.06x_6-0.03x_2,\\
+ \gamma_a^+(x)&=C_{.05,.85}(0.50+0.06x_4-a\kappa),
+\end{align*}
+and shock standard deviations $(0.15,0.10)$. Z0 and Z1 use $(\Delta,\beta,\kappa)=(0,0,0)$, whereas Z2 and Z3 use $(0.28,0.08,0.10)$. Z0 is a placebo and Z2 changes only the nondegenerate component; both use $\pi_a(x)=C_{.05,.95}\{\sigma(1.2x_4-0.8x_2)\}$. Z1 changes participation only, adding $a(0.90+0.20x_4)$ to this index. Z0 to Z2 use LS1's assignment mechanism. Z3 changes both components and uses
+\[
+ \pi_a(x)=C_{.01,.99}[\sigma\{3(x_4-0.9x_5)+a(0.90+0.60x_4)\}],
+ \qquad e(x)=\pi_0(x).
+\]
+The reference is the same as for the LS family. The reported strata use $X_4$ for Z1 and Z3, where the participation contrast varies, and $X_2$ for Z2, where the positive-component effect varies; Z0 retains $X_1$ as a stability check. The superscript $+$ labels the nondegenerate branch, not strictly positive scalar support.
+
+\section{Complete Simulation Results}\label{app:simulation-results}
+
+Tables~\ref{tab:full_results_ls} to~\ref{tab:full_results_z} report the complete design families. Law is the mean MMD$^2$ criterion defined in Section~\ref{sec:sim-design}. TATE and TCATE are Monte Carlo RMSEs pooled over the grid mean, grid standard deviation, grid skewness, and upper-half mean; TCATE additionally pools four strata of the design's active moderator (Appendix~\ref{app:dgps}). Because the four functionals use different units, their aggregate is a compact descriptive summary on the stated simulation scale. Ref. TATE and Ref. TCATE are Monte Carlo RMSEs for the reference-distance functional.
+
+\input{tables/full_results_ls.tex}
+\input{tables/full_results_s.tex}
+\input{tables/full_results_z.tex}
+
+\subsection{Reconciling law and functional accuracy}
+
+Figures~\ref{fig:all-dgp-summary} and~\ref{fig:all-dgp-zero-summary} display every $n=1000$ design. The apparent reversal after LS is not a general failure to estimate heterogeneous effects. S1 has strong effect modification through $X_1$ and favors WCF on the law, TATE, TCATE, and reference-TCATE criteria; its reference-TATE comparison is within paired uncertainty. In S5, WCF has the lowest law error and is best or essentially tied on the four-functional TATE and TCATE aggregates, but is less accurate for reference TCATE and statistically tied on reference TATE. S2 is a stochastic null, S3 changes the outer-law spread while preserving the mean quantile curve, S4 deliberately violates the small-particle model through separated multimodality, and S6 combines weak effects with strong confounding. These designs probe distinct failure mechanisms rather than forming a monotone scale of heterogeneity.
+
+The law and reference criteria also emphasize different discrepancies. Gaussian-kernel MMD$^2$ is a global comparison of probability laws, whereas $h_{\star,K}(q)=d_{W,K}(q,q_\star^K)$ is a nonlinear, distance-sensitive functional. Lower MMD$^2$ does not provide a finite-sample ordering for its expectation. With $M=10$, particle discretization can be especially consequential for outer spread or multimodality, while shared partitions and arm-contrast shrinkage can favor smooth common structure but attenuate a weak, complex contrast. The current evidence does not separate these mechanisms because particle-budget sensitivity was conducted only in the LS family.
+
+There is a second, procedural distinction. For WCF, the reported functional predictions are cross-fitted AIPW marginal or stratum estimates constructed from out-of-fold particle means. DRF and Causal-DRF are evaluated by applying the same declared functionals directly to their fitted conditional laws and averaging the resulting plug-in contrasts. Both procedures target the stated marginal or stratum estimands, but their finite-sample errors combine different law-estimation and calibration components. Consequently, the scalar columns compare the implemented end-to-end procedures; they do not identify whether a ranking arises from the law learner, nonlinear functional extraction, or AIPW variance. The fifty-replication run behind these tables measures this distinction directly: every fitted law is evaluated both by a common plug-in transformation and by a common cross-fitted AIPW layer, and the tables retain the end-to-end convention for continuity with the sensitivity archive.
+
+The LS family is intended as a regular-regime benchmark with smooth Gaussian location, scale, and shape variation. The S family is a mechanism-based stress-test suite: S3 represents latent spread changes, S4 tests separated subpopulations, S5 tests heterogeneous shape, and S6 tests weak signal under confounding. Such mechanisms can occur in applications, but the parameter values are not calibrated claims about their empirical frequency. Accordingly, the paper's central empirical claim concerns conditional-law accuracy across both regular and stress regimes, not uniform superiority for every scalar treatment-effect summary.
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.98\linewidth]{figures/all_dgp_summary.pdf}
+\caption{All ordinary designs at $n=1000$ and fifty paired Monte Carlo replications. Bars are one Monte Carlo SE for each method separately. The vertical divider separates LS from S designs. Nonoverlap makes several LS and law-level rankings clear, and the narrower intervals sharpen most comparisons, but overlap remains for several S functional criteria. Because the displayed bars are not SEs of paired method differences, they should not be used as a formal paired test.}
+\label{fig:all-dgp-summary}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.94\linewidth]{figures/all_dgp_zero_summary.pdf}
+\caption{All structural-zero designs at $n=1000$ and fifty paired Monte Carlo replications. Bars are one method-specific Monte Carlo SE. Two-part WCF is clearly separated on law and mass error; among the Z0 to Z2 mass-TCATE comparisons, Z1 remains within paired uncertainty.}
+\label{fig:all-dgp-zero-summary}
+\end{figure}
+
+Fifty paired replications sharpen every interval in Figures~\ref{fig:all-dgp-summary} and~\ref{fig:all-dgp-zero-summary} and confirm the largest separations, including the LS law and functional advantages, WCF's law advantage in most S designs, S4's multimodal law reversal, and the two-part law and mass improvements. Paired 95\% intervals resolve several formerly close rankings, including S1's law, TATE, TCATE, and reference-TCATE advantages and the Z0 and Z2 mass-TCATE comparisons, while the S1, S3, S4, and S5 reference-TATE comparisons and the Z1 mass-TCATE comparison remain within paired uncertainty and are described as ties. The S3 and S5 reference-TCATE deficits for WCF remain significant. Marginal one-SE bars in the figures do not exploit the paired seeds.
+
+\clearpage
+
+\section{Sensitivity Analyses}\label{app:sensitivity}
+
+\subsection{Quantile-grid and particle resolution}
+
+The sensitivity study varies $K\in\{5,25,49\}$ at $M=10$ and $M\in\{5,10,25\}$ at $K=25$ in LS0 to LS3 at $n=1000$. Table~\ref{tab:sensitivity-km} reports the native-grid law error, the mean-quantile error, and the end-to-end reference-TCATE and reference-TATE errors. Moving from $K=25$ to $K=49$ at $M=10$ changes native law error by 0.8 to 2.8 percent and the end-to-end reference-TCATE error by at most 3.6 percent; the paired standard errors in Table~\ref{tab:sensitivity-resolution} are of the same order, so none of these differences is statistically resolved. Increasing $M$ from 10 to 25 at $K=25$ changes native law error by at most 3.3 percent, and the largest paired change in end-to-end reference-TCATE error is a 3.8 percent reduction in LS3 with a paired standard error of 3.1 percentage points. The factorial grid in Table~\ref{tab:sensitivity-factorial} varies by at most about 7 percent across the nine $(K,M)$ combinations for LS1 and LS3, with the largest gaps at $K=5$. The study therefore does not identify a resolution that is uniformly better on the native protocol, and the primary specification $(K,M)=(25,10)$ is retained. Because the native target changes with $K$, these comparisons mix quadrature resolution with tail coverage and should not be read as a pure fit-quality ranking.
+
+\input{tables/wcf_sensitivity_km.tex}
+
+\input{tables/wcf_sensitivity_factorial.tex}
+
+\input{tables/wcf_sensitivity_resolution.tex}
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.96\linewidth]{figures/sensitivity_resolution.pdf}
+\caption{Quantile-grid and particle-budget sensitivity of WCF at $n=1000$, one line per design (LS0 to LS3). The top row varies $K$ at $M=10$ and the bottom row varies $M$ at $K=25$. Panels report native-grid law error (Monte Carlo means), mean-quantile error, and end-to-end reference-TCATE error (Monte Carlo RMSEs). Because the native target changes with $K$, the top row is a stability check rather than a ranking of grid resolutions. Bars are Monte Carlo standard errors over fifty paired replications; lower is better.}
+\label{fig:sensitivity-resolution}
+\end{figure}
+
+\subsection{Assignment and propensity estimation}
+
+A symmetric family holds the potential-outcome law fixed while comparing constant, linear, nonlinear, and prognosis-dependent propensity functions. At $n=1000$, WCF's end-to-end reference-TCATE errors are $0.0306$, $0.0391$, $0.0420$, and $0.0361$ under constant, linear, nonlinear, and prognosis-dependent assignment. The corresponding Causal-DRF values are $0.0354$, $0.0406$, $0.0813$, and $0.0506$, and DRF records $0.0329$, $0.0364$, $0.0725$, and $0.0459$. WCF has the lowest error in all four mechanisms at $n=500$ and in three of four at $n=1000$, where DRF is slightly more accurate under linear assignment. The aligned and irrelevant assignment pair differs by $+0.0034$ (SE $0.0022$) in end-to-end reference-TCATE error at $n=1000$, a small gap that is not decisive at conventional levels.
+
+Under the confirmatory protocol the tabulated errors are produced by a common cross-fitted AIPW layer whose propensity model is fixed across columns, so replacing logistic regression with a random-forest, gradient-boosting, or oracle factory changes the end-to-end reference-TCATE errors by only a few percent (Table~\ref{tab:sensitivity-propensity}). The factory's effect appears instead in the estimator's internal calibration diagnostic: the influence-function standard error of the reference estimate is $0.079$ for the gradient-boosting factory against $0.021$ to $0.022$ for the alternatives, confirming the archive's diagnosis of one poorly calibrated factory while showing that the common calibration layer is insensitive to it. This comparison diagnoses one factory; it does not imply that flexible propensity estimation is intrinsically harmful or prove double robustness at fixed budgets. Figure~\ref{fig:sensitivity-assignment} displays both comparisons.
+
+\input{tables/wcf_sensitivity_assignment.tex}
+
+\input{tables/wcf_sensitivity_propensity.tex}
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.92\linewidth]{figures/sensitivity_assignment.pdf}
+\caption{Assignment and propensity sensitivity of the end-to-end reference-TCATE error at $n=500$ and $n=1000$. Left column: constant (SYM-RANDOM), linear (SYM-LIN), and nonlinear (SYM-NL, SYM-MU) assignment mechanisms under the default logistic propensity. Right column: the SYM-NL and SYM-MU designs under the default logistic propensity and under random-forest, gradient-boosting, and oracle propensity factories; the factories nearly coincide because the confirmatory AIPW layer is fixed across columns. Bars are Monte Carlo standard errors over fifty paired replications; lower is better.}
+\label{fig:sensitivity-assignment}
+\end{figure}
+
+\subsection{Null companions}
+
+Six companion designs set every treatment effect exactly to zero while retaining the corresponding prognostic and assignment structures. Table~\ref{tab:sensitivity-placebo} reports pooled false-effect error at $n=500$ and $n=1000$. WCF has the lowest error on both grid-mean functionals by a wide margin, and at $n=1000$ its pooled reference-TCATE error is $0.0369$ against $0.0546$ for Causal-DRF and $0.0595$ for DRF; the reference-TATE errors are close across methods. The comparison checks whether apparent functional heterogeneity is induced by regularization or assignment rather than by a true treatment contrast. Figure~\ref{fig:sensitivity-nulls} displays the pooled false-effect errors.
+
+\input{tables/wcf_sensitivity_placebo.tex}
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.92\linewidth]{figures/sensitivity_nulls.pdf}
+\caption{False-effect error of the six null companion designs at $n=500$ and $n=1000$, pooled over designs and fifty paired replications. Entries are end-to-end Monte Carlo RMSEs; every treatment effect is exactly zero, so each value is a false-effect error. Bars are Monte Carlo standard errors; lower is better.}
+\label{fig:sensitivity-nulls}
+\end{figure}
+
+\subsection{Sample-size sensitivity}
+
+The sample-size study crosses all 14 designs with $n\in\{125,250,500,1000\}$, the three family-appropriate methods, and ten paired replications, for 1,680 completed cells. Ordinary WCF is used for LS0 to LS3 and S1 to S6; two-part WCF is used for Z0 to Z3. Every cell retains $K=25$, $M=10$, and an independent test sample of 1000 units. Figure~\ref{fig:sample-size-sensitivity} averages the errors over designs within each family to display the principal trajectories. Tables~\ref{tab:sample-size-ls} to~\ref{tab:sample-size-z} report every design, sample size, and method.
+
+WCF's family-average law error is lowest at every sample size in all three families. It also has the lowest individual-design law error in all 16 LS comparisons, 20 of 24 S comparisons, and all 16 Z comparisons. The gain is not invariant to the target. Across S1 to S6, WCF's average reference-TCATE RMSE is $0.1769$ at $n=125$ and $0.0534$ at $n=1000$, compared with $0.0965$ and $0.0482$ for DRF. WCF leads on this target only for S1; the largest small-sample gaps occur in the multimodal S4 and weak-effect, strong-confounding S6 designs. Thus a small particle law can estimate a broad law discrepancy well while remaining inefficient for a particular convex functional.
+
+For structural mass, the two-part model is most valuable when both participation and the positive component change. In Z3 it has the lowest law, mass, and mass-TCATE error at every $n$. In Z0 to Z2, Causal-DRF is slightly better for several mass or reference contrasts at $n=125$ and $n=250$, although two-part WCF regains the lead in most comparisons by $n=500$. This is consistent with the extra first-stage classification burden being material when only about 125 to 250 unit-level distributions are observed.
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.96\linewidth]{figures/sample_size_sensitivity.pdf}
+\caption{Sample-size sensitivity averaged over designs within each family. Law panels report mean MMD$^2$; reference and mass-TCATE panels report Monte Carlo RMSE. The LS and S panels use ordinary WCF, whereas Z uses two-part WCF. Lines are descriptive family averages and bars are Monte Carlo standard errors over the ten paired replications; complete design-level results appear in Tables~\ref{tab:sample-size-ls} to~\ref{tab:sample-size-z}.}
+\label{fig:sample-size-sensitivity}
+\end{figure}
+
+\input{tables/sample_size_ls.tex}
+
+\input{tables/sample_size_s.tex}
+
+\input{tables/sample_size_z.tex}
+
+\section{Applied-Study Details}\label{app:applications}
+
+\input{applied_star_appendix.tex}
+\input{applied_minwage_appendix.tex}
+\input{applied_cash_appendix.tex}
