@@ -34,3 +34,5 @@ report/
 colab/wcf_confirmatory_r50_102_shards/
 paper/
 preprint/
+*.Zone.Identifier
+*Zone.Identifier
