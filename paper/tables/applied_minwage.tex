@@ -1,0 +1,60 @@
+% Automatically generated; do not edit.
+\begin{table*}[htbp]
+\centering
+\caption{State minimum-wage contrasts for the hourly wage distribution, in 2016 USD per hour, except skewness and the mean-normalized reference, which are dimensionless. Panel A: the primary 2000--2016 specification, with the doubly robust column averaged over three fitting replicates and the IF SE and plug-in columns from the first replicate. Panel B: mean and tenth-percentile doubly robust contrasts for robustness variants; the primary and placebo rows average three replicates, A2, A3, and the first difference are single fits, the 1980--2016 row averages two replicates, and the 2017--2022 row is a single fit on a short window. Panel C: the model re-estimated on the sample retained by the standard overlap band $[0.05,0.95]$; entries average three fitting replicates, the IF SE is from the first replicate in parentheses, and $n$ is from the first replicate. The reference column of Panel C uses the Nordic benchmark.}
+\label{tab:applied-minwage}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+\multicolumn{4}{@{}l}{\textit{Panel A: primary specification (2000--2016)}} \\
+\midrule
+Functional & WCF (DR) & IF SE & Plug-in \\
+\midrule
+Mean & $+0.334$ & $0.132$ & $+0.021$ \\
+SD & $+0.129$ & $0.118$ & $-0.006$ \\
+Skewness & $-0.002$ & $0.018$ & $0.000$ \\
+Upper-half mean & $+0.443$ & $0.213$ & $+0.018$ \\
+Reference (Nordic) & $+0.107$ & $0.158$ & $-0.001$ \\
+$p_{10}$ & $+0.221$ & $0.039$ & $+0.028$ \\
+$p_{90}$ & $+0.422$ & $0.313$ & $+0.012$ \\
+Reference (US 2016) & $-0.211$ & $0.170$ & $-0.007$ \\
+Mean-normalized reference & $-0.001$ & $0.003$ & $-0.001$ \\
+\bottomrule
+\end{tabular}
+
+\vspace{4pt}
+
+\begin{tabular}{@{}lrr@{}}
+\toprule
+\multicolumn{3}{@{}l}{\textit{Panel B: robustness variants}} \\
+\midrule
+Variant & Mean & $p_{10}$ \\
+\midrule
+Primary (2000--2016) & $+0.334$ & $+0.221$ \\
+A2: federal increases included & $+0.243$ & $+0.185$ \\
+A3: state above federal floor & $+0.130$ & $+0.168$ \\
+First difference & $+0.226$ & $+0.197$ \\
+1980--2016 extension & $+0.419$ & $+0.257$ \\
+2017--2022 extension & $+0.720$ & $+0.344$ \\
+Placebo & $-0.023$ & $+0.005$ \\
+\bottomrule
+\end{tabular}
+
+\vspace{4pt}
+
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+\multicolumn{6}{@{}l}{\textit{Panel C: propensity trimming}} \\
+\midrule
+Sample & $n$ (treated/control) & Mean & SD & $p_{10}$ & Ref.\ (Nordic) \\
+\midrule
+Full sample & 867 (117/750) & $+0.334$ ($0.132$) & $+0.129$ ($0.118$) & $+0.221$ ($0.039$) & $+0.107$ ($0.158$) \\
+Trim $[0.05,0.95]$ & 760 (112/648) & $+0.244$ ($0.132$) & $+0.041$ ($0.122$) & $+0.217$ ($0.045$) & $+0.092$ ($0.159$) \\
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+\begin{minipage}{0.97\linewidth}
+\footnotesize
+\textit{Notes:} $12.3\%$ of propensities lie below $0.05$ in the full sample, and none above $0.95$; the calibrated and plug-in contrasts diverge where propensities are small, and restricting the sample to the overlap band narrows but does not close the gap; $p_{10}$ is the only stable functional.
+\end{minipage}
+\end{table*}

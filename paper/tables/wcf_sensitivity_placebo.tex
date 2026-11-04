@@ -1,0 +1,25 @@
+\begin{table}[!ht]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{Null companion designs with exactly zero treatment effects, so every entry is a false-effect error. Entries are end-to-end Monte Carlo RMSEs pooled over the six null companion designs and fifty paired replications, with Monte Carlo standard errors in parentheses; lower is better. WCF uses its cross-fitted AIPW layer and the forest baselines use plug-in contrasts. The first two rows use the grid-mean functional, and the last two rows use the reference-distance marginal and conditional targets.}
+\label{tab:sensitivity-placebo}
+\begin{tabular}{lrrr}
+\toprule
+Target & WCF & Causal-DRF & DRF \\
+\midrule
+\multicolumn{4}{l}{\textit{Panel A: $n=500$}} \\
+\midrule
+TATE grid mean & 0.0400(0.0038) & 0.1684(0.0070) & 0.1274(0.0074) \\
+TCATE grid mean & 0.0664(0.0028) & 0.1739(0.0068) & 0.1348(0.0065) \\
+Ref. TATE & 0.0256(0.0033) & 0.0269(0.0033) & 0.0269(0.0033) \\
+Ref. TCATE & 0.0518(0.0025) & 0.0554(0.0037) & 0.0624(0.0039) \\
+\multicolumn{4}{l}{\textit{Panel B: $n=1000$}} \\
+\midrule
+TATE grid mean & 0.0336(0.0034) & 0.1254(0.0067) & 0.0963(0.0067) \\
+TCATE grid mean & 0.0488(0.0024) & 0.1300(0.0062) & 0.1013(0.0056) \\
+Ref. TATE & 0.0178(0.0027) & 0.0192(0.0028) & 0.0182(0.0026) \\
+Ref. TCATE & 0.0369(0.0020) & 0.0546(0.0039) & 0.0595(0.0039) \\
+\bottomrule
+\end{tabular}
+\end{table}

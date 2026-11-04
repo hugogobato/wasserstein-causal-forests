@@ -190,7 +190,7 @@
   "reduced_settings": false,
   "treatment_variant": "A1",
   "placebo": true,
-  "data_dir": "/home/hugo_souto/Stuff/Research/Wasserstein_Causal_Forests/results/applied_study_exploration/primary_state_minwage/data",
+  "data_dir": "<repo-root>/results/applied_study_exploration/primary_state_minwage/data",
   "energy_score_train": 0.8318220756625644,
   "n_features": 8,
   "feature_names": [

@@ -18,7 +18,7 @@ full sample and on the sample retained by the standard overlap band
 for the two samples with one-standard-error bars. Star and Kenya forest plots
 report the calibrated functionals with influence-function standard errors.
 
-Outputs (report/figures_generated/):
+Outputs (paper/figures/):
     applied_star_densities.pdf
     applied_star_estimates.pdf
     applied_minwage_densities.pdf   (requires the overlap-restriction fits)
@@ -49,7 +49,7 @@ SRC = ROOT / "results" / "applied_study_exploration"
 STAR_DIR = SRC / "project_star"
 MINWAGE_DIR = SRC / "primary_state_minwage"
 EGGER_DIR = SRC / "egger_kenya"
-FIGURE_DIR = ROOT / "report" / "figures_generated"
+FIGURE_DIR = ROOT / "paper" / "figures"
 
 sys.path.insert(0, str(ROOT / "src"))
 from wasserstein_causal_forests.applied.adapter import grid_weights  # noqa: E402

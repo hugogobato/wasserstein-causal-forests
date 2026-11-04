@@ -1,6 +1,6 @@
 # Project STAR applied study (WCF): final report
 
-Repo root: `/home/hugo_souto/Stuff/Research/Wasserstein_Causal_Forests`
+Repo root: `<repo-root>`
 All fits used the frozen `run_wcf` spec with `extra_functionals={p10, p90}` and
 the pre-registered unit/covariate/moderator choices in `PREREGISTRATION.md`.
 All numbers below are copied from the JSON/CSV outputs in

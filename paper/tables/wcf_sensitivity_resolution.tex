@@ -1,0 +1,17 @@
+\begin{table}[!ht]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{Seed-paired resolution differences at $n=1000$ for designs LS0 to LS3, computed as $K=49$ minus $K=25$ at $M=10$ over fifty paired replications. Entries are percentage changes, so a negative value means the larger grid has the smaller error; the value in parentheses is the Monte Carlo standard error of the paired percentage difference in percentage points. Law is a mean, the other columns are errors. The native-grid target changes with $K$, so these differences do not separate quadrature resolution from tail coverage.}
+\label{tab:sensitivity-resolution}
+\begin{tabular}{lrrrrr}
+\toprule
+DGP & Law & Mean-quantile & Ref. TCATE plug-in & Ref. TCATE AIPW & Ref. TATE AIPW \\
+\midrule
+LS0 & -2.6(1.5) & -9.1(13.5) & -4.0(8.1) & 2.6(3.2) & 6.2(6.9) \\
+LS1 & -2.6(1.7) & -0.2(4.4) & -0.7(4.8) & -1.0(3.4) & -6.6(5.5) \\
+LS2 & -2.8(1.3) & 1.3(5.9) & -4.2(3.2) & -1.1(2.8) & 13.3(7.2) \\
+LS3 & -0.8(1.4) & -0.1(2.8) & 2.0(2.7) & -3.6(2.9) & -1.8(5.9) \\
+\bottomrule
+\end{tabular}
+\end{table}

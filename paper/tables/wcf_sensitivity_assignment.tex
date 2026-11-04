@@ -1,0 +1,25 @@
+\begin{table}[!ht]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{Symmetric and nonlinear assignment designs at $n=500$ and $n=1000$ over fifty paired replications. Entries are end-to-end reference-TCATE Monte Carlo RMSEs with Monte Carlo standard errors in parentheses; lower is better. WCF uses its cross-fitted AIPW layer and the forest baselines use plug-in contrasts. SYM-RANDOM is a constant-propensity calibration control, SYM-LIN uses a linear assignment index, and SYM-NL and SYM-MU use nonlinear assignment with the same symmetric outcome laws.}
+\label{tab:sensitivity-assignment}
+\begin{tabular}{lrrr}
+\toprule
+DGP & WCF & Causal-DRF & DRF \\
+\midrule
+\multicolumn{4}{l}{\textit{Panel A: $n=500$}} \\
+\midrule
+SYM-RANDOM & 0.0449(0.0056) & 0.0522(0.0058) & 0.0472(0.0051) \\
+SYM-LIN & 0.0491(0.0049) & 0.0686(0.0064) & 0.0592(0.0068) \\
+SYM-NL & 0.0562(0.0059) & 0.0856(0.0060) & 0.0720(0.0060) \\
+SYM-MU & 0.0487(0.0054) & 0.0562(0.0062) & 0.0502(0.0064) \\
+\multicolumn{4}{l}{\textit{Panel B: $n=1000$}} \\
+\midrule
+SYM-RANDOM & 0.0306(0.0036) & 0.0354(0.0046) & 0.0329(0.0044) \\
+SYM-LIN & 0.0391(0.0050) & 0.0406(0.0051) & 0.0364(0.0055) \\
+SYM-NL & 0.0420(0.0057) & 0.0813(0.0044) & 0.0725(0.0049) \\
+SYM-MU & 0.0361(0.0045) & 0.0506(0.0050) & 0.0459(0.0047) \\
+\bottomrule
+\end{tabular}
+\end{table}

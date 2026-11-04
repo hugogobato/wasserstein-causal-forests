@@ -116,7 +116,19 @@ def roster_configurations() -> list[dict[str, Any]]:
     configurations are deduplicated by coordinate before the seed expansion.
     """
 
-    configurations: dict[tuple[Any, ...], dict[str, Any]] = {}
+    if not all(path.exists() for path in SOURCE_MANIFESTS.values()):
+        if MANIFEST_PATH.exists():
+            document = _read_json(MANIFEST_PATH)
+            configurations: dict[tuple[Any, ...], dict[str, Any]] = {}
+            for item in document["cells"]:
+                coordinate = tuple(item[field] for field in CELL_FIELDS)
+                configurations.setdefault(
+                    coordinate,
+                    {"stage": "frozen", **{field: item[field] for field in CELL_FIELDS}},
+                )
+            return [configurations[key] for key in sorted(configurations)]
+
+    configurations = {}
     for stage, path in SOURCE_MANIFESTS.items():
         if not path.exists():
             raise SystemExit(
@@ -196,7 +208,12 @@ def method_registry(estimator_hash: str) -> dict[str, dict[str, Any]]:
     registry = build_wcf_method_registry(estimator_hash)
     for name in registry:
         registry[name] = _blank_common_grid(registry[name])
-    flex_rf_manifest = _read_json(SOURCE_MANIFESTS["flex_rf"])
+    flex_rf_source = (
+        SOURCE_MANIFESTS["flex_rf"]
+        if SOURCE_MANIFESTS["flex_rf"].exists()
+        else MANIFEST_PATH
+    )
+    flex_rf_manifest = _read_json(flex_rf_source)
     flex_entry = copy.deepcopy(flex_rf_manifest["method_registry"][FLEX_RF_METHOD])
     flex_entry = _blank_common_grid(flex_entry)
     flex_entry["estimator_source_hash"] = estimator_hash
@@ -208,24 +225,31 @@ def build_manifest() -> dict[str, Any]:
     estimator_hash = source_hash()
     roster = cells()
     configurations = roster_configurations()
-    document: dict[str, Any] = {
-        "manifest_contract_id": CONTRACT_ID,
-        "estimand_contract_id": ESTIMAND_CONTRACT_ID,
-        "evaluation_protocol_id": CONFIRMATORY_PROTOCOL_ID,
-        "source_manifests": {
+    existing_doc = _read_json(MANIFEST_PATH) if MANIFEST_PATH.exists() else {}
+    if all(path.exists() for path in SOURCE_MANIFESTS.values()):
+        source_manifests = {
             stage: {
                 "path": path.relative_to(ROOT).as_posix(),
                 "manifest_contract_id": _read_json(path).get("manifest_contract_id"),
             }
             for stage, path in SOURCE_MANIFESTS.items()
-        },
+        }
+        coverage_by_stage = {
+            stage: sum(1 for item in configurations if item["stage"] == stage)
+            for stage in sorted({item["stage"] for item in configurations})
+        }
+    else:
+        source_manifests = existing_doc.get("source_manifests", {})
+        coverage_by_stage = existing_doc.get("coverage_by_stage", {})
+    document: dict[str, Any] = {
+        "manifest_contract_id": CONTRACT_ID,
+        "estimand_contract_id": ESTIMAND_CONTRACT_ID,
+        "evaluation_protocol_id": CONFIRMATORY_PROTOCOL_ID,
+        "source_manifests": source_manifests,
         "replication_seeds": list(SEEDS),
         "n_replications": len(SEEDS),
         "n_configurations": len(configurations),
-        "coverage_by_stage": {
-            stage: sum(1 for item in configurations if item["stage"] == stage)
-            for stage in sorted({item["stage"] for item in configurations})
-        },
+        "coverage_by_stage": coverage_by_stage,
         "n_test": N_TEST,
         "test_seed_offset": TEST_SEED_OFFSET,
         "training_functionals": list(TRAINING_FUNCTIONALS),
@@ -489,6 +513,14 @@ def summarize(_: argparse.Namespace) -> int:
     document = load_manifest()
     frame = pd.DataFrame(_read_rows(MERGED_PATH))
     frame = frame[(frame.status == "ok") & frame.value.notna()].copy()
+    # Law and barycenter metrics are stored per treatment arm.  Average the
+    # arms within each replication first so one row per seed reaches the
+    # seed-level aggregation, matching the sensitivity archive's cell metrics.
+    frame = frame.groupby(
+        ["grid", "dgp", "n_train", "n_grid", "n_particles", "method",
+         "metric", "target_id", "detail", "seed"],
+        dropna=False, as_index=False,
+    )["value"].mean()
     keys = ["grid", "dgp", "n_train", "n_grid", "n_particles", "method", "metric", "target_id", "detail"]
     records = []
     for key, group in frame.groupby(keys, dropna=False):

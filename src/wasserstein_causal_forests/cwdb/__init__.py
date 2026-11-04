@@ -6,6 +6,7 @@ from .cross_fitted import (
     CrossFittedCWDBRegressor,
     stratified_folds,
 )
+from .dr_calibration import DRCalibratedCWDB, FunctionalAIPW, aipw_scores, hajek_bin_means
 from .energy import (
     EnergyScoreComponents,
     empirical_energy_risk,
@@ -22,7 +23,11 @@ __all__ = [
     "ArmSharedTreeRegressor",
     "CWDBRegressor",
     "CrossFittedCWDBRegressor",
+    "DRCalibratedCWDB",
     "EnergyScoreComponents",
+    "FunctionalAIPW",
+    "aipw_scores",
+    "hajek_bin_means",
     "stratified_folds",
     "empirical_energy_risk",
     "energy_gradient",
